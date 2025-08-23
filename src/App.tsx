@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +9,9 @@ import Index from "./pages/Index";
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
 import LessonView from "./pages/LessonView";
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminShell from "./components/admin/AdminShell";
@@ -30,6 +34,11 @@ const App = () => (
             <Route path="/courses" element={<><Navigation /><Courses /></>} />
             <Route path="/courses/:moduleId" element={<><Navigation /><CourseDetail /></>} />
             <Route path="/lesson/:lessonId" element={<><Navigation /><LessonView /></>} />
+            
+            {/* Authentication Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/profile" element={<Profile />} />
             
             {/* Admin Routes */}
             <Route path="/admin/*" element={
