@@ -34,8 +34,8 @@ const lessonSchema = z.object({
   chapter_id: z.string().min(1, 'יש לבחור פרק'),
   order: z.number().min(0, 'מספר הסדר חייב להיות 0 או יותר'),
   status: z.enum(['draft', 'active', 'archived']).default('draft'),
-  durationSec: z.number().optional(),
-  richText: z.string().optional(),
+  duration_sec: z.number().optional(),
+  rich_text: z.string().optional(),
 });
 
 type LessonFormData = z.infer<typeof lessonSchema>;
@@ -65,8 +65,8 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
       chapter_id: lesson?.chapterId || '',
       order: lesson?.order || 0,
       status: lesson?.status || 'draft',
-      durationSec: lesson?.durationSec,
-      richText: lesson?.richText || '',
+      duration_sec: lesson?.durationSec,
+      rich_text: lesson?.richText || '',
     },
   });
 
@@ -248,7 +248,7 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
             <TabsContent value="content" className="space-y-4">
               <FormField
                 control={form.control}
-                name="richText"
+                name="rich_text"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>תוכן נוסף</FormLabel>
@@ -270,7 +270,7 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
 
               <FormField
                 control={form.control}
-                name="durationSec"
+                name="duration_sec"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>משך השיעור (שניות)</FormLabel>

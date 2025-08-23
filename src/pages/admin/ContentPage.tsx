@@ -185,13 +185,10 @@ const ContentPage = () => {
 
   // Lesson handlers
   const handleCreateLesson = (data: any) => {
-    // Transform form data to match database schema
+    // Form data already uses snake_case field names, so we can pass it directly
     const lessonData = {
       ...data,
-      chapter_id: data.chapter_id || selectedChapter,
-      order_index: data.order || 0,
-      duration_sec: data.durationSec,
-      rich_text: data.richText
+      order_index: data.order || 0
     };
     
     createLesson.mutate(lessonData, {
@@ -203,6 +200,8 @@ const ContentPage = () => {
         console.error('שגיאה ביצירת השיעור:', error);
         if (error.message.includes('chapter_id')) {
           toast.error('שגיאה ביצירת שיעור – חסר שדה פרק (chapter_id)');
+        } else if (error.message.includes('duration_sec')) {
+          toast.error('שגיאה ביצירת שיעור – שגיאה בשדה משך השיעור (duration_sec)');
         }
       }
     });
