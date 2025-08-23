@@ -1,12 +1,17 @@
 
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Form,
   FormControl,
@@ -16,18 +21,29 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { AdminModule } from '@/types/admin';
 
 const moduleSchema = z.object({
-  title: z.string().min(1, 'כותרת המודול נדרשת'),
+  title: z.string().min(2, 'כותרת המודול חייבת להכיל לפחות 2 תווים').max(120, 'כותרת המודול לא יכולה להכיל יותר מ-120 תווים'),
   description: z.string().min(1, 'תיאור המודול נדרש'),
-  isPublished: z.boolean().default(false),
+  status: z.enum(['draft', 'active', 'archived']).default('draft'),
+  order_index: z.number().min(0, 'מספר הסדר חייב להיות 0 או יותר').optional(),
 });
 
 type ModuleFormData = z.infer<typeof moduleSchema>;
 
+interface Module {
+  id: string;
+  title: string;
+  description: string;
+  status: 'draft' | 'active' | 'archived';
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+  published_at?: string;
+}
+
 interface ModuleFormProps {
-  module?: AdminModule;
+  module?: Module;
   onSubmit: (data: ModuleFormData) => void;
   onCancel: () => void;
   isLoading?: boolean;
@@ -39,7 +55,8 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading }: ModuleFormProps) 
     defaultValues: {
       title: module?.title || '',
       description: module?.description || '',
-      isPublished: module?.status === 'active' || false,
+      status: module?.status || 'draft',
+      order_index: module?.order_index || 0,
     },
   });
 
@@ -74,7 +91,7 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading }: ModuleFormProps) 
                   />
                 </FormControl>
                 <FormDescription>
-                  כותרת ברורה ותיאורית למודול הלימוד
+                  כותרת ברורה ותיאורית למודול הלימוד (2-120 תווים)
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -105,22 +122,53 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading }: ModuleFormProps) 
 
           <FormField
             control={form.control}
-            name="isPublished"
+            name="order_index"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <FormLabel className="text-base">פרסום המודול</FormLabel>
-                  <FormDescription>
-                    האם המודול יהיה זמין לתלמידים או יישאר כטיוטה
-                  </FormDescription>
-                </div>
+              <FormItem>
+                <FormLabel>מספר סדר</FormLabel>
                 <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
+                  <Input
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    {...field}
+                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                     disabled={isLoading}
                   />
                 </FormControl>
+                <FormDescription>
+                  קביעת סדר המודול באתר (0 = ראשון)
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <FormLabel className="text-base">סטטוס המודול</FormLabel>
+                  <FormDescription>
+                    {field.value === 'active' && '✓ המודול יהיה זמין לתلמידים'}
+                    {field.value === 'draft' && 'המודול נשמר כטיוטה'}
+                    {field.value === 'archived' && 'המודול בארכיון'}
+                  </FormDescription>
+                </div>
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                  <FormControl>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="draft">טיוטה</SelectItem>
+                    <SelectItem value="active">פעיל</SelectItem>
+                    <SelectItem value="archived">בארכיון</SelectItem>
+                  </SelectContent>
+                </Select>
               </FormItem>
             )}
           />

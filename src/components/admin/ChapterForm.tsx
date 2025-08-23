@@ -1,12 +1,10 @@
 
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -23,21 +21,38 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { AdminChapter, AdminModule } from '@/types/admin';
 
 const chapterSchema = z.object({
   title: z.string().min(2, 'כותרת הפרק חייבת להכיל לפחות 2 תווים').max(120, 'כותרת הפרק לא יכולה להכיל יותר מ-120 תווים'),
   description: z.string().optional(),
-  moduleId: z.string().min(1, 'יש לבחור מודול'),
-  order: z.number().min(0, 'מספר הסדר חייב להיות 0 או יותר'),
+  module_id: z.string().min(1, 'יש לבחור מודול'),
+  order_index: z.number().min(0, 'מספר הסדר חייב להיות 0 או יותר'),
   status: z.enum(['draft', 'active', 'archived']).default('draft'),
 });
 
 type ChapterFormData = z.infer<typeof chapterSchema>;
 
+interface Module {
+  id: string;
+  title: string;
+  status: 'draft' | 'active' | 'archived';
+}
+
+interface Chapter {
+  id: string;
+  module_id: string;
+  title: string;
+  description?: string;
+  order_index: number;
+  status: 'draft' | 'active' | 'archived';
+  created_at: string;
+  updated_at: string;
+  published_at?: string;
+}
+
 interface ChapterFormProps {
-  chapter?: AdminChapter;
-  modules: AdminModule[];
+  chapter?: Chapter;
+  modules: Module[];
   onSubmit: (data: ChapterFormData) => void;
   onCancel: () => void;
   isLoading?: boolean;
@@ -49,8 +64,8 @@ const ChapterForm = ({ chapter, modules, onSubmit, onCancel, isLoading }: Chapte
     defaultValues: {
       title: chapter?.title || '',
       description: chapter?.description || '',
-      moduleId: chapter?.moduleId || '',
-      order: chapter?.order || 0,
+      module_id: chapter?.module_id || '',
+      order_index: chapter?.order_index || 0,
       status: chapter?.status || 'draft',
     },
   });
@@ -59,7 +74,7 @@ const ChapterForm = ({ chapter, modules, onSubmit, onCancel, isLoading }: Chapte
     onSubmit(data);
   };
 
-  const selectedModuleStatus = modules.find(m => m.id === form.watch('moduleId'))?.status;
+  const selectedModuleStatus = modules.find(m => m.id === form.watch('module_id'))?.status;
   const canPublish = selectedModuleStatus === 'active';
 
   return (
@@ -77,7 +92,7 @@ const ChapterForm = ({ chapter, modules, onSubmit, onCancel, isLoading }: Chapte
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           <FormField
             control={form.control}
-            name="moduleId"
+            name="module_id"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>מודול האב *</FormLabel>
@@ -148,7 +163,7 @@ const ChapterForm = ({ chapter, modules, onSubmit, onCancel, isLoading }: Chapte
 
           <FormField
             control={form.control}
-            name="order"
+            name="order_index"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>מספר סדר</FormLabel>
@@ -179,12 +194,12 @@ const ChapterForm = ({ chapter, modules, onSubmit, onCancel, isLoading }: Chapte
                   <FormLabel className="text-base">סטטוס הפרק</FormLabel>
                   <FormDescription>
                     {!canPublish && field.value === 'active' && (
-                      <span className="text-warning">
+                      <span className="text-orange-600">
                         ⚠️ המודול האב חייב להיות פעיל כדי לפרסם פרק
                       </span>
                     )}
                     {canPublish && field.value === 'active' && (
-                      <span className="text-success">
+                      <span className="text-green-600">
                         ✓ הפרק יהיה זמין לתלמידים
                       </span>
                     )}
