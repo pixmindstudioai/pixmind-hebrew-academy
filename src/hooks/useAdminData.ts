@@ -270,23 +270,33 @@ export const useCreateLesson = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (lessonData: {
-      chapter_id: string;
-      title: string;
-      description: string;
-      status: 'draft' | 'active' | 'archived';
-      order_index?: number;
-      video_provider?: 'youtube' | 'vimeo' | 'file';
-      video_url?: string;
-      video_id?: string;
-      video_start_time?: number;
-      video_thumbnail?: string;
-      rich_text?: string;
-      duration_sec?: number;
-    }) => {
+    mutationFn: async (lessonData: any) => {
+      // Ensure required fields are present
+      if (!lessonData.chapter_id || !lessonData.title || !lessonData.description) {
+        throw new Error('חסרים שדות חובה: פרק, כותרת ותיאור');
+      }
+
+      // Extract only the fields that belong to the lessons table
+      const cleanLessonData: any = {
+        chapter_id: lessonData.chapter_id,
+        title: lessonData.title,
+        description: lessonData.description,
+        status: lessonData.status || 'draft',
+        order_index: lessonData.order_index || 0
+      };
+
+      // Add optional video fields only if they exist
+      if (lessonData.video_provider) cleanLessonData.video_provider = lessonData.video_provider;
+      if (lessonData.video_url) cleanLessonData.video_url = lessonData.video_url;
+      if (lessonData.video_id) cleanLessonData.video_id = lessonData.video_id;
+      if (lessonData.video_start_time !== undefined) cleanLessonData.video_start_time = lessonData.video_start_time;
+      if (lessonData.video_thumbnail) cleanLessonData.video_thumbnail = lessonData.video_thumbnail;
+      if (lessonData.rich_text) cleanLessonData.rich_text = lessonData.rich_text;
+      if (lessonData.duration_sec !== undefined) cleanLessonData.duration_sec = lessonData.duration_sec;
+
       const { data, error } = await supabase
         .from('lessons')
-        .insert([lessonData])
+        .insert([cleanLessonData])
         .select()
         .single();
       
