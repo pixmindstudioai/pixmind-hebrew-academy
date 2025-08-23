@@ -601,6 +601,7 @@ export type Database = {
       content_status: "draft" | "active" | "archived"
       embed_type: "link" | "iframe"
       moderation_action: "approve" | "hide" | "flag" | "restore"
+      moderation_action_type: "approve" | "hide" | "flag" | "restore"
       user_role: "student" | "admin" | "moderator"
       video_provider: "youtube" | "vimeo" | "file"
     }
@@ -735,6 +736,7 @@ export const Constants = {
       content_status: ["draft", "active", "archived"],
       embed_type: ["link", "iframe"],
       moderation_action: ["approve", "hide", "flag", "restore"],
+      moderation_action_type: ["approve", "hide", "flag", "restore"],
       user_role: ["student", "admin", "moderator"],
       video_provider: ["youtube", "vimeo", "file"],
     },
