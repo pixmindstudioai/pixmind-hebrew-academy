@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import VideoPlayer from "@/components/VideoPlayer";
+import EmbeddedVideoPlayer from "@/components/EmbeddedVideoPlayer";
 import CommentSection from "@/components/CommentSection";
 import ProgressBadge from "@/components/ProgressBadge";
 import { 
@@ -123,17 +123,11 @@ const LessonView = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Video Player */}
-            {lesson.video_url ? (
-              <VideoPlayer
-                src={lesson.video_url}
-                title={lesson.title}
-                className="w-full"
-              />
-            ) : (
-              <div className="w-full aspect-video bg-muted rounded-lg flex items-center justify-center">
-                <p className="text-muted-foreground">אין וידאו זמין לשיעור זה</p>
-              </div>
-            )}
+            <EmbeddedVideoPlayer
+              videoUrl={lesson.video_url}
+              title={lesson.title}
+              className="w-full"
+            />
 
             {/* Lesson Info */}
             <Card className="glass-card">
