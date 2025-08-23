@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAdminRole } from './useAdminRole';
 
 export interface UserModuleAccess {
   id: string;
@@ -25,8 +26,10 @@ export interface CreateUserAccessRequest {
   notes?: string;
 }
 
-// Hook to get user access records by email
+// Hook to get user access records by email (admin only)
 export const useUserAccessByEmail = (email: string) => {
+  const { data: adminCheck } = useAdminRole();
+  
   return useQuery({
     queryKey: ['user-access', email],
     queryFn: async () => {
@@ -41,7 +44,7 @@ export const useUserAccessByEmail = (email: string) => {
       if (error) throw error;
       return data as UserModuleAccess[];
     },
-    enabled: !!email,
+    enabled: !!email && adminCheck?.isAdmin,
   });
 };
 
@@ -116,18 +119,29 @@ export const useUserAccessibleModules = () => {
   });
 };
 
-// Hook to create user access
+// Hook to create user access (admin only)
 export const useCreateUserAccess = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { data: adminCheck } = useAdminRole();
 
   return useMutation({
     mutationFn: async (accessData: CreateUserAccessRequest) => {
+      if (!adminCheck?.isAdmin) {
+        throw new Error('אין הרשאה לביצוע פעולה זו');
+      }
+
+      // Normalize email
+      const normalizedEmail = accessData.user_email.toLowerCase().trim();
+      
       const { data, error } = await supabase
         .from('user_module_access')
-        .insert({
+        .upsert({
           ...accessData,
-          user_email: accessData.user_email.toLowerCase(),
+          user_email: normalizedEmail,
+          granted_by: adminCheck.profile?.email || 'admin-ui'
+        }, { 
+          onConflict: 'user_email,module_id'
         })
         .select()
         .single();
@@ -139,26 +153,31 @@ export const useCreateUserAccess = () => {
       queryClient.invalidateQueries({ queryKey: ['user-access'] });
       toast({
         title: 'הצלחה',
-        description: 'הרשאות המשתמש נוצרו בהצלחה',
+        description: 'גישה עודכנה בהצלחה',
       });
     },
     onError: (error: any) => {
       toast({
         title: 'שגיאה',
-        description: error.message || 'אירעה שגיאה ביצירת הרשאות המשתמש',
+        description: `שגיאה בעדכון גישה: ${error.message}`,
         variant: 'destructive',
       });
     },
   });
 };
 
-// Hook to update user access
+// Hook to update user access (admin only)
 export const useUpdateUserAccess = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { data: adminCheck } = useAdminRole();
 
   return useMutation({
     mutationFn: async ({ id, ...updateData }: Partial<UserModuleAccess> & { id: string }) => {
+      if (!adminCheck?.isAdmin) {
+        throw new Error('אין הרשאה לביצוע פעולה זו');
+      }
+
       const { data, error } = await supabase
         .from('user_module_access')
         .update(updateData)
@@ -173,26 +192,31 @@ export const useUpdateUserAccess = () => {
       queryClient.invalidateQueries({ queryKey: ['user-access'] });
       toast({
         title: 'הצלחה',
-        description: 'הרשאות המשתמש עודכנו בהצלחה',
+        description: 'גישה עודכנה בהצלחה',
       });
     },
     onError: (error: any) => {
       toast({
         title: 'שגיאה',
-        description: error.message || 'אירעה שגיאה בעדכון הרשאות המשתמש',
+        description: `שגיאה בעדכון גישה: ${error.message}`,
         variant: 'destructive',
       });
     },
   });
 };
 
-// Hook to delete user access
+// Hook to delete user access (admin only)
 export const useDeleteUserAccess = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { data: adminCheck } = useAdminRole();
 
   return useMutation({
     mutationFn: async (accessId: string) => {
+      if (!adminCheck?.isAdmin) {
+        throw new Error('אין הרשאה לביצוע פעולה זו');
+      }
+
       const { error } = await supabase
         .from('user_module_access')
         .delete()
@@ -204,23 +228,24 @@ export const useDeleteUserAccess = () => {
       queryClient.invalidateQueries({ queryKey: ['user-access'] });
       toast({
         title: 'הצלחה',
-        description: 'הרשאות המשתמש נמחקו בהצלחה',
+        description: 'הרשאה נמחקה בהצלחה',
       });
     },
     onError: (error: any) => {
       toast({
         title: 'שגיאה',
-        description: error.message || 'אירעה שגיאה במחיקת הרשאות המשתמש',
+        description: `שגיאה במחיקת הרשאה: ${error.message}`,
         variant: 'destructive',
       });
     },
   });
 };
 
-// Hook to bulk grant access to multiple users
+// Hook to bulk grant access to multiple users (admin only)
 export const useBulkGrantAccess = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { data: adminCheck } = useAdminRole();
 
   return useMutation({
     mutationFn: async ({ 
@@ -236,11 +261,15 @@ export const useBulkGrantAccess = () => {
       expiresAt?: string;
       notes?: string;
     }) => {
+      if (!adminCheck?.isAdmin) {
+        throw new Error('אין הרשאה לביצוע פעולה זו');
+      }
+
       const accessRecords = emails.flatMap(email =>
         moduleIds.map(moduleId => ({
-          user_email: email.toLowerCase(),
+          user_email: email.toLowerCase().trim(),
           module_id: moduleId,
-          granted_by: grantedBy,
+          granted_by: adminCheck.profile?.email || 'admin-ui',
           expires_at: expiresAt,
           notes,
         }))
@@ -261,13 +290,13 @@ export const useBulkGrantAccess = () => {
       queryClient.invalidateQueries({ queryKey: ['user-access'] });
       toast({
         title: 'הצלחה',
-        description: `הרשאות נוצרו בהצלחה עבור ${data?.length || 0} רשומות`,
+        description: `גישה עודכנה בהצלחה עבור ${data?.length || 0} רשומות`,
       });
     },
     onError: (error: any) => {
       toast({
         title: 'שגיאה',
-        description: error.message || 'אירעה שגיאה במתן הרשאות המשתמשים',
+        description: `שגיאה במתן הרשאות: ${error.message}`,
         variant: 'destructive',
       });
     },

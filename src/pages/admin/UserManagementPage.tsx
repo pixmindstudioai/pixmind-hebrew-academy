@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, UserPlus, Mail, Calendar, FileText, Trash2 } from 'lucide-react';
+import { Search, UserPlus, Mail, Calendar, FileText, Trash2, Shield, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -9,8 +9,10 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useUserAccessByEmail, useCreateUserAccess, useDeleteUserAccess, useBulkGrantAccess } from '@/hooks/useUserAccess';
 import { useModules } from '@/hooks/useContentData';
+import { useAdminRole } from '@/hooks/useAdminRole';
 import { format } from 'date-fns';
 
 const UserManagementPage = () => {
@@ -22,12 +24,50 @@ const UserManagementPage = () => {
   const [bulkEmails, setBulkEmails] = useState('');
   const [showBulkGrant, setShowBulkGrant] = useState(false);
 
+  const { data: adminCheck, isLoading: isLoadingAdmin } = useAdminRole();
   const { data: userAccess = [], isLoading: isLoadingAccess } = useUserAccessByEmail(selectedEmail);
   const { data: modules = [], isLoading: isLoadingModules } = useModules('all');
   
   const createAccess = useCreateUserAccess();
   const deleteAccess = useDeleteUserAccess();
   const bulkGrant = useBulkGrantAccess();
+
+  // Show loading while checking admin status
+  if (isLoadingAdmin) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">בודק הרשאות...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Block access for non-admins
+  if (!adminCheck?.isAdmin) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Card className="w-full max-w-md mx-4">
+          <CardHeader className="text-center">
+            <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <CardTitle>גישה מוגבלת</CardTitle>
+            <CardDescription>
+              אין לך הרשאה לצפות בעמוד זה
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                עמוד זה זמין רק למנהלי מערכת
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const handleSearch = () => {
     if (searchEmail.trim()) {
@@ -96,6 +136,14 @@ const UserManagementPage = () => {
         <p className="text-muted-foreground">
           מנהל הרשאות גישה למודולים עבור משתמשים לפי כתובת אימייל
         </p>
+        
+        <Alert className="mt-4">
+          <Shield className="h-4 w-4" />
+          <AlertDescription>
+            ברוך הבא, {adminCheck.profile?.full_name || adminCheck.profile?.email}! 
+            יש לך הרשאות מנהל מערכת.
+          </AlertDescription>
+        </Alert>
       </div>
 
       {/* Search Section */}
@@ -211,7 +259,7 @@ const UserManagementPage = () => {
                 onClick={handleBulkGrant}
                 disabled={!bulkEmails.trim() || selectedModules.length === 0 || bulkGrant.isPending}
               >
-                מתן הרשאות
+                {bulkGrant.isPending ? 'מעניק הרשאות...' : 'מתן הרשאות'}
               </Button>
             </div>
           </CardContent>
@@ -231,7 +279,10 @@ const UserManagementPage = () => {
             </CardHeader>
             <CardContent>
               {isLoadingAccess ? (
-                <p>טוען...</p>
+                <div className="text-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
+                  <p className="text-sm text-muted-foreground">טוען...</p>
+                </div>
               ) : userAccess.length === 0 ? (
                 <p className="text-muted-foreground">לא נמצאו הרשאות למשתמש זה</p>
               ) : (
@@ -259,6 +310,7 @@ const UserManagementPage = () => {
                         size="sm"
                         onClick={() => handleDeleteAccess(access.id)}
                         className="text-destructive hover:text-destructive"
+                        disabled={deleteAccess.isPending}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
