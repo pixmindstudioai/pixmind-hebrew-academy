@@ -185,23 +185,40 @@ const ContentPage = () => {
 
   // Lesson handlers
   const handleCreateLesson = (data: any) => {
-    // Form data already uses snake_case field names, so we can pass it directly
-    const lessonData = {
-      ...data,
-      order_index: data.order || 0
+    // Extract only the fields that belong to the lessons table
+    const { embeds, attachments, video, ...lessonData } = data;
+    
+    // Prepare lesson data for database insertion (only lessons table fields)
+    const cleanLessonData = {
+      chapter_id: lessonData.chapter_id,
+      title: lessonData.title,
+      description: lessonData.description,
+      status: lessonData.status,
+      order_index: lessonData.order || 0,
+      duration_sec: lessonData.duration_sec,
+      rich_text: lessonData.rich_text,
+      // Video fields
+      video_provider: video?.provider,
+      video_url: video?.url,
+      video_id: video?.videoId,
+      video_start_time: video?.startTime,
+      video_thumbnail: video?.thumbnail
     };
     
-    createLesson.mutate(lessonData, {
+    createLesson.mutate(cleanLessonData, {
       onSuccess: () => {
         setLessonDialogOpen(false);
         setEditingLesson(null);
+        // TODO: Handle embeds and attachments creation after lesson is created
       },
       onError: (error) => {
         console.error('שגיאה ביצירת השיעור:', error);
         if (error.message.includes('chapter_id')) {
           toast.error('שגיאה ביצירת שיעור – חסר שדה פרק (chapter_id)');
-        } else if (error.message.includes('duration_sec')) {
-          toast.error('שגיאה ביצירת שיעור – שגיאה בשדה משך השיעור (duration_sec)');
+        } else if (error.message.includes('embeds')) {
+          toast.error('שגיאה ביצירת שיעור – שגיאה בשדה קישורים (embeds)');
+        } else if (error.message.includes('attachments')) {
+          toast.error('שגיאה ביצירת שיעור – שגיאה בשדה קבצים (attachments)');
         }
       }
     });
