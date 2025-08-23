@@ -33,21 +33,25 @@ export interface AdminModule {
   id: string;
   title: string;
   description: string;
+  order: number;
+  status: 'draft' | 'active' | 'archived';
   chapters: AdminChapter[];
   createdAt: Date;
   updatedAt: Date;
-  isPublished: boolean;
+  publishedAt?: Date;
 }
 
 export interface AdminChapter {
   id: string;
   moduleId: string;
   title: string;
-  description: string;
+  description?: string;
   order: number;
+  status: 'draft' | 'active' | 'archived';
   lessons: AdminLesson[];
   createdAt: Date;
   updatedAt: Date;
+  publishedAt?: Date;
 }
 
 export interface AdminLesson {
@@ -55,12 +59,32 @@ export interface AdminLesson {
   chapterId: string;
   title: string;
   description: string;
-  videoUrl?: string;
   order: number;
+  status: 'draft' | 'active' | 'archived';
+  video?: LessonVideo;
+  embeds: LessonEmbed[];
+  richText?: string;
   attachments: LessonAttachment[];
+  durationSec?: number;
   createdAt: Date;
   updatedAt: Date;
-  isPublished: boolean;
+  publishedAt?: Date;
+}
+
+export interface LessonVideo {
+  provider: 'youtube' | 'vimeo' | 'file';
+  url: string;
+  videoId?: string;
+  startTime?: number;
+  thumbnail?: string;
+}
+
+export interface LessonEmbed {
+  id: string;
+  type: 'link' | 'iframe';
+  title?: string;
+  url: string;
+  description?: string;
 }
 
 export interface LessonAttachment {
@@ -68,9 +92,20 @@ export interface LessonAttachment {
   lessonId: string;
   name: string;
   url: string;
-  type: string;
+  mime: string;
   size: number;
+  kind: 'pdf' | 'docx' | 'xlsx' | 'pptx' | 'zip' | 'image' | 'other';
   uploadedAt: Date;
+}
+
+export interface PublishEvent {
+  id: string;
+  entityType: 'module' | 'chapter' | 'lesson';
+  entityId: string;
+  action: 'publish' | 'unpublish';
+  scheduledAt?: Date;
+  executedAt?: Date;
+  createdAt: Date;
 }
 
 export interface AdminSettings {
@@ -81,4 +116,16 @@ export interface AdminSettings {
   secondaryColor: string;
   locale: string;
   direction: 'ltr' | 'rtl';
+  uploadMaxSize: number;
+  allowedMimeTypes: string[];
+}
+
+export interface AdminAuditLog {
+  id: string;
+  adminId: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  changes?: Record<string, any>;
+  timestamp: Date;
 }
