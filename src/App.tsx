@@ -18,6 +18,8 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminShell from "./components/admin/AdminShell";
 import ModerationPage from "./pages/admin/ModerationPage";
 import ContentPage from "./pages/admin/ContentPage";
+import UserManagementPage from "./pages/admin/UserManagementPage";
+import ModerationPage from "./pages/admin/ModerationPage";
 import SettingsPage from "./pages/admin/SettingsPage";
 
 const queryClient = new QueryClient();
@@ -51,6 +53,9 @@ const App = () => (
                 </Route>
                 <Route path="content" element={<AdminShell />}>
                   <Route index element={<ContentPage />} />
+                </Route>
+                <Route path="users" element={<AdminShell />}>
+                  <Route index element={<UserManagementPage />} />
                 </Route>
                 <Route path="settings" element={<AdminShell />}>
                   <Route index element={<SettingsPage />} />

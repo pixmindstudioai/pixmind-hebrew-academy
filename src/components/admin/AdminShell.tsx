@@ -8,7 +8,8 @@ import {
   BookOpen, 
   Settings as SettingsIcon,
   LogOut,
-  Shield
+  Shield,
+  Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -31,6 +32,12 @@ const AdminShell = () => {
       label: 'ניהול תוכן',
       icon: BookOpen,
       description: 'יצירה ועריכה של מודולים, פרקים ושיעורים'
+    },
+    {
+      href: '/admin/users',
+      label: 'ניהול משתמשים',
+      icon: Users,
+      description: 'מנהל הרשאות גישה למודולים עבור משתמשים'
     },
     {
       href: '/admin/settings',

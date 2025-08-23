@@ -534,6 +534,44 @@ export type Database = {
         }
         Relationships: []
       }
+      user_module_access: {
+        Row: {
+          expires_at: string | null
+          granted_at: string
+          granted_by: string | null
+          id: string
+          module_id: string
+          notes: string | null
+          user_email: string
+        }
+        Insert: {
+          expires_at?: string | null
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          module_id: string
+          notes?: string | null
+          user_email: string
+        }
+        Update: {
+          expires_at?: string | null
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          module_id?: string
+          notes?: string | null
+          user_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_module_access_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_progress: {
         Row: {
           completed: boolean
