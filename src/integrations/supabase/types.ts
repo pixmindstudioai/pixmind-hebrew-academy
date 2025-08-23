@@ -666,6 +666,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: boolean
       }
+      set_current_user_admin: {
+        Args: { secret_code: string }
+        Returns: boolean
+      }
     }
     Enums: {
       attachment_kind:
