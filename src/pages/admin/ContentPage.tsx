@@ -185,41 +185,20 @@ const ContentPage = () => {
 
   // Lesson handlers
   const handleCreateLesson = (data: any) => {
-    // Extract only the fields that belong to the lessons table
-    const { embeds, attachments, video, ...lessonData } = data;
-    
-    // Prepare lesson data for database insertion (only lessons table fields)
-    const cleanLessonData = {
-      chapter_id: lessonData.chapter_id,
-      title: lessonData.title,
-      description: lessonData.description,
-      status: lessonData.status,
-      order_index: lessonData.order || 0,
-      duration_sec: lessonData.duration_sec,
-      rich_text: lessonData.rich_text,
-      // Video fields
-      video_provider: video?.provider,
-      video_url: video?.url,
-      video_id: video?.videoId,
-      video_start_time: video?.startTime,
-      video_thumbnail: video?.thumbnail
+    // Now that embeds and attachments are JSONB columns in lessons table,
+    // we can pass all data directly to the mutation
+    const lessonData = {
+      ...data,
+      order_index: data.order || 0
     };
     
-    createLesson.mutate(cleanLessonData, {
+    createLesson.mutate(lessonData, {
       onSuccess: () => {
         setLessonDialogOpen(false);
         setEditingLesson(null);
-        // TODO: Handle embeds and attachments creation after lesson is created
       },
       onError: (error) => {
         console.error('שגיאה ביצירת השיעור:', error);
-        if (error.message.includes('chapter_id')) {
-          toast.error('שגיאה ביצירת שיעור – חסר שדה פרק (chapter_id)');
-        } else if (error.message.includes('embeds')) {
-          toast.error('שגיאה ביצירת שיעור – שגיאה בשדה קישורים (embeds)');
-        } else if (error.message.includes('attachments')) {
-          toast.error('שגיאה ביצירת שיעור – שגיאה בשדה קבצים (attachments)');
-        }
       }
     });
   };

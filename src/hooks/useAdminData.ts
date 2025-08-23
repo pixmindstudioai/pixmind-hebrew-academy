@@ -285,7 +285,7 @@ export const useCreateLesson = () => {
         order_index: lessonData.order_index || 0
       };
 
-      // Add optional video fields only if they exist
+      // Add optional fields only if they exist
       if (lessonData.video_provider) cleanLessonData.video_provider = lessonData.video_provider;
       if (lessonData.video_url) cleanLessonData.video_url = lessonData.video_url;
       if (lessonData.video_id) cleanLessonData.video_id = lessonData.video_id;
@@ -293,6 +293,10 @@ export const useCreateLesson = () => {
       if (lessonData.video_thumbnail) cleanLessonData.video_thumbnail = lessonData.video_thumbnail;
       if (lessonData.rich_text) cleanLessonData.rich_text = lessonData.rich_text;
       if (lessonData.duration_sec !== undefined) cleanLessonData.duration_sec = lessonData.duration_sec;
+      
+      // Add JSONB fields
+      if (lessonData.embeds) cleanLessonData.embeds = lessonData.embeds;
+      if (lessonData.attachments) cleanLessonData.attachments = lessonData.attachments;
 
       const { data, error } = await supabase
         .from('lessons')

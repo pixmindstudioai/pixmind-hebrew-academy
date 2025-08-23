@@ -323,6 +323,7 @@ export type Database = {
           created_at: string
           description: string
           duration_sec: number | null
+          embeds: Json | null
           id: string
           order_index: number
           published_at: string | null
@@ -342,6 +343,7 @@ export type Database = {
           created_at?: string
           description: string
           duration_sec?: number | null
+          embeds?: Json | null
           id?: string
           order_index?: number
           published_at?: string | null
@@ -361,6 +363,7 @@ export type Database = {
           created_at?: string
           description?: string
           duration_sec?: number | null
+          embeds?: Json | null
           id?: string
           order_index?: number
           published_at?: string | null
