@@ -1,73 +1,224 @@
-# Welcome to your Lovable project
 
-## Project info
+# אקדמיית PixMind Studio - פלטפורמת למידה בעברית
 
-**URL**: https://lovable.dev/projects/74ee8049-573f-4c9a-8efe-a9d350d33fc4
+פלטפורמת למידה מתקדמת עם תמיכה מלאה בעברית וכיווניות RTL, כולל לוח בקרה מנהלים מקיף.
 
-## How can I edit this code?
+## תכונות עיקריות
 
-There are several ways of editing your application.
+### תכונות למידה
+- **ארכיטקטורה מודולרית**: מודולים → פרקים → שיעורים
+- **נגן וידאו מותאם אישית**: עיצוב בהתאמה אישית עם תמיכה נגישה
+- **מערכת תגובות**: תגובות מגובבות עם תשובות ואופציות מודרציה
+- **מעקב התקדמות**: מעקב התקדמות בזמן אמת בכל הרמות
+- **קבצים מצורפים**: הורדת חומרי לימוד נוספים
 
-**Use Lovable**
+### עיצוב ונגישות
+- **עיצוב מינימליסטי כהה**: נושא כהה עם גרדיאנטים כחולים
+- **תמיכה מלאה ב-RTL**: כיווניות מימין לשמאל לעברית
+- **עיצוב רספונסיבי**: תמיכה במחשב, טאבלט ומובייל
+- **נגישות**: ניווט מקלדת, ניגודיות גבוהה
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/74ee8049-573f-4c9a-8efe-a9d350d33fc4) and start prompting.
+### לוח בקרה מנהלים
+- **ניהול תגובות**: מודרציה, אישור והסתרת תגובות
+- **ניהול תוכן**: יצירה ועריכה של מודולים, פרקים ושיעורים
+- **הגדרות מערכת**: הגדרות כלליות וקונפיגורציה
+- **אבטחה**: הגנה בסיסית עם קוד גישה
 
-Changes made via Lovable will be committed automatically to this repo.
+## הגדרת הפיתוח
 
-**Use your preferred IDE**
+### דרישות מערכת
+- Node.js (גרסה 18 או חדשה יותר)
+- npm או yarn
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### התקנה
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+1. **שכפול הפרויקט**
+```bash
 git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
 cd <YOUR_PROJECT_NAME>
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+2. **התקנת תלויות**
+```bash
+npm install
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+3. **הגדרת משתני סביבה**
+```bash
+cp .env.example .env
+```
+
+ערוך את קובץ `.env` והגדר את המשתנים הבאים:
+
+```env
+# הגדרות לוח בקרה מנהלים
+VITE_ADMIN_DASHBOARD_ENABLED=true
+VITE_ADMIN_PASSCODE=admin123
+
+# הגדרות לוקליזציה
+VITE_DEFAULT_LOCALE=he
+VITE_APP_DIR=rtl
+
+# הגדרות Supabase
+VITE_SUPABASE_PROJECT_ID=your_project_id
+VITE_SUPABASE_PUBLISHABLE_KEY=your_public_key
+VITE_SUPABASE_URL=your_project_url
+```
+
+4. **הפעלת שרת הפיתוח**
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+5. **גישה לאפליקציה**
+- אתר ראשי: `http://localhost:5173`
+- לוח בקרה מנהלים: `http://localhost:5173/admin`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## הגדרות RTL ועברית
 
-**Use GitHub Codespaces**
+### HTML וכיווניות
+האפליקציה מוגדרת עם:
+```html
+<html lang="he" dir="rtl">
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### CSS ו-Tailwind
+- משתמשת ב-semantic tokens מוגדרים ב-`index.css`
+- תמיכה בכיווניות RTL עם Tailwind CSS
+- צבעים בפורמט HSL בלבד
 
-## What technologies are used for this project?
+### רכיבי UI
+- כל הרכיבים תומכים ב-RTL
+- ניווט בצד ימין
+- drawer נפתח מימין
+- פירורי לחם בכיוון נכון
 
-This project is built with:
+## לוח בקרה מנהלים
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### גישה ללוח הבקרה
+1. נווט ל-`/admin`
+2. הזן את קוד הגישה (ברירת מחדל: `admin123`)
+3. קבל גישה לכל הפונקציות הניהוליות
 
-## How can I deploy this project?
+### פונקציות ניהול
 
-Simply open [Lovable](https://lovable.dev/projects/74ee8049-573f-4c9a-8efe-a9d350d33fc4) and click on Share -> Publish.
+#### ניהול תגובות
+- צפייה בכל התגובות והדיווחים
+- אישור, הסתרה ודיווח על תגובות
+- צפייה בהיסטוריית מודרציה
+- פעולות בכמות גדולה
 
-## Can I connect a custom domain to my Lovable project?
+#### ניהול תוכן
+- יצירה ועריכה של מודולים
+- ליהול פרקים ושיעורים (בפיתוח)
+- העלאת קבצים מצורפים
+- פרסום וביטול פרסום תוכן
 
-Yes, you can!
+#### הגדרות מערכת
+- הגדרות אתר כלליות
+- הגדרות עיצוב וצבעים
+- הגדרות שפה וכיווניות
+- הפעלה/כיבוי לוח בקרה
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## מבנה הפרויקט
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+```
+src/
+├── components/
+│   ├── admin/              # רכיבי לוח בקרה
+│   │   ├── AdminShell.tsx  # מעטפת לוח הבקרה
+│   │   ├── AdminLogin.tsx  # מסך התחברות
+│   │   ├── ModerationTable.tsx  # טבלת מודרציה
+│   │   └── ...
+│   ├── ui/                 # רכיבי UI בסיסיים
+│   └── ...
+├── pages/
+│   ├── admin/              # עמודי לוח בקרה
+│   │   ├── AdminDashboard.tsx
+│   │   ├── ModerationPage.tsx
+│   │   ├── ContentPage.tsx
+│   │   └── SettingsPage.tsx
+│   └── ...
+├── hooks/
+│   ├── useAdminAuth.ts     # הוק אימות מנהלים
+│   └── ...
+├── types/
+│   ├── admin.ts            # טיפוסי TypeScript למנהלים
+│   └── ...
+└── ...
+```
+
+## טכנולוgiות
+
+- **React 18** - ספריית UI
+- **TypeScript** - שפת פיתוח
+- **Vite** - כלי build
+- **Tailwind CSS** - CSS framework
+- **shadcn/ui** - רכיבי UI
+- **React Router** - ניווט
+- **React Hook Form** - ניהול טפסים
+- **Zod** - ולידציה
+- **Supabase** - Backend (אופציונלי)
+
+## הוראות בנייה
+
+### בנייה לפרודקשן
+```bash
+npm run build
+```
+
+### הפעלה בפרודקשן
+```bash
+npm run preview
+```
+
+### בדיקת איכות קוד
+```bash
+npm run lint
+```
+
+## אבטחה וזהירות
+
+⚠️ **חשוב**: לוח הבקרה מוגן כרגע רק בקוד גישה פשוט. בפרודקשן יש להוסיף:
+- מערכת אימות מלאה
+- ניהול הרשאות מתקדם
+- הצפנת נתונים רגישים
+- מגבלות קצב (rate limiting)
+
+## תוכנית פיתוח עתידי
+
+### שלב 1 - אימות מלא
+- [ ] מערכת משתמשים מלאה
+- [ ] ניהול תפקידים והרשאות
+- [ ] SSO ואימות דו-שלבי
+
+### שלב 2 - בסיס נתונים
+- [ ] חיבור לבסיס נתונים אמיתי
+- [ ] מיגרציות וגיבויים
+- [ ] אופטימיזציה לביצועים
+
+### שלב 3 - תכונות מתקדמות
+- [ ] AI לקפיצות אוטומטיות
+- [ ] תמלול וידאו אוטומטי
+- [ ] תמיכה רב-לשונית
+- [ ] אנליטיקה מתקדמת
+
+## תמיכה ופתרון בעיות
+
+### בעיות נפוצות
+
+1. **שגיאות RTL**: ודא ש-`html[dir="rtl"]` מוגדר נכון
+2. **בעיות צבעים**: השתמש רק בצבעי semantic tokens
+3. **בעיות ניווט**: בדוק שהנתיבים מוגדרים נכון ב-App.tsx
+
+### לוגים ודיבוג
+- פתח כלי הפיתוח בדפדפן
+- בדוק את לוג הקונסולה לשגיאות
+- השתמש ב-React DevTools לדיבוג רכיבים
+
+### יצירת קשר
+לתמיכה טכנית או שאלות, פתח issue בפרויקט GitHub.
+
+## רישיון
+
+פרויקט זה מופץ תחת רישיון MIT.

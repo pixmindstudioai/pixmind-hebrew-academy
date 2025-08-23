@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +9,11 @@ import Index from "./pages/Index";
 import Courses from "./pages/Courses";
 import LessonView from "./pages/LessonView";
 import NotFound from "./pages/NotFound";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminShell from "./components/admin/AdminShell";
+import ModerationPage from "./pages/admin/ModerationPage";
+import ContentPage from "./pages/admin/ContentPage";
+import SettingsPage from "./pages/admin/SettingsPage";
 
 const queryClient = new QueryClient();
 
@@ -18,12 +24,29 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <div className="min-h-screen bg-background">
-          <Navigation />
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/courses" element={<Courses />} />
-            <Route path="/lesson/:lessonId" element={<LessonView />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            {/* Public Routes */}
+            <Route path="/" element={<><Navigation /><Index /></>} />
+            <Route path="/courses" element={<><Navigation /><Courses /></>} />
+            <Route path="/lesson/:lessonId" element={<><Navigation /><LessonView /></>} />
+            
+            {/* Admin Routes */}
+            <Route path="/admin/*" element={
+              <Routes>
+                <Route index element={<AdminDashboard />} />
+                <Route path="moderation" element={<AdminShell />}>
+                  <Route index element={<ModerationPage />} />
+                </Route>
+                <Route path="content" element={<AdminShell />}>
+                  <Route index element={<ContentPage />} />
+                </Route>
+                <Route path="settings" element={<AdminShell />}>
+                  <Route index element={<SettingsPage />} />
+                </Route>
+              </Routes>
+            } />
+            
+            {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
