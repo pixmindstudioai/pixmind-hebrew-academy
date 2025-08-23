@@ -16,7 +16,6 @@ import NotFound from "./pages/NotFound";
 import AdminLoginPage from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminShell from "./components/admin/AdminShell";
-import ModerationPage from "./pages/admin/ModerationPage";
 import ContentPage from "./pages/admin/ContentPage";
 import UserManagementPage from "./pages/admin/UserManagementPage";
 import ModerationPage from "./pages/admin/ModerationPage";

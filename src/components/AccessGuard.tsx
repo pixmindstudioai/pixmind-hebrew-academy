@@ -8,8 +8,8 @@ import { Lock, CreditCard } from 'lucide-react';
 interface AccessGuardProps {
   moduleId: string;
   moduleTitle?: string;
-  paymentUrl?: string;
-  isPaid?: boolean;
+  paymentUrl?: string | null;
+  isPaid?: boolean | null;
   children: React.ReactNode;
 }
 
@@ -35,7 +35,7 @@ const AccessGuard: React.FC<AccessGuardProps> = ({
     );
   }
 
-  // If module is not paid, allow access
+  // If module is not paid or isPaid is null/undefined, allow access
   if (!isPaid) {
     return <>{children}</>;
   }
