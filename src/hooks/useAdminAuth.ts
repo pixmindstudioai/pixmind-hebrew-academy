@@ -1,26 +1,47 @@
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const ADMIN_PASSCODE = import.meta.env.VITE_ADMIN_PASSCODE || 'admin123';
-const ADMIN_ENABLED = import.meta.env.VITE_ADMIN_DASHBOARD_ENABLED === 'true';
+// Admin access code - in production, this should be stored more securely
+const ADMIN_ACCESS_CODE = 'pixmind2025';
 
 export const useAdminAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isEnabled, setIsEnabled] = useState(ADMIN_ENABLED);
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const adminAuth = localStorage.getItem('admin_authenticated');
-    if (adminAuth === 'true') {
-      setIsAuthenticated(true);
+    // Check for existing admin session on mount
+    const adminAuth = localStorage.getItem('pixmind_admin_session');
+    const sessionExpiry = localStorage.getItem('pixmind_admin_expiry');
+    
+    if (adminAuth === 'true' && sessionExpiry) {
+      const now = Date.now();
+      const expiry = parseInt(sessionExpiry, 10);
+      
+      if (now < expiry) {
+        setIsAuthenticated(true);
+      } else {
+        // Session expired, clear it
+        localStorage.removeItem('pixmind_admin_session');
+        localStorage.removeItem('pixmind_admin_expiry');
+      }
     }
+    
+    setIsLoading(false);
   }, []);
 
-  const login = (passcode: string): boolean => {
-    if (!isEnabled) return false;
-    
-    if (passcode === ADMIN_PASSCODE) {
+  const login = (accessCode: string): boolean => {
+    if (accessCode === ADMIN_ACCESS_CODE) {
       setIsAuthenticated(true);
-      localStorage.setItem('admin_authenticated', 'true');
+      
+      // Set session with 24-hour expiry
+      const expiry = Date.now() + (24 * 60 * 60 * 1000);
+      localStorage.setItem('pixmind_admin_session', 'true');
+      localStorage.setItem('pixmind_admin_expiry', expiry.toString());
+      
+      // Redirect to admin dashboard
+      navigate('/admin');
       return true;
     }
     return false;
@@ -28,12 +49,14 @@ export const useAdminAuth = () => {
 
   const logout = () => {
     setIsAuthenticated(false);
-    localStorage.removeItem('admin_authenticated');
+    localStorage.removeItem('pixmind_admin_session');
+    localStorage.removeItem('pixmind_admin_expiry');
+    navigate('/');
   };
 
   return {
     isAuthenticated,
-    isEnabled,
+    isLoading,
     login,
     logout
   };

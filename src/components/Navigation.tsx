@@ -140,6 +140,14 @@ const Navigation = () => {
                 <Button variant="outline" size="sm" className="button-glow" asChild>
                   <Link to="/signup">הרשמה</Link>
                 </Button>
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  className="text-xs opacity-70 hover:opacity-100 transition-opacity" 
+                  asChild
+                >
+                  <Link to="/admin-login">ניהול</Link>
+                </Button>
               </div>
             )}
           </div>

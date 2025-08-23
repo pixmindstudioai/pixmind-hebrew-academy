@@ -1,10 +1,18 @@
-
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import AdminLoginComponent from '@/components/admin/AdminLogin';
-import AdminShell from '@/components/admin/AdminShell';
 
-const AdminDashboard = () => {
+const AdminLoginPage = () => {
+  const navigate = useNavigate();
   const { isAuthenticated, isLoading } = useAdminAuth();
+
+  useEffect(() => {
+    // Redirect to admin dashboard if already authenticated
+    if (!isLoading && isAuthenticated) {
+      navigate('/admin', { replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate]);
 
   // Show loading while checking auth status
   if (isLoading) {
@@ -18,13 +26,12 @@ const AdminDashboard = () => {
     );
   }
 
-  // Show login if not authenticated
-  if (!isAuthenticated) {
-    return <AdminLoginComponent />;
+  // Don't render login if already authenticated (prevents flash)
+  if (isAuthenticated) {
+    return null;
   }
 
-  // Show admin dashboard if authenticated
-  return <AdminShell />;
+  return <AdminLoginComponent />;
 };
 
-export default AdminDashboard;
+export default AdminLoginPage;

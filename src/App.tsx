@@ -13,6 +13,7 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import AdminLoginPage from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminShell from "./components/admin/AdminShell";
 import ModerationPage from "./pages/admin/ModerationPage";
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             
             {/* Admin Routes */}
+            <Route path="/admin-login" element={<AdminLoginPage />} />
             <Route path="/admin/*" element={
               <Routes>
                 <Route index element={<AdminDashboard />} />
