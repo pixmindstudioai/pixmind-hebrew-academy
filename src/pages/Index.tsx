@@ -5,11 +5,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ModuleCard from "@/components/shared/ModuleCard";
 import { useAuth } from "@/hooks/useAuth";
 import { useVerifiedModules } from "@/hooks/useContentData";
+import { useModuleAccess } from "@/hooks/useUserModuleAccess";
 import heroBackground from "@/assets/hero-background.jpg";
+import { toast } from "sonner";
 
 const Index = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { data: modules = [], isLoading: modulesLoading } = useVerifiedModules();
+  const { canAccessModule } = useModuleAccess();
+
+  const handleModuleClick = (module: any) => {
+    if (!canAccessModule(module)) {
+      if (module.payment_url) {
+        window.open(module.payment_url, '_blank');
+      } else {
+        toast.error('מודול זה בתשלום. אין לך גישה.');
+      }
+      return;
+    }
+    
+    // Navigate to module or courses page as appropriate
+    window.location.href = `/courses/${module.id}`;
+  };
 
   const stats = [
     { icon: Users, label: "תלמידים רשומים", value: "15,000+" },
@@ -134,7 +151,7 @@ const Index = () => {
                   key={module.id}
                   module={module}
                   lessonsCount={0}
-                  onClick={() => {}}
+                  onClick={handleModuleClick}
                 />
               ))
             ) : (

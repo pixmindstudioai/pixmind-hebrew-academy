@@ -13,12 +13,15 @@ import {
 } from "@/components/ui/select";
 import ModuleCard from "@/components/shared/ModuleCard";
 import { useModules, useUserProgress } from "@/hooks/useContentData";
+import { useModuleAccess } from "@/hooks/useUserModuleAccess";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 const Courses = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAdminAuth();
+  const { canAccessModule } = useModuleAccess();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("order");
 
@@ -45,6 +48,17 @@ const Courses = () => {
     });
 
   const handleModuleClick = (module: any) => {
+    // Check if user has access to this module
+    if (!canAccessModule(module)) {
+      if (module.payment_url) {
+        window.open(module.payment_url, '_blank');
+      } else {
+        toast.error('מודול זה בתשלום. אין לך גישה.');
+      }
+      return;
+    }
+    
+    // User has access, navigate to module
     navigate(`/courses/${module.id}`);
   };
 

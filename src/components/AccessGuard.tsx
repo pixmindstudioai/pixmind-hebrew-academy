@@ -1,5 +1,5 @@
 import React from 'react';
-import { useUserModuleAccess } from '@/hooks/useUserAccess';
+import { useModuleAccess } from '@/hooks/useUserModuleAccess';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,7 @@ const AccessGuard: React.FC<AccessGuardProps> = ({
   children 
 }) => {
   const { isAuthenticated } = useAuth();
-  const { data: hasAccess, isLoading } = useUserModuleAccess(moduleId);
+  const { hasAccess, isLoading } = useModuleAccess();
 
   // Show loading state
   if (isLoading) {
@@ -63,7 +63,7 @@ const AccessGuard: React.FC<AccessGuardProps> = ({
   }
 
   // If user has access, show content
-  if (hasAccess) {
+  if (hasAccess(moduleId)) {
     return <>{children}</>;
   }
 

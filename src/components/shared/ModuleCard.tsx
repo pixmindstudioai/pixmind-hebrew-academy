@@ -1,5 +1,5 @@
 
-import { Play, Clock, BookOpen, CheckCircle, Edit, Trash2, Eye, DollarSign } from "lucide-react";
+import { Play, Clock, BookOpen, CheckCircle, Edit, Trash2, Eye, DollarSign, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -11,6 +11,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Module } from "@/hooks/useContentData";
+import { useModuleAccess } from "@/hooks/useUserModuleAccess";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 interface ModuleCardProps {
   module: Module;
@@ -37,8 +40,14 @@ const ModuleCard = ({
   onView,
   onClick,
 }: ModuleCardProps) => {
+  const { canAccessModule, hasAccess } = useModuleAccess();
+  const { isAuthenticated } = useAuth();
+  
   const progressPercentage = lessonsCount > 0 ? (completedLessons / lessonsCount) * 100 : 0;
   const isCompleted = completedLessons === lessonsCount && lessonsCount > 0;
+  
+  const moduleAccess = canAccessModule(module);
+  const isPaidWithAccess = module.is_paid && hasAccess(module.id);
 
   const getStatusBadge = () => {
     const variants = {
@@ -52,14 +61,26 @@ const ModuleCard = ({
   };
 
   const handleModuleClick = (module: Module) => {
-    if (!isAdminView && module.is_paid && module.payment_url && module.status === 'active') {
-      // Show message before redirecting to payment URL
-      if (confirm('מודול זה בתשלום. אתה מועבר לעמוד תשלום')) {
-        window.open(module.payment_url, '_blank');
-      }
-    } else {
+    if (isAdminView) {
       onClick?.(module);
+      return;
     }
+
+    // Check access for user clicks
+    if (!moduleAccess) {
+      // No access to paid module
+      if (module.payment_url) {
+        // Redirect to payment URL if available
+        window.open(module.payment_url, '_blank');
+      } else {
+        // Show error message if no payment URL
+        toast.error('מודול זה בתשלום. אין לך גישה.');
+      }
+      return;
+    }
+
+    // User has access, proceed normally
+    onClick?.(module);
   };
 
   return (
@@ -94,13 +115,20 @@ const ModuleCard = ({
             </div>
           )}
 
-          {/* Payment badge for user view */}
+          {/* Payment/Access badge for user view */}
           {!isAdminView && module.is_paid && (
             <div className="absolute top-4 right-4">
-              <Badge variant="secondary" className="bg-accent/90 text-accent-foreground">
-                <DollarSign className="w-3 h-3 ml-1" />
-                בתשלום
-              </Badge>
+              {isPaidWithAccess ? (
+                <Badge variant="default" className="bg-success/90 text-success-foreground">
+                  <Shield className="w-3 h-3 ml-1" />
+                  יש לך גישה
+                </Badge>
+              ) : (
+                <Badge variant="secondary" className="bg-accent/90 text-accent-foreground">
+                  <DollarSign className="w-3 h-3 ml-1" />
+                  בתשלום
+                </Badge>
+              )}
             </div>
           )}
 
@@ -213,13 +241,19 @@ const ModuleCard = ({
         >
           {isAdminView 
             ? "ניהול מודול"
-            : module.is_paid && module.status === 'active'
+            : !moduleAccess
               ? "רכישה"
-              : isCompleted 
-                ? "צפה שוב" 
-                : isStarted 
-                  ? "המשך לימוד" 
-                  : "התחל ללמוד"
+              : isPaidWithAccess
+                ? isCompleted 
+                  ? "צפה שוב"
+                  : isStarted 
+                    ? "המשך לימוד"
+                    : "התחל ללמוד"
+                : isCompleted 
+                  ? "צפה שוב" 
+                  : isStarted 
+                    ? "המשך לימוד" 
+                    : "התחל ללמוד"
           }
         </Button>
       </CardFooter>
