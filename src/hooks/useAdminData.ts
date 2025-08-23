@@ -298,7 +298,19 @@ export const useCreateLesson = () => {
       toast.success('השיעור נוצר בהצלחה');
     },
     onError: (error) => {
-      toast.error(`שגיאה ביצירת השיעור: ${error.message}`);
+      console.error('שגיאת יצירת שיעור:', error);
+      if (error.message.includes('לא ניתן ליצור') || error.message.includes('אין לך הרשאה')) {
+        toast.error(error.message, {
+          action: {
+            label: 'התחבר',
+            onClick: () => window.location.href = '/admin-login'
+          }
+        });
+      } else if (error.message.includes('chapter_id')) {
+        toast.error('שגיאה ביצירת שיעור – חסר שדה פרק (chapter_id)');
+      } else {
+        toast.error(`שגיאה ביצירת השיעור: ${error.message}`);
+      }
     },
   });
 };

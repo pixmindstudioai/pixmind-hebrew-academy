@@ -31,7 +31,7 @@ import { AdminLesson, AdminChapter, LessonVideo, LessonEmbed, LessonAttachment }
 const lessonSchema = z.object({
   title: z.string().min(2, 'כותרת השיעור חייבת להכיל לפחות 2 תווים').max(120, 'כותרת השיעור לא יכולה להכיל יותר מ-120 תווים'),
   description: z.string().min(1, 'תיאור השיעור נדרש'),
-  chapterId: z.string().min(1, 'יש לבחור פרק'),
+  chapter_id: z.string().min(1, 'יש לבחור פרק'),
   order: z.number().min(0, 'מספר הסדר חייב להיות 0 או יותר'),
   status: z.enum(['draft', 'active', 'archived']).default('draft'),
   durationSec: z.number().optional(),
@@ -62,7 +62,7 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
     defaultValues: {
       title: lesson?.title || '',
       description: lesson?.description || '',
-      chapterId: lesson?.chapterId || '',
+      chapter_id: lesson?.chapterId || '',
       order: lesson?.order || 0,
       status: lesson?.status || 'draft',
       durationSec: lesson?.durationSec,
@@ -79,7 +79,7 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
     });
   };
 
-  const selectedChapter = chapters.find(c => c.id === form.watch('chapterId'));
+  const selectedChapter = chapters.find(c => c.id === form.watch('chapter_id'));
   const canPublish = selectedChapter?.status === 'active';
 
   const handleVideoChange = (newVideo: LessonVideo | undefined) => {
@@ -138,7 +138,7 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
-              name="chapterId"
+              name="chapter_id"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>פרק האב *</FormLabel>

@@ -20,6 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
 import ModuleCard from '@/components/shared/ModuleCard';
 import ChapterAccordion from '@/components/shared/ChapterAccordion';
 import ModuleForm from '@/components/admin/ModuleForm';
@@ -40,7 +41,6 @@ import {
 import { Module, Chapter, Lesson } from '@/hooks/useContentData';
 import { AdminModule, AdminChapter, AdminLesson } from '@/types/admin';
 import AuthenticationGuard from '@/components/admin/AuthenticationGuard';
-import { useAuth } from '@/hooks/useAuth';
 
 // Transform database types to admin types
 const transformToAdminChapter = (chapter: Chapter): AdminChapter => ({
@@ -185,10 +185,25 @@ const ContentPage = () => {
 
   // Lesson handlers
   const handleCreateLesson = (data: any) => {
-    createLesson.mutate({ ...data, chapter_id: selectedChapter }, {
+    // Transform form data to match database schema
+    const lessonData = {
+      ...data,
+      chapter_id: data.chapter_id || selectedChapter,
+      order_index: data.order || 0,
+      duration_sec: data.durationSec,
+      rich_text: data.richText
+    };
+    
+    createLesson.mutate(lessonData, {
       onSuccess: () => {
         setLessonDialogOpen(false);
         setEditingLesson(null);
+      },
+      onError: (error) => {
+        console.error('שגיאה ביצירת השיעור:', error);
+        if (error.message.includes('chapter_id')) {
+          toast.error('שגיאה ביצירת שיעור – חסר שדה פרק (chapter_id)');
+        }
       }
     });
   };
