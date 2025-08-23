@@ -30,19 +30,33 @@ export const useCreateModule = () => {
       status: 'draft' | 'active' | 'archived';
       order_index?: number;
     }) => {
-      // Get the current user session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      // Check admin authentication via localStorage
+      const adminAuth = localStorage.getItem('pixmind_admin_session');
+      const sessionExpiry = localStorage.getItem('pixmind_admin_expiry');
       
-      if (sessionError || !session?.user) {
-        throw new Error('לא ניתן ליצור מודול – יש להתחבר תחילה');
+      if (adminAuth !== 'true' || !sessionExpiry) {
+        throw new Error('לא ניתן ליצור מודול – יש להתחבר כמנהל תחילה');
       }
 
-      // Insert module with the authenticated user's ID
+      const now = Date.now();
+      const expiry = parseInt(sessionExpiry, 10);
+      
+      if (now >= expiry) {
+        // Session expired, clear it
+        localStorage.removeItem('pixmind_admin_session');
+        localStorage.removeItem('pixmind_admin_expiry');
+        throw new Error('פג תוקף ההתחברות. יש להתחבר שוב');
+      }
+
+      // Use a placeholder admin ID for created_by since we're not using Supabase auth for admins
+      const adminId = '00000000-0000-0000-0000-000000000000';
+
+      // Insert module with admin placeholder ID
       const { data, error } = await supabase
         .from('modules')
         .insert([{ 
           ...moduleData, 
-          created_by: session.user.id,
+          created_by: adminId,
           order_index: moduleData.order_index ?? 0
         }])
         .select()
@@ -51,6 +65,9 @@ export const useCreateModule = () => {
       if (error) {
         if (error.code === 'PGRST116') {
           throw new Error('אין לך הרשאה ליצור מודולים');
+        }
+        if (error.message.includes('permission denied')) {
+          throw new Error('אין הרשאה ליצירת מודולים. נדרשת גישת מנהל');
         }
         throw new Error(`שגיאה ביצירת המודול: ${error.message}`);
       }
@@ -68,7 +85,7 @@ export const useCreateModule = () => {
         toast.error(error.message, {
           action: {
             label: 'התחבר',
-            onClick: () => window.location.href = '/login'
+            onClick: () => window.location.href = '/admin-login'
           }
         });
       } else {

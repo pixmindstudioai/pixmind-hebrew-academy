@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { LogIn, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useAuth } from '@/hooks/useAuth';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 interface AuthenticationGuardProps {
   children: React.ReactNode;
@@ -16,7 +16,7 @@ const AuthenticationGuard = ({
   requireAuth = true 
 }: AuthenticationGuardProps) => {
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAdminAuth();
 
   if (isLoading) {
     return (
@@ -45,13 +45,13 @@ const AuthenticationGuard = ({
               <LogIn className="w-8 h-8 text-primary" />
             </div>
             
-            <h3 className="text-xl font-semibold mb-2">נדרשת הרשאה</h3>
+            <h3 className="text-xl font-semibold mb-2">נדרשת הרשאה מנהל</h3>
             <p className="text-muted-foreground mb-6">
-              כדי לגשת לכלי הניהול ולצור מודולים חדשים, עליך להתחבר תחילה למערכת.
+              כדי לגשת לכלי הניהול ולצור מודולים חדשים, עליך להתחבר כמנהל מערכת.
             </p>
             
             <Button
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/admin-login')}
               size="lg"
               className="group hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
             >
@@ -59,16 +59,6 @@ const AuthenticationGuard = ({
               התחבר למערכת
             </Button>
           </div>
-          
-          <p className="text-sm text-muted-foreground">
-            אין לך חשבון?{' '}
-            <button
-              onClick={() => navigate('/signup')}
-              className="text-primary hover:underline font-medium transition-colors duration-200"
-            >
-              צור חשבון חדש
-            </button>
-          </p>
         </div>
       </div>
     );
