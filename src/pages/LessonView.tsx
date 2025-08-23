@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Download, FileText, ArrowRight, ArrowLeft, CheckCircle, Loader2, AlertCircle } from "lucide-react";
+import { Download, FileText, ArrowRight, ArrowLeft, CheckCircle, Loader2, AlertCircle, ExternalLink, Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import EmbeddedVideoPlayer from "@/components/EmbeddedVideoPlayer";
 import CommentSection from "@/components/CommentSection";
 import ProgressBadge from "@/components/ProgressBadge";
@@ -12,23 +13,24 @@ import {
   useLesson, 
   useLessonAttachments, 
   useLessonEmbeds,
-  useLessonComments,
   useUpdateProgress,
-  useLessons
+  useLessons,
+  useLessonProgress
 } from "@/hooks/useContentData";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const LessonView = () => {
   const { lessonId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   
   // Fetch lesson data
   const { data: lesson, isLoading: lessonLoading, error: lessonError } = useLesson(lessonId!);
   const { data: attachments = [] } = useLessonAttachments(lessonId!);
   const { data: embeds = [] } = useLessonEmbeds(lessonId!);
-  const { data: comments = [] } = useLessonComments(lessonId!);
   const { data: chapterLessons = [] } = useLessons(lesson?.chapter_id || '', 'active');
+  const { data: userProgress } = useLessonProgress(lessonId!, user?.id);
   
   // Progress management
   const updateProgress = useUpdateProgress();
@@ -40,26 +42,53 @@ const LessonView = () => {
   const nextLesson = currentLessonIndex < chapterLessons.length - 1 ? chapterLessons[currentLessonIndex + 1] : null;
 
   // Calculate chapter progress
-  const completedCount = Math.floor(chapterLessons.length * 0.3); // Mock progress
+  const completedCount = Math.floor(chapterLessons.length * 0.3); // Mock progress for now
   const progressPercentage = chapterLessons.length > 0 ? (completedCount / chapterLessons.length) * 100 : 0;
 
+  // Set completion state from user progress
   useEffect(() => {
-    if (!lesson || !user) return;
-    // TODO: Check if lesson is completed in user_progress table
-    // setIsCompleted based on user progress data
-  }, [lesson, user]);
+    if (userProgress) {
+      setIsCompleted(userProgress.completed);
+    }
+  }, [userProgress]);
 
   const handleComplete = () => {
-    if (!user || !lessonId) return;
+    if (!isAuthenticated || !lessonId) {
+      toast.error('יש להתחבר כדי לסמן שיעורים כהושלמו');
+      return;
+    }
     
     const newCompletedState = !isCompleted;
-    setIsCompleted(newCompletedState);
     
     updateProgress.mutate({
-      userId: user.id,
+      userId: user!.id,
       lessonId: lessonId,
       completed: newCompletedState
+    }, {
+      onSuccess: () => {
+        setIsCompleted(newCompletedState);
+      },
+      onError: () => {
+        toast.error('שגיאה בעדכון התקדמות. נסה שוב.');
+      }
     });
+  };
+
+  const getFileIcon = (mimeType: string) => {
+    if (mimeType?.includes('pdf')) return '📄';
+    if (mimeType?.includes('zip') || mimeType?.includes('rar')) return '🗜️';
+    if (mimeType?.includes('word')) return '📝';
+    if (mimeType?.includes('excel')) return '📊';
+    if (mimeType?.includes('powerpoint')) return '📋';
+    if (mimeType?.includes('image')) return '🖼️';
+    return '📎';
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (!bytes) return 'גודל לא ידוע';
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
   };
 
   // Loading state
@@ -159,11 +188,30 @@ const LessonView = () => {
                     onClick={handleComplete}
                     variant={isCompleted ? "secondary" : "default"}
                     className="button-glow"
+                    disabled={!isAuthenticated || updateProgress.isPending}
                   >
-                    <CheckCircle className="w-4 h-4" />
-                    {isCompleted ? "הושלם" : "סמן כהושלם"}
+                    {updateProgress.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        מעדכן...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-4 h-4" />
+                        {isCompleted ? "הושלם ✓" : "סמן כהושלם"}
+                      </>
+                    )}
                   </Button>
                 </div>
+                
+                {!isAuthenticated && (
+                  <Alert className="mt-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      יש להתחבר כדי לסמן שיעורים כהושלמו ולעקוב אחר ההתקדמות
+                    </AlertDescription>
+                  </Alert>
+                )}
               </CardContent>
             </Card>
 
@@ -204,7 +252,7 @@ const LessonView = () => {
             )}
 
             {/* Comments */}
-            <CommentSection lessonId={lesson.id!} comments={[]} />
+            <CommentSection lessonId={lesson.id!} />
           </div>
 
           {/* Sidebar */}
@@ -241,29 +289,47 @@ const LessonView = () => {
                 {attachments.length > 0 ? attachments.map((attachment) => (
                   <div
                     key={attachment.id}
-                    className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
+                    className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors border border-border/10"
                   >
                     <div className="flex items-center space-x-3 space-x-reverse">
-                      <FileText className="w-4 h-4 text-primary" />
+                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <span className="text-lg">{getFileIcon(attachment.mime)}</span>
+                      </div>
                       <div>
                         <div className="text-sm font-medium">
                           {attachment.name}
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          {attachment.size ? `${Math.round(attachment.size / 1024 / 1024 * 100) / 100} MB` : 'גודל לא צוין'}
+                        <div className="text-xs text-muted-foreground flex items-center gap-2">
+                          <span>{formatFileSize(attachment.size || 0)}</span>
+                          <Badge variant="outline" className="text-xs">
+                            {attachment.kind}
+                          </Badge>
                         </div>
                       </div>
                     </div>
-                    <Button size="sm" variant="ghost" asChild>
-                      <a href={attachment.url} download={attachment.name} target="_blank" rel="noopener noreferrer">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      asChild
+                      className="hover:bg-primary hover:text-primary-foreground"
+                    >
+                      <a 
+                        href={attachment.url} 
+                        download={attachment.name} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2"
+                      >
                         <Download className="w-4 h-4" />
+                        הורד קובץ
                       </a>
                     </Button>
                   </div>
                 )) : (
-                  <p className="text-center text-muted-foreground py-4">
-                    אין קבצים להורדה בשיעור זה
-                  </p>
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Paperclip className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p>אין קבצים להורדה בשיעור זה</p>
+                  </div>
                 )}
               </CardContent>
             </Card>

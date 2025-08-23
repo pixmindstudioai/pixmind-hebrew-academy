@@ -311,28 +311,122 @@ export const useLessonEmbeds = (lessonId: string) => {
   });
 };
 
-// Hook for fetching lesson comments
+// Hook for fetching lesson comments with user info
 export const useLessonComments = (lessonId: string) => {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ['lesson-comments', lessonId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('comments')
         .select(`
-          *,
-          users (
+          id,
+          content,
+          created_at,
+          upvotes,
+          parent_comment_id,
+          user_id,
+          users!inner (
+            id,
             full_name
           )
         `)
         .eq('lesson_id', lessonId)
         .eq('status', 'approved')
-        .is('parent_comment_id', null)
         .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!lessonId,
+  });
+
+  // Real-time subscription for comments
+  useEffect(() => {
+    if (!lessonId) return;
+
+    const channel = supabase
+      .channel(`comments-${lessonId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'comments',
+          filter: `lesson_id=eq.${lessonId}`
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['lesson-comments', lessonId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [lessonId, queryClient]);
+
+  return query;
+};
+
+// Hook for creating a comment
+export const useCreateComment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ lessonId, content, parentCommentId }: {
+      lessonId: string;
+      content: string;
+      parentCommentId?: string;
+    }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('משתמש לא מחובר');
+
+      const { data, error } = await supabase
+        .from('comments')
+        .insert([{
+          lesson_id: lessonId,
+          content,
+          user_id: user.id,
+          parent_comment_id: parentCommentId || null,
+          status: 'approved' // Auto-approve for now
+        }])
+        .select()
+        .single();
 
       if (error) throw error;
       return data;
     },
-    enabled: !!lessonId,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['lesson-comments', data.lesson_id] });
+      toast.success('התגובה נשלחה בהצלחה');
+    },
+    onError: (error) => {
+      toast.error('לא ניתן לפרסם תגובה. נסה שוב.');
+      console.error('Error creating comment:', error);
+    },
+  });
+};
+
+// Hook for checking user progress on a lesson
+export const useLessonProgress = (lessonId: string, userId?: string) => {
+  return useQuery({
+    queryKey: ['lesson-progress', lessonId, userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      
+      const { data, error } = await supabase
+        .from('user_progress')
+        .select('*')
+        .eq('lesson_id', lessonId)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!lessonId && !!userId,
   });
 };
 
