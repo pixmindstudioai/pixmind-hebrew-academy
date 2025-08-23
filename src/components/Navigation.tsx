@@ -65,12 +65,11 @@ const Navigation = () => {
             to="/" 
             className="flex items-center space-x-2 space-x-reverse hover:opacity-80 transition-opacity"
           >
-            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">PM</span>
-            </div>
-            <span className="text-xl font-semibold gradient-text">
-              אקדמיית PixMind Studio
-            </span>
+            <img 
+              src="/lovable-uploads/5e08e54d-dcb2-4cf3-8f3e-5c8e5bf267a7.png" 
+              alt="PixMind Studio Academy Logo" 
+              className="h-10 w-auto"
+            />
           </Link>
 
           {/* Desktop Navigation */}

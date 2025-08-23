@@ -91,13 +91,12 @@ const SignUp = () => {
       <div className="w-full max-w-md">
         {/* Logo and Title */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center space-x-2 space-x-reverse mb-6 hover:opacity-80 transition-opacity">
-            <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold">PM</span>
-            </div>
-            <span className="text-xl font-semibold gradient-text">
-              אקדמיית PixMind Studio
-            </span>
+          <Link to="/" className="inline-flex items-center justify-center mb-6 hover:opacity-80 transition-opacity">
+            <img 
+              src="/lovable-uploads/5e08e54d-dcb2-4cf3-8f3e-5c8e5bf267a7.png" 
+              alt="PixMind Studio Academy Logo" 
+              className="h-16 w-auto"
+            />
           </Link>
           <h1 className="text-3xl font-bold text-foreground mb-2">הרשמה</h1>
           <p className="text-muted-foreground">צור חשבון חדש כדי להתחיל ללמוד</p>
