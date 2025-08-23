@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import EmbeddedVideoPlayer from "@/components/EmbeddedVideoPlayer";
 import CommentSection from "@/components/CommentSection";
 import ProgressBadge from "@/components/ProgressBadge";
+import LessonRating from "@/components/LessonRating";
 import { 
   useLesson, 
   useLessonAttachments, 
@@ -214,6 +215,9 @@ const LessonView = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Lesson Rating */}
+            <LessonRating lessonId={lesson.id} />
 
             {/* Embeds Section */}
             {embeds.length > 0 && (

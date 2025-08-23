@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import ChapterAccordion from "@/components/shared/ChapterAccordion";
+import ChapterProgressTracker from "@/components/ChapterProgressTracker";
 import { useModules, useChapters, useLessons, useUserProgress, useUpdateProgress, Chapter } from "@/hooks/useContentData";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -22,12 +23,21 @@ const ChapterLessonsWrapper = ({
   const { data: lessons = [] } = useLessons(chapter.id, 'active');
   
   return (
-    <ChapterAccordion
-      chapter={chapter}
-      lessons={lessons}
-      completedLessons={userProgress.filter(p => p.completed).map(p => p.lesson_id)}
-      onLessonClick={onLessonClick}
-    />
+    <div className="space-y-4">
+      {/* Chapter Progress Tracker */}
+      <ChapterProgressTracker 
+        chapterId={chapter.id}
+        chapterTitle={chapter.title}
+      />
+      
+      {/* Chapter Accordion */}
+      <ChapterAccordion
+        chapter={chapter}
+        lessons={lessons}
+        completedLessons={userProgress.filter(p => p.completed).map(p => p.lesson_id)}
+        onLessonClick={onLessonClick}
+      />
+    </div>
   );
 };
 

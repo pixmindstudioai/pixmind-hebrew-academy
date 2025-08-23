@@ -409,6 +409,87 @@ export const useCreateComment = () => {
   });
 };
 
+// Hook for fetching lesson ratings
+export const useLessonRatings = (lessonId: string) => {
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    queryKey: ['lesson-ratings', lessonId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('lesson_ratings')
+        .select('*')
+        .eq('lesson_id', lessonId);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!lessonId,
+  });
+
+  // Real-time subscription for ratings
+  useEffect(() => {
+    if (!lessonId) return;
+
+    const channel = supabase
+      .channel(`ratings-${lessonId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'lesson_ratings',
+          filter: `lesson_id=eq.${lessonId}`
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['lesson-ratings', lessonId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [lessonId, queryClient]);
+
+  return query;
+};
+
+// Hook for creating or updating a lesson rating
+export const useCreateOrUpdateRating = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ lessonId, rating }: {
+      lessonId: string;
+      rating: number;
+    }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('משתמש לא מחובר');
+
+      const { data, error } = await supabase
+        .from('lesson_ratings')
+        .upsert({
+          user_id: user.id,
+          lesson_id: lessonId,
+          rating,
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['lesson-ratings', data.lesson_id] });
+    },
+    onError: (error) => {
+      console.error('Error saving rating:', error);
+    },
+  });
+};
+
 // Hook for checking user progress on a lesson
 export const useLessonProgress = (lessonId: string, userId?: string) => {
   return useQuery({
