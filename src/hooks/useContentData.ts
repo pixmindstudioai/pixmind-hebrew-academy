@@ -245,6 +245,97 @@ export const useUserProgress = (userId?: string) => {
   return query;
 };
 
+// Hook for fetching a single lesson with related data
+export const useLesson = (lessonId: string) => {
+  return useQuery({
+    queryKey: ['lesson', lessonId],
+    queryFn: async () => {
+      const { data: lesson, error: lessonError } = await supabase
+        .from('lessons')
+        .select(`
+          *,
+          chapters (
+            id,
+            title,
+            module_id,
+            modules (
+              id,
+              title
+            )
+          )
+        `)
+        .eq('id', lessonId)
+        .single();
+
+      if (lessonError) throw lessonError;
+      
+      return lesson;
+    },
+    enabled: !!lessonId,
+  });
+};
+
+// Hook for fetching lesson attachments
+export const useLessonAttachments = (lessonId: string) => {
+  return useQuery({
+    queryKey: ['lesson-attachments', lessonId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('lesson_attachments')
+        .select('*')
+        .eq('lesson_id', lessonId)
+        .order('order_index');
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!lessonId,
+  });
+};
+
+// Hook for fetching lesson embeds
+export const useLessonEmbeds = (lessonId: string) => {
+  return useQuery({
+    queryKey: ['lesson-embeds', lessonId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('lesson_embeds')
+        .select('*')
+        .eq('lesson_id', lessonId)
+        .order('order_index');
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!lessonId,
+  });
+};
+
+// Hook for fetching lesson comments
+export const useLessonComments = (lessonId: string) => {
+  return useQuery({
+    queryKey: ['lesson-comments', lessonId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('comments')
+        .select(`
+          *,
+          users (
+            full_name
+          )
+        `)
+        .eq('lesson_id', lessonId)
+        .eq('status', 'approved')
+        .is('parent_comment_id', null)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!lessonId,
+  });
+};
+
 // Hook for updating user progress
 export const useUpdateProgress = () => {
   const queryClient = useQueryClient();

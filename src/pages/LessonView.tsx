@@ -1,75 +1,120 @@
-import { useState } from "react";
-import { useParams } from "react-router-dom";
-import { Download, FileText, ArrowRight, ArrowLeft, CheckCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { Download, FileText, ArrowRight, ArrowLeft, CheckCircle, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import VideoPlayer from "@/components/VideoPlayer";
 import CommentSection from "@/components/CommentSection";
 import ProgressBadge from "@/components/ProgressBadge";
+import { 
+  useLesson, 
+  useLessonAttachments, 
+  useLessonEmbeds,
+  useLessonComments,
+  useUpdateProgress,
+  useLessons
+} from "@/hooks/useContentData";
+import { useAuth } from "@/hooks/useAuth";
 
 const LessonView = () => {
   const { lessonId } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  // Fetch lesson data
+  const { data: lesson, isLoading: lessonLoading, error: lessonError } = useLesson(lessonId!);
+  const { data: attachments = [] } = useLessonAttachments(lessonId!);
+  const { data: embeds = [] } = useLessonEmbeds(lessonId!);
+  const { data: comments = [] } = useLessonComments(lessonId!);
+  const { data: chapterLessons = [] } = useLessons(lesson?.chapter_id || '', 'active');
+  
+  // Progress management
+  const updateProgress = useUpdateProgress();
   const [isCompleted, setIsCompleted] = useState(false);
 
-  // Sample lesson data
-  const lesson = {
-    id: lessonId,
-    title: "יסודות האלפבית העברי",
-    description: "בשיעור זה נלמד את כל האותיות בשפה העברית, איך לכתוב אותן ואיך להגות אותן נכון.",
-    videoSrc: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-    duration: "15:30",
-    attachments: [
-      { id: "1", name: "מדריך האלפבית העברי.pdf", size: "2.3 MB", type: "pdf" },
-      { id: "2", name: "תרגילי כתיבה.docx", size: "1.8 MB", type: "doc" },
-    ],
-    moduleTitle: "עברית למתחילים",
-    chapterTitle: "פרק 1: היכרות עם השפה",
-    progress: 65,
-  };
+  // Find current lesson index and navigation
+  const currentLessonIndex = chapterLessons.findIndex(l => l.id === lessonId);
+  const previousLesson = currentLessonIndex > 0 ? chapterLessons[currentLessonIndex - 1] : null;
+  const nextLesson = currentLessonIndex < chapterLessons.length - 1 ? chapterLessons[currentLessonIndex + 1] : null;
 
-  // Sample comments
-  const comments = [
-    {
-      id: "1",
-      author: "דני כהן",
-      content: "שיעור מעולה! הסבר מאוד ברור על האותיות. השאלה שלי היא איך מבחינים בין בי״ת לוי״ת?",
-      timestamp: "לפני 3 שעות",
-      likes: 12,
-      isLiked: false,
-      replies: [
-        {
-          id: "2",
-          author: "מורה שרה",
-          content: "שאלה מצוינת! בי״ת יש לה נקודה באמצע (בּ) ואילו וי״ת אין לها נקודה (ב). זה ההבדל העיקרי.",
-          timestamp: "לפני שעתיים",
-          likes: 8,
-          isLiked: true,
-        }
-      ]
-    },
-    {
-      id: "3",
-      author: "מיכל לוי",
-      content: "תודה על השיעור המקצועי. יש לי בקשה לתרגול נוסף על הכתיבה בכתב יד.",
-      timestamp: "לפני יום",
-      likes: 5,
-      isLiked: false,
-    }
-  ];
+  // Calculate chapter progress
+  const completedCount = Math.floor(chapterLessons.length * 0.3); // Mock progress
+  const progressPercentage = chapterLessons.length > 0 ? (completedCount / chapterLessons.length) * 100 : 0;
+
+  useEffect(() => {
+    if (!lesson || !user) return;
+    // TODO: Check if lesson is completed in user_progress table
+    // setIsCompleted based on user progress data
+  }, [lesson, user]);
 
   const handleComplete = () => {
-    setIsCompleted(!isCompleted);
+    if (!user || !lessonId) return;
+    
+    const newCompletedState = !isCompleted;
+    setIsCompleted(newCompletedState);
+    
+    updateProgress.mutate({
+      userId: user.id,
+      lessonId: lessonId,
+      completed: newCompletedState
+    });
   };
+
+  // Loading state
+  if (lessonLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto" />
+          <p className="text-muted-foreground">טוען שיעור...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (lessonError || !lesson) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Alert className="max-w-md">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            שגיאה בטעינת השיעור. נסה לרענן את הדף.
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => window.location.reload()}
+              className="mt-2"
+            >
+              רענן דף
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
         <div className="flex items-center space-x-2 space-x-reverse text-sm text-muted-foreground mb-8">
-          <span>{lesson.moduleTitle}</span>
+          <Link to="/courses" className="hover:text-foreground transition-colors">
+            הקורסים
+          </Link>
           <ArrowLeft className="w-4 h-4" />
-          <span>{lesson.chapterTitle}</span>
+          <Link 
+            to={`/courses/${lesson.chapters?.module_id}`} 
+            className="hover:text-foreground transition-colors"
+          >
+            {lesson.chapters?.modules?.title}
+          </Link>
+          <ArrowLeft className="w-4 h-4" />
+          <span className="hover:text-foreground transition-colors">
+            {lesson.chapters?.title}
+          </span>
           <ArrowLeft className="w-4 h-4" />
           <span className="text-foreground">{lesson.title}</span>
         </div>
@@ -78,11 +123,17 @@ const LessonView = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Video Player */}
-            <VideoPlayer
-              src={lesson.videoSrc}
-              title={lesson.title}
-              className="w-full"
-            />
+            {lesson.video_url ? (
+              <VideoPlayer
+                src={lesson.video_url}
+                title={lesson.title}
+                className="w-full"
+              />
+            ) : (
+              <div className="w-full aspect-video bg-muted rounded-lg flex items-center justify-center">
+                <p className="text-muted-foreground">אין וידאו זמין לשיעור זה</p>
+              </div>
+            )}
 
             {/* Lesson Info */}
             <Card className="glass-card">
@@ -93,15 +144,21 @@ const LessonView = () => {
                     <p className="text-muted-foreground leading-relaxed">
                       {lesson.description}
                     </p>
+                    {lesson.rich_text && (
+                      <div 
+                        className="prose prose-sm max-w-none mt-4"
+                        dangerouslySetInnerHTML={{ __html: lesson.rich_text }}
+                      />
+                    )}
                   </div>
-                  <ProgressBadge percentage={lesson.progress} />
+                  <ProgressBadge percentage={progressPercentage} />
                 </div>
               </CardHeader>
               
               <CardContent>
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-muted-foreground">
-                    משך השיעור: {lesson.duration}
+                    {lesson.duration_sec ? `משך השיעור: ${Math.ceil(lesson.duration_sec / 60)} דקות` : 'משך לא צוין'}
                   </div>
                   
                   <Button
@@ -116,8 +173,44 @@ const LessonView = () => {
               </CardContent>
             </Card>
 
+            {/* Embeds Section */}
+            {embeds.length > 0 && (
+              <Card className="glass-card">
+                <CardHeader>
+                  <CardTitle className="text-lg">משאבים נוספים</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {embeds.map((embed) => (
+                    <div key={embed.id} className="border rounded-lg p-4">
+                      <h4 className="font-medium mb-2">{embed.title}</h4>
+                      {embed.description && (
+                        <p className="text-sm text-muted-foreground mb-3">{embed.description}</p>
+                      )}
+                      {embed.type === 'iframe' ? (
+                        <iframe
+                          src={embed.url}
+                          title={embed.title || 'Embedded content'}
+                          className="w-full h-64 rounded border"
+                          allowFullScreen
+                        />
+                      ) : (
+                        <a
+                          href={embed.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          {embed.url}
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
             {/* Comments */}
-            <CommentSection lessonId={lesson.id!} comments={comments} />
+            <CommentSection lessonId={lesson.id!} comments={[]} />
           </div>
 
           {/* Sidebar */}
@@ -125,17 +218,17 @@ const LessonView = () => {
             {/* Progress */}
             <Card className="glass-card">
               <CardHeader>
-                <CardTitle className="text-lg">התקדמות בקורס</CardTitle>
+                <CardTitle className="text-lg">התקדמות בפרק</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <Progress value={lesson.progress} className="h-3" />
+                  <Progress value={progressPercentage} className="h-3" />
                   <div className="text-center">
                     <div className="text-2xl font-bold text-primary">
-                      {lesson.progress}%
+                      {Math.round(progressPercentage)}%
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      מהקורס הושלם
+                      מהפרק הושלם
                     </div>
                   </div>
                 </div>
@@ -151,7 +244,7 @@ const LessonView = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {lesson.attachments.map((attachment) => (
+                {attachments.length > 0 ? attachments.map((attachment) => (
                   <div
                     key={attachment.id}
                     className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
@@ -163,28 +256,51 @@ const LessonView = () => {
                           {attachment.name}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {attachment.size}
+                          {attachment.size ? `${Math.round(attachment.size / 1024 / 1024 * 100) / 100} MB` : 'גודל לא צוין'}
                         </div>
                       </div>
                     </div>
-                    <Button size="sm" variant="ghost">
-                      <Download className="w-4 h-4" />
+                    <Button size="sm" variant="ghost" asChild>
+                      <a href={attachment.url} download={attachment.name} target="_blank" rel="noopener noreferrer">
+                        <Download className="w-4 h-4" />
+                      </a>
                     </Button>
                   </div>
-                ))}
+                )) : (
+                  <p className="text-center text-muted-foreground py-4">
+                    אין קבצים להורדה בשיעור זה
+                  </p>
+                )}
               </CardContent>
             </Card>
 
             {/* Navigation */}
             <div className="flex flex-col space-y-2">
-              <Button variant="outline" className="justify-between">
-                <span>השיעור הקודם</span>
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-              <Button variant="outline" className="justify-between">
-                <span>השיעור הבא</span>
-                <ArrowLeft className="w-4 h-4" />
-              </Button>
+              {previousLesson && (
+                <Button 
+                  variant="outline" 
+                  className="justify-between"
+                  onClick={() => navigate(`/lesson/${previousLesson.id}`)}
+                >
+                  <span>השיעור הקודם</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              )}
+              {nextLesson && (
+                <Button 
+                  variant="outline" 
+                  className="justify-between"
+                  onClick={() => navigate(`/lesson/${nextLesson.id}`)}
+                >
+                  <span>השיעור הבא</span>
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+              )}
+              {!previousLesson && !nextLesson && (
+                <p className="text-center text-muted-foreground text-sm py-4">
+                  זה השיעור היחיד בפרק
+                </p>
+              )}
             </div>
           </div>
         </div>
