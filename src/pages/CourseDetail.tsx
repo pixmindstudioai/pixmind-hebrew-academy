@@ -5,9 +5,31 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import ChapterAccordion from "@/components/shared/ChapterAccordion";
-import { useModules, useChapters, useLessons, useUserProgress, useUpdateProgress } from "@/hooks/useContentData";
+import { useModules, useChapters, useLessons, useUserProgress, useUpdateProgress, Chapter } from "@/hooks/useContentData";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+
+// Wrapper component to fetch lessons for each chapter
+const ChapterLessonsWrapper = ({ 
+  chapter, 
+  userProgress, 
+  onLessonClick 
+}: {
+  chapter: Chapter;
+  userProgress: any[];
+  onLessonClick: (lesson: any) => void;
+}) => {
+  const { data: lessons = [] } = useLessons(chapter.id, 'active');
+  
+  return (
+    <ChapterAccordion
+      chapter={chapter}
+      lessons={lessons}
+      completedLessons={userProgress.filter(p => p.completed).map(p => p.lesson_id)}
+      onLessonClick={onLessonClick}
+    />
+  );
+};
 
 const CourseDetail = () => {
   const { moduleId } = useParams<{ moduleId: string }>();
@@ -145,15 +167,17 @@ const CourseDetail = () => {
             <h2 className="text-3xl font-bold mb-8">תוכן הקורס</h2>
             
             <div className="space-y-4">
-              {chapters.map((chapter) => (
-                <ChapterAccordion
-                  key={chapter.id}
-                  chapter={chapter}
-                  lessons={[]} // This would be fetched per chapter
-                  completedLessons={userProgress.filter(p => p.completed).map(p => p.lesson_id)}
-                  onLessonClick={handleLessonClick}
-                />
-              ))}
+              {chapters.map((chapter) => {
+                // Fetch lessons for each chapter using the hook
+                return (
+                  <ChapterLessonsWrapper
+                    key={chapter.id}
+                    chapter={chapter}
+                    userProgress={userProgress}
+                    onLessonClick={handleLessonClick}
+                  />
+                );
+              })}
             </div>
 
             {chapters.length === 0 && (

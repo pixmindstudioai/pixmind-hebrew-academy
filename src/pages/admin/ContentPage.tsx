@@ -185,20 +185,41 @@ const ContentPage = () => {
 
   // Lesson handlers
   const handleCreateLesson = (data: any) => {
-    // Now that embeds and attachments are JSONB columns in lessons table,
-    // we can pass all data directly to the mutation
-    const lessonData = {
-      ...data,
-      order_index: data.order || 0
+    console.log('Raw lesson form data:', data);
+    
+    // Transform form data to match database schema
+    const { video, embeds, attachments, order, ...restData } = data;
+    
+    const lessonData: any = {
+      ...restData,
+      order_index: order || 0, // Transform 'order' to 'order_index'
     };
     
+    // Transform video object to individual database columns
+    if (video) {
+      lessonData.video_provider = video.provider;
+      lessonData.video_url = video.url;
+      lessonData.video_id = video.videoId;
+      lessonData.video_start_time = video.startTime;
+      lessonData.video_thumbnail = video.thumbnail;
+    }
+    
+    // Add JSONB fields
+    if (embeds) lessonData.embeds = embeds;
+    if (attachments) lessonData.attachments = attachments;
+    
+    console.log('Transformed lesson data for database:', lessonData);
+    
     createLesson.mutate(lessonData, {
-      onSuccess: () => {
+      onSuccess: (newLesson) => {
+        console.log('Lesson created successfully:', newLesson);
         setLessonDialogOpen(false);
         setEditingLesson(null);
+        toast.success('השיעור נוצר בהצלחה וזמין לתלמידים');
       },
       onError: (error) => {
         console.error('שגיאה ביצירת השיעור:', error);
+        toast.error(`שגיאה ביצירת השיעור: ${error.message}`);
       }
     });
   };

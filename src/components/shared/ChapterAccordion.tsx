@@ -133,7 +133,10 @@ const ChapterAccordion = ({
           <div className="border-t bg-muted/20">
             {lessons.length === 0 ? (
               <div className="p-6 text-center text-muted-foreground">
-                {isAdminView ? "אין שיעורים בפרק זה" : "הפרק עדיין לא מכיל שיעורים"}
+                {isAdminView ? "אין שיעורים בפרק זה" : "אין שיעורים להצגה כרגע"}
+                {!isAdminView && (
+                  <p className="text-sm mt-2">תוכן הפרק יתווסף בקרוב</p>
+                )}
               </div>
             ) : (
               <div className="divide-y">
