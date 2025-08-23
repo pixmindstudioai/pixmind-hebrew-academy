@@ -1,4 +1,3 @@
-
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -27,6 +26,17 @@ const moduleSchema = z.object({
   description: z.string().min(1, 'תיאור המודול נדרש'),
   status: z.enum(['draft', 'active', 'archived']).default('draft'),
   order_index: z.number().min(0, 'מספר הסדר חייב להיות 0 או יותר').optional(),
+  is_paid: z.boolean().default(false),
+  payment_url: z.string().url('יש להזין כתובת URL תקינה').optional().or(z.literal('')),
+}).refine((data) => {
+  // If is_paid is true, payment_url must be provided and not empty
+  if (data.is_paid && (!data.payment_url || data.payment_url.trim() === '')) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'עבור מודול בתשלום חובה להזין קישור לעמוד תשלום',
+  path: ['payment_url'],
 });
 
 type ModuleFormData = z.infer<typeof moduleSchema>;
@@ -37,6 +47,8 @@ interface Module {
   description: string;
   status: 'draft' | 'active' | 'archived';
   order_index: number;
+  is_paid: boolean;
+  payment_url?: string;
   created_at: string;
   updated_at: string;
   published_at?: string;
@@ -57,6 +69,8 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading }: ModuleFormProps) 
       description: module?.description || '',
       status: module?.status || 'draft',
       order_index: module?.order_index || 0,
+      is_paid: module?.is_paid || false,
+      payment_url: module?.payment_url || '',
     },
   });
 
@@ -146,13 +160,66 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading }: ModuleFormProps) 
 
           <FormField
             control={form.control}
+            name="is_paid"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <FormLabel className="text-base">סוג המודול</FormLabel>
+                  <FormDescription>
+                    {field.value ? 'מודול בתשלום - נדרש קישור לעמוד תשלום' : 'מודול חינמי - זמין לכל המשתמשים'}
+                  </FormDescription>
+                </div>
+                <Select 
+                  onValueChange={(value) => field.onChange(value === 'paid')} 
+                  value={field.value ? 'paid' : 'free'}
+                  disabled={isLoading}
+                >
+                  <FormControl>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="free">חינמי</SelectItem>
+                    <SelectItem value="paid">בתשלום</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
+
+          {form.watch('is_paid') && (
+            <FormField
+              control={form.control}
+              name="payment_url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>קישור לעמוד תשלום *</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="https://checkout.mysite.com/module123" 
+                      {...field} 
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    הקישור שאליו יועברו המשתמשים כדי לרכוש את המודול
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          <FormField
+            control={form.control}
             name="status"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
                   <FormLabel className="text-base">סטטוס המודול</FormLabel>
                   <FormDescription>
-                    {field.value === 'active' && '✓ המודול יהיה זמין לתلמידים'}
+                    {field.value === 'active' && '✓ המודול יהיה זמין לתלמידים'}
                     {field.value === 'draft' && 'המודול נשמר כטיוטה'}
                     {field.value === 'archived' && 'המודול בארכיון'}
                   </FormDescription>

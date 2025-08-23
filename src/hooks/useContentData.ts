@@ -12,9 +12,12 @@ export interface Module {
   image_url?: string;
   order_index: number;
   status: 'draft' | 'active' | 'archived';
+  is_paid: boolean;
+  payment_url?: string;
   created_at: string;
   updated_at: string;
   published_at?: string;
+  created_by: string;
 }
 
 export interface Chapter {

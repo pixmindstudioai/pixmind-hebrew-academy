@@ -1,5 +1,5 @@
 
-import { Play, Clock, BookOpen, CheckCircle, Edit, Trash2, Eye } from "lucide-react";
+import { Play, Clock, BookOpen, CheckCircle, Edit, Trash2, Eye, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -51,6 +51,17 @@ const ModuleCard = ({
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
+  const handleModuleClick = (module: Module) => {
+    if (!isAdminView && module.is_paid && module.payment_url && module.status === 'active') {
+      // Show message before redirecting to payment URL
+      if (confirm('מודול זה בתשלום. אתה מועבר לעמוד תשלום')) {
+        window.open(module.payment_url, '_blank');
+      }
+    } else {
+      onClick?.(module);
+    }
+  };
+
   return (
     <Card className="glass-card hover:shadow-[var(--shadow-card)] transition-all duration-300 hover:scale-105 group">
       <CardHeader className="p-0">
@@ -80,6 +91,16 @@ const ModuleCard = ({
           {isAdminView && (
             <div className="absolute top-4 left-4">
               {getStatusBadge()}
+            </div>
+          )}
+
+          {/* Payment badge for user view */}
+          {!isAdminView && module.is_paid && (
+            <div className="absolute top-4 right-4">
+              <Badge variant="secondary" className="bg-accent/90 text-accent-foreground">
+                <DollarSign className="w-3 h-3 ml-1" />
+                בתשלום
+              </Badge>
             </div>
           )}
 
@@ -188,15 +209,17 @@ const ModuleCard = ({
         <Button 
           className="w-full button-glow" 
           variant={isStarted || isAdminView ? "default" : "outline"}
-          onClick={() => onClick?.(module)}
+          onClick={() => handleModuleClick(module)}
         >
           {isAdminView 
             ? "ניהול מודול"
-            : isCompleted 
-              ? "צפה שוב" 
-              : isStarted 
-                ? "המשך לימוד" 
-                : "התחל ללמוד"
+            : module.is_paid && module.status === 'active'
+              ? "רכישה"
+              : isCompleted 
+                ? "צפה שוב" 
+                : isStarted 
+                  ? "המשך לימוד" 
+                  : "התחל ללמוד"
           }
         </Button>
       </CardFooter>

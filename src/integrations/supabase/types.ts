@@ -463,7 +463,9 @@ export type Database = {
           description: string
           id: string
           image_url: string | null
+          is_paid: boolean
           order_index: number
+          payment_url: string | null
           published_at: string | null
           status: Database["public"]["Enums"]["content_status"]
           title: string
@@ -475,7 +477,9 @@ export type Database = {
           description: string
           id?: string
           image_url?: string | null
+          is_paid?: boolean
           order_index?: number
+          payment_url?: string | null
           published_at?: string | null
           status?: Database["public"]["Enums"]["content_status"]
           title: string
@@ -487,7 +491,9 @@ export type Database = {
           description?: string
           id?: string
           image_url?: string | null
+          is_paid?: boolean
           order_index?: number
+          payment_url?: string | null
           published_at?: string | null
           status?: Database["public"]["Enums"]["content_status"]
           title?: string

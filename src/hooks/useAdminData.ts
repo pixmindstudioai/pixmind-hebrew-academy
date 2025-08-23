@@ -29,6 +29,8 @@ export const useCreateModule = () => {
       description: string;
       status: 'draft' | 'active' | 'archived';
       order_index?: number;
+      is_paid?: boolean;
+      payment_url?: string;
     }) => {
       // Check admin authentication via localStorage
       const adminAuth = localStorage.getItem('pixmind_admin_session');
@@ -105,6 +107,8 @@ export const useUpdateModule = () => {
       description?: string;
       status?: 'draft' | 'active' | 'archived';
       order_index?: number;
+      is_paid?: boolean;
+      payment_url?: string;
     }) => {
       const updates: any = { ...updateData };
       
