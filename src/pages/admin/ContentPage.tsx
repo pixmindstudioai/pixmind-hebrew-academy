@@ -38,6 +38,44 @@ import {
   useUpdateLesson
 } from '@/hooks/useAdminData';
 import { Module, Chapter, Lesson } from '@/hooks/useContentData';
+import { AdminModule, AdminChapter, AdminLesson } from '@/types/admin';
+
+// Transform database types to admin types
+const transformToAdminChapter = (chapter: Chapter): AdminChapter => ({
+  id: chapter.id,
+  moduleId: chapter.module_id,
+  title: chapter.title,
+  description: chapter.description || '',
+  order: chapter.order_index,
+  status: chapter.status,
+  lessons: [],
+  createdAt: new Date(chapter.created_at),
+  updatedAt: new Date(chapter.updated_at),
+  publishedAt: chapter.published_at ? new Date(chapter.published_at) : undefined,
+});
+
+const transformToAdminLesson = (lesson: Lesson): AdminLesson => ({
+  id: lesson.id,
+  chapterId: lesson.chapter_id,
+  title: lesson.title,
+  description: lesson.description,
+  order: lesson.order_index,
+  status: lesson.status,
+  video: lesson.video_url ? {
+    provider: lesson.video_provider || 'youtube',
+    url: lesson.video_url,
+    videoId: lesson.video_id,
+    startTime: lesson.video_start_time,
+    thumbnail: lesson.video_thumbnail,
+  } : undefined,
+  embeds: [],
+  attachments: [],
+  richText: lesson.rich_text,
+  durationSec: lesson.duration_sec,
+  createdAt: new Date(lesson.created_at),
+  updatedAt: new Date(lesson.updated_at),
+  publishedAt: lesson.published_at ? new Date(lesson.published_at) : undefined,
+});
 
 const ContentPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -444,8 +482,8 @@ const ContentPage = () => {
             </DialogTitle>
           </DialogHeader>
           <LessonForm
-            lesson={editingLesson}
-            chapters={chapters}
+            lesson={editingLesson ? transformToAdminLesson(editingLesson) : undefined}
+            chapters={chapters.map(transformToAdminChapter)}
             onSubmit={editingLesson ? handleUpdateLesson : handleCreateLesson}
             onCancel={() => setLessonDialogOpen(false)}
             isLoading={createLesson.isPending || updateLesson.isPending}
