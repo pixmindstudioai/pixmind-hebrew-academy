@@ -39,6 +39,8 @@ import {
 } from '@/hooks/useAdminData';
 import { Module, Chapter, Lesson } from '@/hooks/useContentData';
 import { AdminModule, AdminChapter, AdminLesson } from '@/types/admin';
+import AuthenticationGuard from '@/components/admin/AuthenticationGuard';
+import { useAuth } from '@/hooks/useAuth';
 
 // Transform database types to admin types
 const transformToAdminChapter = (chapter: Chapter): AdminChapter => ({
@@ -268,16 +270,18 @@ const ContentPage = () => {
                 className="pr-10"
               />
             </div>
-            <Button 
-              onClick={() => {
-                setEditingModule(null);
-                setModuleDialogOpen(true);
-              }}
-              className="gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              מודול חדש
-            </Button>
+            <AuthenticationGuard message="לא ניתן ליצור מודול – יש להתחבר תחילה">
+              <Button 
+                onClick={() => {
+                  setEditingModule(null);
+                  setModuleDialogOpen(true);
+                }}
+                className="gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                מודול חדש
+              </Button>
+            </AuthenticationGuard>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -446,12 +450,14 @@ const ContentPage = () => {
               {editingModule ? 'עריכת מודול' : 'יצירת מודול חדש'}
             </DialogTitle>
           </DialogHeader>
-          <ModuleForm
-            module={editingModule}
-            onSubmit={editingModule ? handleUpdateModule : handleCreateModule}
-            onCancel={() => setModuleDialogOpen(false)}
-            isLoading={createModule.isPending || updateModule.isPending}
-          />
+          <AuthenticationGuard message="נדרשת הרשאה לניהול מודולים">
+            <ModuleForm
+              module={editingModule}
+              onSubmit={editingModule ? handleUpdateModule : handleCreateModule}
+              onCancel={() => setModuleDialogOpen(false)}
+              isLoading={createModule.isPending || updateModule.isPending}
+            />
+          </AuthenticationGuard>
         </DialogContent>
       </Dialog>
 

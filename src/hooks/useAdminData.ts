@@ -30,24 +30,50 @@ export const useCreateModule = () => {
       status: 'draft' | 'active' | 'archived';
       order_index?: number;
     }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('משתמש לא מחובר');
+      // Get the current user session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session?.user) {
+        throw new Error('לא ניתן ליצור מודול – יש להתחבר תחילה');
+      }
 
+      // Insert module with the authenticated user's ID
       const { data, error } = await supabase
         .from('modules')
-        .insert([{ ...moduleData, created_by: user.id }])
+        .insert([{ 
+          ...moduleData, 
+          created_by: session.user.id,
+          order_index: moduleData.order_index ?? 0
+        }])
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'PGRST116') {
+          throw new Error('אין לך הרשאה ליצור מודולים');
+        }
+        throw new Error(`שגיאה ביצירת המודול: ${error.message}`);
+      }
+      
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-modules'] });
-      toast.success('המודול נוצר בהצלחה');
+      queryClient.invalidateQueries({ queryKey: ['modules'] });
+      toast.success('מודול נוצר בהצלחה!');
     },
     onError: (error) => {
-      toast.error(`שגיאה ביצירת המודול: ${error.message}`);
+      console.error('Module creation error:', error);
+      if (error.message.includes('התחבר')) {
+        toast.error(error.message, {
+          action: {
+            label: 'התחבר',
+            onClick: () => window.location.href = '/login'
+          }
+        });
+      } else {
+        toast.error(error.message);
+      }
     },
   });
 };
