@@ -1,23 +1,8 @@
-
 import { useState } from 'react';
-import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -34,7 +19,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import ModuleCard from '@/components/shared/ModuleCard';
+import ChapterAccordion from '@/components/shared/ChapterAccordion';
 import ModuleForm from '@/components/admin/ModuleForm';
 import ChapterForm from '@/components/admin/ChapterForm';
 import LessonForm from '@/components/admin/LessonForm';
@@ -48,9 +34,11 @@ import {
   useUpdateChapter,
   useLessons,
   useCreateLesson,
-  useUpdateLesson
+  useUpdateLesson,
+  Module,
+  Chapter,
+  Lesson
 } from '@/hooks/useAdminData';
-import { toast } from 'sonner';
 
 const ContentPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,12 +53,12 @@ const ContentPage = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
   // Form states
-  const [editingModule, setEditingModule] = useState<any>(null);
-  const [editingChapter, setEditingChapter] = useState<any>(null);
-  const [editingLesson, setEditingLesson] = useState<any>(null);
+  const [editingModule, setEditingModule] = useState<Module | null>(null);
+  const [editingChapter, setEditingChapter] = useState<Chapter | null>(null);
+  const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [itemToDelete, setItemToDelete] = useState<{ type: string; id: string; name: string } | null>(null);
 
-  // Queries
+  // Queries with real-time updates
   const { data: modules = [], isLoading: modulesLoading } = useModules();
   const { data: chapters = [], isLoading: chaptersLoading } = useChapters(selectedModule);
   const { data: lessons = [], isLoading: lessonsLoading } = useLessons(selectedChapter);
@@ -84,17 +72,7 @@ const ContentPage = () => {
   const createLesson = useCreateLesson();
   const updateLesson = useUpdateLesson();
 
-  const getStatusBadge = (status: string) => {
-    const variants = {
-      draft: { label: 'טיוטה', variant: 'secondary' as const },
-      active: { label: 'פעיל', variant: 'default' as const },
-      archived: { label: 'בארכיון', variant: 'outline' as const }
-    };
-    
-    const config = variants[status as keyof typeof variants] || variants.draft;
-    return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
-
+  // Module handlers
   const handleCreateModule = (data: any) => {
     createModule.mutate(data, {
       onSuccess: () => {
@@ -115,8 +93,24 @@ const ContentPage = () => {
     }
   };
 
+  const handleEditModule = (module: Module) => {
+    setEditingModule(module);
+    setModuleDialogOpen(true);
+  };
+
+  const handleDeleteModule = (module: Module) => {
+    setItemToDelete({ type: 'module', id: module.id, name: module.title });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleViewModule = (module: Module) => {
+    setSelectedModule(module.id);
+    setActiveTab('chapters');
+  };
+
+  // Chapter handlers
   const handleCreateChapter = (data: any) => {
-    createChapter.mutate(data, {
+    createChapter.mutate({ ...data, module_id: selectedModule }, {
       onSuccess: () => {
         setChapterDialogOpen(false);
         setEditingChapter(null);
@@ -135,8 +129,24 @@ const ContentPage = () => {
     }
   };
 
+  const handleEditChapter = (chapter: Chapter) => {
+    setEditingChapter(chapter);
+    setChapterDialogOpen(true);
+  };
+
+  const handleDeleteChapter = (chapter: Chapter) => {
+    setItemToDelete({ type: 'chapter', id: chapter.id, name: chapter.title });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleViewChapter = (chapter: Chapter) => {
+    setSelectedChapter(chapter.id);
+    setActiveTab('lessons');
+  };
+
+  // Lesson handlers
   const handleCreateLesson = (data: any) => {
-    createLesson.mutate(data, {
+    createLesson.mutate({ ...data, chapter_id: selectedChapter }, {
       onSuccess: () => {
         setLessonDialogOpen(false);
         setEditingLesson(null);
@@ -155,6 +165,16 @@ const ContentPage = () => {
     }
   };
 
+  const handleEditLesson = (lesson: Lesson) => {
+    setEditingLesson(lesson);
+    setLessonDialogOpen(true);
+  };
+
+  const handleDeleteLesson = (lesson: Lesson) => {
+    setItemToDelete({ type: 'lesson', id: lesson.id, name: lesson.title });
+    setDeleteDialogOpen(true);
+  };
+
   const handleDelete = () => {
     if (!itemToDelete) return;
     
@@ -169,6 +189,7 @@ const ContentPage = () => {
     // Add delete handlers for chapters and lessons here
   };
 
+  // Filter functions
   const filteredModules = modules.filter(module => 
     module.title.includes(searchTerm) || module.description.includes(searchTerm)
   );
@@ -187,7 +208,7 @@ const ContentPage = () => {
         <div>
           <h1 className="text-3xl font-bold">ניהול תוכן</h1>
           <p className="text-muted-foreground">
-            ניהול מודולים, פרקים ושיעורים
+            ניהול מודולים, פרקים ושיעורים עם עדכונים בזמן אמת
           </p>
         </div>
       </div>
@@ -222,70 +243,26 @@ const ContentPage = () => {
             </Button>
           </div>
 
-          <div className="border rounded-lg overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>כותרת</TableHead>
-                  <TableHead>תיאור</TableHead>
-                  <TableHead>סטטוס</TableHead>
-                  <TableHead>סדר</TableHead>
-                  <TableHead>תאריך יצירה</TableHead>
-                  <TableHead>פעולות</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredModules.map((module) => (
-                  <TableRow key={module.id}>
-                    <TableCell className="font-medium">{module.title}</TableCell>
-                    <TableCell className="max-w-xs truncate">{module.description}</TableCell>
-                    <TableCell>{getStatusBadge(module.status)}</TableCell>
-                    <TableCell>{module.order_index}</TableCell>
-                    <TableCell>{new Date(module.created_at).toLocaleDateString('he-IL')}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem 
-                            onClick={() => {
-                              setSelectedModule(module.id);
-                              setActiveTab('chapters');
-                            }}
-                          >
-                            <Eye className="w-4 h-4 ml-2" />
-                            צפה בפרקים
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => {
-                              setEditingModule(module);
-                              setModuleDialogOpen(true);
-                            }}
-                          >
-                            <Edit className="w-4 h-4 ml-2" />
-                            עריכה
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => {
-                              setItemToDelete({ type: 'module', id: module.id, name: module.title });
-                              setDeleteDialogOpen(true);
-                            }}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4 ml-2" />
-                            מחיקה
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredModules.map((module) => (
+              <ModuleCard
+                key={module.id}
+                module={module}
+                lessonsCount={0} // This would be calculated
+                isAdminView
+                onEdit={handleEditModule}
+                onDelete={handleDeleteModule}
+                onView={handleViewModule}
+                onClick={handleViewModule}
+              />
+            ))}
           </div>
+
+          {filteredModules.length === 0 && (
+            <div className="text-center py-12 text-muted-foreground">
+              {searchTerm ? 'לא נמצאו מודולים המתאימים לחיפוש' : 'עדיין אין מודולים'}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="chapters" className="space-y-4">
@@ -301,9 +278,9 @@ const ContentPage = () => {
                 />
               </div>
               {selectedModule && (
-                <Badge variant="outline">
+                <div className="font-bold">
                   מודול: {modules.find(m => m.id === selectedModule)?.title}
-                </Badge>
+                </div>
               )}
             </div>
             <Button 
@@ -320,63 +297,29 @@ const ContentPage = () => {
           </div>
 
           {selectedModule ? (
-            <div className="border rounded-lg overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>כותרת</TableHead>
-                    <TableHead>תיאור</TableHead>
-                    <TableHead>סטטוס</TableHead>
-                    <TableHead>סדר</TableHead>
-                    <TableHead>תאריך יצירה</TableHead>
-                    <TableHead>פעולות</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredChapters.map((chapter) => (
-                    <TableRow key={chapter.id}>
-                      <TableCell className="font-medium">{chapter.title}</TableCell>
-                      <TableCell className="max-w-xs truncate">{chapter.description || 'ללא תיאור'}</TableCell>
-                      <TableCell>{getStatusBadge(chapter.status)}</TableCell>
-                      <TableCell>{chapter.order_index}</TableCell>
-                      <TableCell>{new Date(chapter.created_at).toLocaleDateString('he-IL')}</TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem 
-                              onClick={() => {
-                                setSelectedChapter(chapter.id);
-                                setActiveTab('lessons');
-                              }}
-                            >
-                              <Eye className="w-4 h-4 ml-2" />
-                              צפה בשיעורים
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => {
-                                setEditingChapter(chapter);
-                                setChapterDialogOpen(true);
-                              }}
-                            >
-                              <Edit className="w-4 h-4 ml-2" />
-                              עריכה
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">
-                              <Trash2 className="w-4 h-4 ml-2" />
-                              מחיקה
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <div className="space-y-4">
+              {filteredChapters.map((chapter) => (
+                <ChapterAccordion
+                  key={chapter.id}
+                  chapter={chapter}
+                  lessons={lessons.filter(lesson => lesson.chapter_id === chapter.id)}
+                  isAdminView
+                  onEditChapter={handleEditChapter}
+                  onDeleteChapter={handleDeleteChapter}
+                  onAddLesson={() => {
+                    setSelectedChapter(chapter.id);
+                    setLessonDialogOpen(true);
+                  }}
+                  onEditLesson={handleEditLesson}
+                  onDeleteLesson={handleDeleteLesson}
+                />
+              ))}
+
+              {filteredChapters.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  {searchTerm ? 'לא נמצאו פרקים המתאימים לחיפוש' : 'עדיין אין פרקים במודול זה'}
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-12 text-muted-foreground">
@@ -386,10 +329,69 @@ const ContentPage = () => {
         </TabsContent>
 
         <TabsContent value="lessons" className="space-y-4">
-          {/* Similar structure for lessons */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="relative w-72">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="חיפוש שיעורים..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pr-10"
+                />
+              </div>
+              {selectedChapter && (
+                <div className="font-bold">
+                  פרק: {chapters.find(c => c.id === selectedChapter)?.title}
+                </div>
+              )}
+            </div>
+            <Button 
+              onClick={() => {
+                setEditingLesson(null);
+                setLessonDialogOpen(true);
+              }}
+              disabled={!selectedChapter}
+              className="gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              שיעור חדש
+            </Button>
+          </div>
+
           {selectedChapter ? (
-            <div className="text-center">
-              <p>שיעורים יוצגו כאן</p>
+            <div className="space-y-4">
+              {filteredLessons.map((lesson) => (
+                <div key={lesson.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <h3 className="font-semibold">{lesson.title}</h3>
+                    <p className="text-sm text-muted-foreground">{lesson.description}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditLesson(lesson)}
+                    >
+                      עריכה
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteLesson(lesson)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      מחיקה
+                    </Button>
+                  </div>
+                </div>
+              ))}
+
+              {filteredLessons.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  {searchTerm ? 'לא נמצאו שיעורים המתאימים לחיפוש' : 'עדיין אין שיעורים בפרק זה'}
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-12 text-muted-foreground">
@@ -434,6 +436,24 @@ const ContentPage = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Lesson Dialog */}
+      <Dialog open={lessonDialogOpen} onOpenChange={setLessonDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>
+              {editingLesson ? 'עריכת שיעור' : 'יצירת שיעור חדש'}
+            </DialogTitle>
+          </DialogHeader>
+          <LessonForm
+            lesson={editingLesson}
+            chapters={chapters}
+            onSubmit={editingLesson ? handleUpdateLesson : handleCreateLesson}
+            onCancel={() => setLessonDialogOpen(false)}
+            isLoading={createLesson.isPending || updateLesson.isPending}
+          />
+        </DialogContent>
+      </Dialog>
+
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent dir="rtl">
@@ -441,6 +461,8 @@ const ContentPage = () => {
             <AlertDialogTitle>האם אתה בטוח?</AlertDialogTitle>
             <AlertDialogDescription>
               פעולה זו תמחק את "{itemToDelete?.name}" לצמיתות. לא ניתן לבטל פעולה זו.
+              {itemToDelete?.type === 'module' && ' מחיקת המודול תמחק גם את כל הפרקים והשיעורים שבו.'}
+              {itemToDelete?.type === 'chapter' && ' מחיקת הפרק תמחק גם את כל השיעורים שבו.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

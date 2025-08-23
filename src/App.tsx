@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navigation from "./components/Navigation";
 import Index from "./pages/Index";
 import Courses from "./pages/Courses";
+import CourseDetail from "./pages/CourseDetail";
 import LessonView from "./pages/LessonView";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -28,6 +28,7 @@ const App = () => (
             {/* Public Routes */}
             <Route path="/" element={<><Navigation /><Index /></>} />
             <Route path="/courses" element={<><Navigation /><Courses /></>} />
+            <Route path="/courses/:moduleId" element={<><Navigation /><CourseDetail /></>} />
             <Route path="/lesson/:lessonId" element={<><Navigation /><LessonView /></>} />
             
             {/* Admin Routes */}

@@ -1,145 +1,166 @@
+
 import { useState } from "react";
-import { Search, Filter, BookOpen, Clock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Search, Filter, BookOpen } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import ModuleCard from "@/components/ModuleCard";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import ModuleCard from "@/components/shared/ModuleCard";
+import { useModules, useUserProgress } from "@/hooks/useContentData";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Courses = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAdminAuth();
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("order");
 
-  // Sample course data
-  const courses = [
-    {
-      id: "1",
-      title: "עברית למתחילים",
-      description: "קורס מקיף ללימוד יסודות השפה העברית, כולל קריאה, כתיבה והבנת הנקרא",
-      duration: "4 שבועות",
-      lessonsCount: 24,
-      completedLessons: 0,
-      isStarted: false,
-    },
-    {
-      id: "2", 
-      title: "דקדוק עברי מתקדם",
-      description: "העמקה בכללי הדקדוק העברי, הטיות פעלים ומבנה המשפט",
-      duration: "6 שבועות",
-      lessonsCount: 32,
-      completedLessons: 12,
-      isStarted: true,
-    },
-    {
-      id: "3",
-      title: "ספרות עברית קלסית",
-      description: "היכרות עם יצירות מופת בספרות העברית הקלסית והמודרנית",
-      duration: "8 שבועות", 
-      lessonsCount: 28,
-      completedLessons: 28,
-      isStarted: true,
-    },
-    {
-      id: "4",
-      title: "עברית עסקית",
-      description: "שפה עברית למקום העבודה, כתיבת מיילים ומסמכים מקצועיים",
-      duration: "3 שבועות",
-      lessonsCount: 18,
-      completedLessons: 0,
-      isStarted: false,
-    },
-  ];
+  // Only show active modules to regular users
+  const { data: modules = [], isLoading } = useModules('active');
+  const { data: userProgress = [] } = useUserProgress(isAuthenticated ? "current-user-id" : undefined);
 
-  const filteredCourses = courses.filter(course =>
-    course.title.includes(searchTerm) || course.description.includes(searchTerm)
-  );
+  const filteredModules = modules
+    .filter(module => 
+      module.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      module.description.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "title":
+          return a.title.localeCompare(b.title, 'he');
+        case "newest":
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case "oldest":
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        default:
+          return a.order_index - b.order_index;
+      }
+    });
 
-  return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <div className="bg-gradient-hero border-b border-border/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 gradient-text">
-              הקורסים שלנו
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              למד עברית בקצב שלך עם הקורסים המובנים והמתקדמים שלנו
-            </p>
+  const handleModuleClick = (module: any) => {
+    navigate(`/courses/${module.id}`);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background" dir="rtl">
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center mb-12">
+            <Skeleton className="h-12 w-64 mx-auto mb-4" />
+            <Skeleton className="h-6 w-96 mx-auto" />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="space-y-4">
+                <Skeleton className="aspect-video w-full" />
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            ))}
           </div>
         </div>
       </div>
+    );
+  }
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Search and Filters */}
-        <Card className="glass-card mb-8">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  placeholder="חפש קורסים..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pr-10"
-                />
-              </div>
-              <Button variant="outline" className="md:w-auto">
-                <Filter className="w-4 h-4" />
-                סנן
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <Card className="glass-card">
-            <CardContent className="p-6 text-center">
-              <BookOpen className="w-8 h-8 text-primary mx-auto mb-4" />
-              <h3 className="text-2xl font-bold mb-2">{courses.length}</h3>
-              <p className="text-muted-foreground">קורסים זמינים</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="glass-card">
-            <CardContent className="p-6 text-center">
-              <Clock className="w-8 h-8 text-primary mx-auto mb-4" />
-              <h3 className="text-2xl font-bold mb-2">
-                {courses.reduce((acc, course) => acc + course.lessonsCount, 0)}
-              </h3>
-              <p className="text-muted-foreground">שיעורים סה״כ</p>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card">
-            <CardContent className="p-6 text-center">
-              <div className="w-8 h-8 bg-gradient-primary rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">✓</span>
-              </div>
-              <h3 className="text-2xl font-bold mb-2">
-                {courses.reduce((acc, course) => acc + course.completedLessons, 0)}
-              </h3>
-              <p className="text-muted-foreground">שיעורים הושלמו</p>
-            </CardContent>
-          </Card>
+  return (
+    <div className="min-h-screen bg-background" dir="rtl">
+      <div className="container mx-auto px-4 py-8">
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            קורסי PixMind Studio Academy
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            גלה את עולם העיצוב הגרפי והקריאטיביות. קורסים מקצועיים המותאמים לכל רמה
+          </p>
         </div>
 
-        {/* Courses Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredCourses.map((course) => (
-            <ModuleCard
-              key={course.id}
-              {...course}
+        {/* Search and Filter Section */}
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="relative flex-1">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Input
+              placeholder="חפש קורסים..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pr-12 h-12"
             />
-          ))}
+          </div>
+          
+          <div className="flex gap-2">
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-48 h-12">
+                <Filter className="w-4 h-4 ml-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="order">סדר ברירת מחדל</SelectItem>
+                <SelectItem value="title">לפי שם</SelectItem>
+                <SelectItem value="newest">החדשים ביותר</SelectItem>
+                <SelectItem value="oldest">הישנים ביותר</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        {filteredCourses.length === 0 && (
+        {/* Results Summary */}
+        <div className="mb-6 text-muted-foreground">
+          <span>נמצאו {filteredModules.length} קורסים</span>
+        </div>
+
+        {/* Modules Grid */}
+        {filteredModules.length === 0 ? (
           <div className="text-center py-12">
             <BookOpen className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">לא נמצאו קורסים</h3>
             <p className="text-muted-foreground">
-              נסה לחפש עם מילות מפתח אחרות
+              {searchTerm ? 'נסה לחפש במילים אחרות' : 'עדיין אין קורסים זמינים'}
             </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredModules.map((module) => {
+              // Calculate progress for this module
+              const moduleProgress = userProgress.filter(p => 
+                p.lesson_id && p.completed
+              );
+              
+              return (
+                <ModuleCard
+                  key={module.id}
+                  module={module}
+                  lessonsCount={12} // This would come from actual lesson count
+                  completedLessons={moduleProgress.length}
+                  duration="2.5 שעות" // This would be calculated from lesson durations
+                  isStarted={moduleProgress.length > 0}
+                  onClick={handleModuleClick}
+                />
+              );
+            })}
+          </div>
+        )}
+
+        {/* Call to Action */}
+        {modules.length > 0 && (
+          <div className="text-center mt-16 py-12 bg-gradient-secondary rounded-2xl">
+            <h2 className="text-2xl font-bold mb-4">מוכן להתחיל את המסע?</h2>
+            <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+              הצטרף לאלפי תלמידים שכבר משדרגים את כישורי העיצוב שלהם
+            </p>
+            <Button size="lg" className="button-glow">
+              התחל עכשיו
+            </Button>
           </div>
         )}
       </div>
