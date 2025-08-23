@@ -17,23 +17,46 @@ export const useAdminRole = () => {
     queryFn: async () => {
       if (!user?.id) return { isAdmin: false, profile: null };
       
-      const { data: profile, error } = await supabase
+      // Use DB-level admin check function for security
+      const { data: isAdminResult, error: adminError } = await supabase
+        .rpc('is_admin');
+      
+      if (adminError) {
+        console.error('Error checking admin status:', adminError);
+        return { isAdmin: false, profile: null };
+      }
+      
+      // Also fetch user profile
+      const { data: profile, error: profileError } = await supabase
         .from('users')
         .select('id, email, full_name, role')
         .eq('id', user.id)
         .single();
       
-      if (error) {
-        console.error('Error fetching user role:', error);
-        return { isAdmin: false, profile: null };
+      if (profileError) {
+        console.error('Error fetching user profile:', profileError);
+        return { isAdmin: isAdminResult || false, profile: null };
       }
       
       return {
-        isAdmin: profile?.role === 'admin',
+        isAdmin: isAdminResult || false,
         profile: profile as UserProfile
       };
     },
     enabled: !!user?.id && isAuthenticated,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 1 * 60 * 1000, // 1 minute for security
   });
+};
+
+export const useAdminElevation = () => {
+  return async (secretCode: string) => {
+    const { data, error } = await supabase
+      .rpc('set_current_user_admin', { secret_code: secretCode });
+    
+    if (error) {
+      throw error;
+    }
+    
+    return data;
+  };
 };

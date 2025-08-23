@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, UserPlus, Mail, Calendar, FileText, Trash2, Shield, AlertCircle } from 'lucide-react';
+import { Search, UserPlus, Mail, Calendar, FileText, Trash2, Shield, AlertCircle, Settings } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useUserAccessByEmail, useCreateUserAccess, useDeleteUserAccess, useBulkGrantAccess } from '@/hooks/useUserAccess';
 import { useModules } from '@/hooks/useContentData';
 import { useAdminRole } from '@/hooks/useAdminRole';
+import AdminElevationModal from '@/components/admin/AdminElevationModal';
 import { format } from 'date-fns';
 
 const UserManagementPage = () => {
@@ -23,6 +24,7 @@ const UserManagementPage = () => {
   const [notes, setNotes] = useState('');
   const [bulkEmails, setBulkEmails] = useState('');
   const [showBulkGrant, setShowBulkGrant] = useState(false);
+  const [showElevationModal, setShowElevationModal] = useState(false);
 
   const { data: adminCheck, isLoading: isLoadingAdmin } = useAdminRole();
   const { data: userAccess = [], isLoading: isLoadingAccess } = useUserAccessByEmail(selectedEmail);
@@ -56,15 +58,32 @@ const UserManagementPage = () => {
               אין לך הרשאה לצפות בעמוד זה
             </CardDescription>
           </CardHeader>
-          <CardContent className="text-center">
+          <CardContent className="text-center space-y-4">
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 עמוד זה זמין רק למנהלי מערכת
               </AlertDescription>
             </Alert>
+            <Button
+              variant="outline"
+              onClick={() => setShowElevationModal(true)}
+              className="w-full"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              הגדר כמנהל
+            </Button>
           </CardContent>
         </Card>
+        
+        <AdminElevationModal
+          open={showElevationModal}
+          onOpenChange={setShowElevationModal}
+          onSuccess={() => {
+            // Admin check will automatically refresh due to cache invalidation
+            window.location.reload();
+          }}
+        />
       </div>
     );
   }
