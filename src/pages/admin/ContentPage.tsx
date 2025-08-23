@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Plus, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -34,11 +35,9 @@ import {
   useUpdateChapter,
   useLessons,
   useCreateLesson,
-  useUpdateLesson,
-  Module,
-  Chapter,
-  Lesson
+  useUpdateLesson
 } from '@/hooks/useAdminData';
+import { Module, Chapter, Lesson } from '@/hooks/useContentData';
 
 const ContentPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
