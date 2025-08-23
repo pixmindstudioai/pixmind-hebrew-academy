@@ -464,6 +464,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_paid: boolean
+          is_verified: boolean | null
           order_index: number
           payment_url: string | null
           published_at: string | null
@@ -478,6 +479,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_paid?: boolean
+          is_verified?: boolean | null
           order_index?: number
           payment_url?: string | null
           published_at?: string | null
@@ -492,6 +494,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_paid?: boolean
+          is_verified?: boolean | null
           order_index?: number
           payment_url?: string | null
           published_at?: string | null

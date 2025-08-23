@@ -2,42 +2,14 @@ import { ArrowLeft, BookOpen, Play, Star, Users, Trophy, LogIn, UserPlus } from 
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import ModuleCard from "@/components/ModuleCard";
+import ModuleCard from "@/components/shared/ModuleCard";
 import { useAuth } from "@/hooks/useAuth";
+import { useVerifiedModules } from "@/hooks/useContentData";
 import heroBackground from "@/assets/hero-background.jpg";
 
 const Index = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
-  // Sample course data
-  const featuredCourses = [
-    {
-      id: "1",
-      title: "עברית למתחילים",
-      description: "קורס מקיף ללימוד יסודות השפה העברית, כולל קריאה, כתיבה והבנת הנקרא",
-      duration: "4 שבועות",
-      lessonsCount: 24,
-      completedLessons: 0,
-      isStarted: false,
-    },
-    {
-      id: "2", 
-      title: "דקדוק עברי מתקדם",
-      description: "העמקה בכללי הדקדוק העברי, הטיות פעלים ומבנה המשפט",
-      duration: "6 שבועות",
-      lessonsCount: 32,
-      completedLessons: 12,
-      isStarted: true,
-    },
-    {
-      id: "3",
-      title: "ספרות עברית קלסית",
-      description: "היכרות עם יצירות מופת בספרות העברית הקלסית והמודרנית",
-      duration: "8 שבועות", 
-      lessonsCount: 28,
-      completedLessons: 28,
-      isStarted: true,
-    },
-  ];
+  const { data: modules = [], isLoading: modulesLoading } = useVerifiedModules();
 
   const stats = [
     { icon: Users, label: "תלמידים רשומים", value: "15,000+" },
@@ -152,12 +124,26 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {featuredCourses.map((course) => (
-              <ModuleCard
-                key={course.id}
-                {...course}
-              />
-            ))}
+            {modulesLoading ? (
+              <div className="col-span-full text-center py-8 text-muted-foreground">
+                טוען קורסים...
+              </div>
+            ) : modules.length > 0 ? (
+              modules.slice(0, 6).map((module) => (
+                <ModuleCard
+                  key={module.id}
+                  module={module}
+                  lessonsCount={0}
+                  onClick={() => {}}
+                />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12 text-muted-foreground">
+                <BookOpen className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium mb-2">אין קורסים זמינים כרגע</p>
+                <p className="text-sm">חזרו אלינו בקרוב לקורסים חדשים ומרתקים</p>
+              </div>
+            )}
           </div>
 
           <div className="text-center">

@@ -38,7 +38,6 @@ const Navigation = () => {
 
   const userNavItems = [
     { href: "/profile", label: "פרופיל", icon: User },
-    { href: "/settings", label: "הגדרות", icon: Settings },
   ];
 
   const isActive = (path: string) => location.pathname === path;

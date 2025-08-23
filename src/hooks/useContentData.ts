@@ -14,6 +14,7 @@ export interface Module {
   status: 'draft' | 'active' | 'archived';
   is_paid: boolean;
   payment_url?: string;
+  is_verified: boolean;
   created_at: string;
   updated_at: string;
   published_at?: string;
@@ -50,6 +51,54 @@ export interface Lesson {
   updated_at: string;
   published_at?: string;
 }
+
+// Hook for fetching verified public modules (Home page)
+export const useVerifiedModules = () => {
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    queryKey: ['verified-modules'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('modules')
+        .select(`
+          *,
+          chapters!inner(id)
+        `)
+        .eq('status', 'active')
+        .eq('is_verified', true)
+        .not('created_by', 'is', null)
+        .order('order_index');
+      
+      if (error) throw error;
+      return data as Module[];
+    },
+  });
+
+  // Set up real-time subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel('verified-modules-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'modules'
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['verified-modules'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  return query;
+};
 
 // Hook for fetching modules (with real-time updates)
 export const useModules = (includeStatus?: 'active' | 'all') => {
