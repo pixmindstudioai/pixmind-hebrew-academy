@@ -192,7 +192,7 @@ const ContentPage = () => {
     
     const lessonData: any = {
       ...restData,
-      order_index: order || 0, // Transform 'order' to 'order_index'
+      // Don't send order_index - let the backend calculate it automatically
     };
     
     // Transform video object to individual database columns
@@ -208,18 +208,22 @@ const ContentPage = () => {
     if (embeds) lessonData.embeds = embeds;
     if (attachments) lessonData.attachments = attachments;
     
-    console.log('Transformed lesson data for database:', lessonData);
+    console.log('Transformed lesson data for database (order_index will be auto-calculated):', lessonData);
     
     createLesson.mutate(lessonData, {
       onSuccess: (newLesson) => {
-        console.log('Lesson created successfully:', newLesson);
+        console.log('Lesson created successfully with order_index:', newLesson.order_index);
         setLessonDialogOpen(false);
         setEditingLesson(null);
-        toast.success('השיעור נוצר בהצלחה וזמין לתלמידים');
+        toast.success(`השיעור נוצר בהצלחה במיקום ${newLesson.order_index + 1} בפרק`);
       },
       onError: (error) => {
         console.error('שגיאה ביצירת השיעור:', error);
-        toast.error(`שגיאה ביצירת השיעור: ${error.message}`);
+        if (error.message.includes('duplicate key') && error.message.includes('order_index')) {
+          toast.error('שגיאה: מספר סדר (order) כבר קיים בפרק זה');
+        } else {
+          toast.error(`שגיאה ביצירת השיעור: ${error.message}`);
+        }
       }
     });
   };

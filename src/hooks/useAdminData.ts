@@ -276,13 +276,25 @@ export const useCreateLesson = () => {
         throw new Error('חסרים שדות חובה: פרק, כותרת ותיאור');
       }
 
+      // Automatically calculate the next order_index for this chapter
+      const { data: existingLessons } = await supabase
+        .from('lessons')
+        .select('order_index')
+        .eq('chapter_id', lessonData.chapter_id)
+        .order('order_index', { ascending: false })
+        .limit(1);
+
+      const nextOrderIndex = existingLessons && existingLessons.length > 0 
+        ? (existingLessons[0].order_index || 0) + 1 
+        : 0;
+
       // Extract only the fields that belong to the lessons table
       const cleanLessonData: any = {
         chapter_id: lessonData.chapter_id,
         title: lessonData.title,
         description: lessonData.description,
         status: lessonData.status || 'draft',
-        order_index: lessonData.order_index || 0
+        order_index: nextOrderIndex // Use calculated order_index instead of user input
       };
 
       // Add optional fields only if they exist
@@ -297,6 +309,8 @@ export const useCreateLesson = () => {
       // Add JSONB fields
       if (lessonData.embeds) cleanLessonData.embeds = lessonData.embeds;
       if (lessonData.attachments) cleanLessonData.attachments = lessonData.attachments;
+
+      console.log('Creating lesson with auto-calculated order_index:', nextOrderIndex);
 
       const { data, error } = await supabase
         .from('lessons')
@@ -320,6 +334,8 @@ export const useCreateLesson = () => {
             onClick: () => window.location.href = '/admin-login'
           }
         });
+      } else if (error.message.includes('duplicate key') && error.message.includes('order_index')) {
+        toast.error('שגיאה: מספר סדר (order) כבר קיים בפרק זה');
       } else if (error.message.includes('chapter_id')) {
         toast.error('שגיאה ביצירת שיעור – חסר שדה פרק (chapter_id)');
       } else {

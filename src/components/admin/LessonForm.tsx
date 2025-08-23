@@ -171,14 +171,14 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
                     <Input
                       type="number"
                       min="0"
-                      placeholder="0"
+                      placeholder="יחושב אוטומטית"
                       {...field}
                       onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                      disabled={isLoading}
+                      disabled={true} // Make it read-only since it's auto-calculated
                     />
                   </FormControl>
                   <FormDescription>
-                    קביעת סדר השיעור בפרק
+                    מספר הסדר יחושב אוטומטית על פי השיעורים הקיימים בפרק
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
