@@ -59,9 +59,10 @@ interface ModuleFormProps {
   onSubmit: (data: ModuleFormData) => void;
   onCancel: () => void;
   isLoading?: boolean;
+  showActions?: boolean;
 }
 
-const ModuleForm = ({ module, onSubmit, onCancel, isLoading }: ModuleFormProps) => {
+const ModuleForm = ({ module, onSubmit, onCancel, isLoading, showActions = true }: ModuleFormProps) => {
   const form = useForm<ModuleFormData>({
     resolver: zodResolver(moduleSchema),
     defaultValues: {
@@ -80,17 +81,23 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading }: ModuleFormProps) 
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">
-          {module ? 'עריכת מודול' : 'יצירת מודול חדש'}
-        </h2>
-        <p className="text-muted-foreground">
-          {module ? 'ערוך את פרטי המודול' : 'צור מודול חדש עם פרקים ושיעורים'}
-        </p>
-      </div>
+      {showActions && (
+        <div>
+          <h2 className="text-2xl font-bold">
+            {module ? 'עריכת מודול' : 'יצירת מודול חדש'}
+          </h2>
+          <p className="text-muted-foreground">
+            {module ? 'ערוך את פרטי המודול' : 'צור מודול חדש עם פרקים ושיעורים'}
+          </p>
+        </div>
+      )}
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <form 
+          id="module-form"
+          onSubmit={form.handleSubmit(handleSubmit)} 
+          className="space-y-6"
+        >
           <FormField
             control={form.control}
             name="title"
@@ -240,14 +247,19 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading }: ModuleFormProps) 
             )}
           />
 
-          <div className="flex gap-3 pt-4">
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'שומר...' : module ? 'עדכון מודול' : 'יצירת מודול'}
-            </Button>
-            <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
-              ביטול
-            </Button>
-          </div>
+          {showActions && (
+            <div className="flex gap-3 pt-4">
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? 'שומר...' : module ? 'עדכון מודול' : 'יצירת מודול'}
+              </Button>
+              <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+                ביטול
+              </Button>
+            </div>
+          )}
+          
+          {/* Add bottom padding when actions are not shown to prevent content from being hidden behind sticky footer */}
+          {!showActions && <div className="pb-6" />}
         </form>
       </Form>
     </div>

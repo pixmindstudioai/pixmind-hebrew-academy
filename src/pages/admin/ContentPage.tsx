@@ -479,20 +479,47 @@ const ContentPage = () => {
 
       {/* Module Dialog */}
       <Dialog open={moduleDialogOpen} onOpenChange={setModuleDialogOpen}>
-        <DialogContent className="max-w-2xl" dir="rtl">
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0" dir="rtl">
+          <DialogHeader className="px-6 py-4 border-b border-border">
+            <DialogTitle className="text-2xl font-bold">
               {editingModule ? 'עריכת מודול' : 'יצירת מודול חדש'}
             </DialogTitle>
           </DialogHeader>
-          <AuthenticationGuard message="נדרשת הרשאה לניהול מודולים">
-            <ModuleForm
-              module={editingModule}
-              onSubmit={editingModule ? handleUpdateModule : handleCreateModule}
-              onCancel={() => setModuleDialogOpen(false)}
-              isLoading={createModule.isPending || updateModule.isPending}
-            />
-          </AuthenticationGuard>
+          
+          <div className="flex-1 overflow-y-auto px-6 py-4 max-h-[calc(90vh-120px)]">
+            <AuthenticationGuard message="נדרשת הרשאה לניהול מודולים">
+              <ModuleForm
+                module={editingModule}
+                onSubmit={editingModule ? handleUpdateModule : handleCreateModule}
+                onCancel={() => setModuleDialogOpen(false)}
+                isLoading={createModule.isPending || updateModule.isPending}
+                showActions={false}
+              />
+            </AuthenticationGuard>
+          </div>
+          
+          <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t border-border px-6 py-4 z-50">
+            <div className="flex gap-3">
+              <AuthenticationGuard message="נדרשת הרשאה לניהול מודולים">
+                <button
+                  type="submit"
+                  form="module-form"
+                  disabled={createModule.isPending || updateModule.isPending}
+                  className="px-6 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {createModule.isPending || updateModule.isPending ? 'שומר...' : editingModule ? 'עדכון מודול' : 'יצירת מודול'}
+                </button>
+              </AuthenticationGuard>
+              <button
+                type="button"
+                onClick={() => setModuleDialogOpen(false)}
+                disabled={createModule.isPending || updateModule.isPending}
+                className="px-6 py-2 border border-border hover:bg-accent text-foreground rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                ביטול
+              </button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
