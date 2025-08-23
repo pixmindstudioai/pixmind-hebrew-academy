@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { toast } from "sonner";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -59,10 +59,7 @@ const Login = () => {
           setError('שגיאה בהתחברות. אנא נסה שוב');
         }
       } else {
-        toast({
-          title: "התחברת בהצלחה!",
-          description: "ברוך הבא חזרה לאקדמיה",
-        });
+        toast.success("התחברת בהצלחה! ברוך הבא חזרה לאקדמיה");
         navigate('/');
       }
     } catch (err) {
@@ -86,10 +83,7 @@ const Login = () => {
       if (error) {
         setError('שגיאה בשליחת קישור איפוס הסיסמה');
       } else {
-        toast({
-          title: "קישור נשלח בהצלחה!",
-          description: "בדוק את האימייל שלך לקישור איפוס הסיסמה",
-        });
+        toast.success("קישור איפוס הסיסמה נשלח! בדוק את האימייל שלך");
       }
     } catch (err) {
       setError('שגיאה לא צפויה. אנא נסה שוב');

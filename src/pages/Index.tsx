@@ -1,11 +1,13 @@
-import { ArrowLeft, BookOpen, Play, Star, Users, Trophy } from "lucide-react";
+import { ArrowLeft, BookOpen, Play, Star, Users, Trophy, LogIn, UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ModuleCard from "@/components/ModuleCard";
+import { useAuth } from "@/hooks/useAuth";
 import heroBackground from "@/assets/hero-background.jpg";
 
 const Index = () => {
+  const { user, isAuthenticated, isLoading } = useAuth();
   // Sample course data
   const featuredCourses = [
     {
@@ -61,24 +63,54 @@ const Index = () => {
           </h1>
           
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed animate-fade-in">
-            פלטפורמת הלימוד המתקדמת ביותר ללימוד עברית
-            <br />
-            עם מערכת מודולרית, נגן וידאו מותאם אישית, ומעקב התקדמות
+            {isAuthenticated ? (
+              <>
+                שלום {user?.user_metadata?.full_name ? user.user_metadata.full_name.split(' ')[0] : 'חבר'}! 
+                <br />
+                המשך את המסע שלך בלימוד עברית עם המערכת המתקדמת שלנו
+              </>
+            ) : (
+              <>
+                פלטפורמת הלימוד המתקדמת ביותר ללימוד עברית
+                <br />
+                עם מערכת מודולרית, נגן וידאו מותאם אישית, ומעקב התקדמות
+              </>
+            )}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-scale-in">
-            <Button asChild size="lg" variant="hero" className="text-lg px-8 py-4">
-              <Link to="/courses">
-                התחל ללמוד עכשיו
-                <ArrowLeft className="w-5 h-5" />
-              </Link>
-            </Button>
-            
-            <Button asChild size="lg" variant="outline" className="text-lg px-8 py-4">
-              <Link to="/courses">
-                גלה את הקורסים
-              </Link>
-            </Button>
+            {isAuthenticated ? (
+              <>
+                <Button asChild size="lg" variant="hero" className="text-lg px-8 py-4">
+                  <Link to="/courses">
+                    המשך ללמוד
+                    <ArrowLeft className="w-5 h-5" />
+                  </Link>
+                </Button>
+                
+                <Button asChild size="lg" variant="outline" className="text-lg px-8 py-4">
+                  <Link to="/courses">
+                    גלה קורסים נוספים
+                  </Link>
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button asChild size="lg" variant="hero" className="text-lg px-8 py-4">
+                  <Link to="/signup">
+                    <UserPlus className="w-5 h-5" />
+                    הרשם בחינם עכשיו
+                  </Link>
+                </Button>
+                
+                <Button asChild size="lg" variant="outline" className="text-lg px-8 py-4">
+                  <Link to="/login">
+                    <LogIn className="w-5 h-5" />
+                    כבר יש לך חשבון? התחבר
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </section>

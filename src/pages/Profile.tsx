@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { toast } from "sonner";
 import { useModules, useUserProgress, useUpdateProgress } from '@/hooks/useContentData';
 import Navigation from '@/components/Navigation';
 
@@ -88,10 +88,7 @@ const Profile = () => {
       if (error) {
         setError('שגיאה בעדכון הפרופיל');
       } else {
-        toast({
-          title: "פרופיל עודכן בהצלחה!",
-          description: "הפרטים שלך נשמרו",
-        });
+        toast.success("פרופיל עודכן בהצלחה! הפרטים שלך נשמרו");
         setIsEditing(false);
       }
     } catch (err) {
@@ -104,16 +101,9 @@ const Profile = () => {
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
-      toast({
-        title: "שגיאה",
-        description: "לא ניתן להתנתק. אנא נסה שוב",
-        variant: "destructive"
-      });
+      toast.error("לא ניתן להתנתק. אנא נסה שוב");
     } else {
-      toast({
-        title: "התנתקת בהצלחה",
-        description: "להתראות!",
-      });
+      toast.success("התנתקת בהצלחה! להתראות!");
       navigate('/');
     }
   };
