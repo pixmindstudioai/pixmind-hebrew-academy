@@ -33,11 +33,11 @@ interface AttachmentManagerProps {
 const AttachmentManager = ({ attachments, onAdd, onRemove, isLoading }: AttachmentManagerProps) => {
   const [dragActive, setDragActive] = useState(false);
 
-  const getFileIcon = (type: string) => {
-    if (type.startsWith('image/')) return Image;
-    if (type.startsWith('video/')) return Video;
-    if (type.includes('pdf')) return FileText;
-    if (type.includes('zip') || type.includes('rar')) return Archive;
+  const getFileIcon = (mime: string) => {
+    if (mime.startsWith('image/')) return Image;
+    if (mime.startsWith('video/')) return Video;
+    if (mime.includes('pdf')) return FileText;
+    if (mime.includes('zip') || mime.includes('rar')) return Archive;
     return File;
   };
 
@@ -138,7 +138,7 @@ const AttachmentManager = ({ attachments, onAdd, onRemove, isLoading }: Attachme
       {attachments.length > 0 ? (
         <div className="grid gap-3">
           {attachments.map((attachment) => {
-            const FileIcon = getFileIcon(attachment.type);
+            const FileIcon = getFileIcon(attachment.mime);
             return (
               <div
                 key={attachment.id}
@@ -151,7 +151,7 @@ const AttachmentManager = ({ attachments, onAdd, onRemove, isLoading }: Attachme
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <span>{formatFileSize(attachment.size)}</span>
                       <Badge variant="secondary" className="text-xs">
-                        {attachment.type.split('/')[1]?.toUpperCase() || 'FILE'}
+                        {attachment.mime.split('/')[1]?.toUpperCase() || 'FILE'}
                       </Badge>
                     </div>
                   </div>

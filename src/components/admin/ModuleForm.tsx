@@ -39,7 +39,7 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading }: ModuleFormProps) 
     defaultValues: {
       title: module?.title || '',
       description: module?.description || '',
-      isPublished: module?.isPublished || false,
+      isPublished: module?.status === 'active' || false,
     },
   });
 
