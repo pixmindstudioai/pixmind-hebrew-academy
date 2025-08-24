@@ -10,6 +10,7 @@ export interface Module {
   title: string;
   description: string;
   image_url?: string;
+  thumbnail_url?: string;
   order_index: number;
   status: 'draft' | 'active' | 'archived';
   is_paid: boolean;
@@ -45,6 +46,7 @@ export interface Lesson {
   video_id?: string;
   video_start_time?: number;
   video_thumbnail?: string;
+  thumbnail_url?: string;
   rich_text?: string;
   duration_sec?: number;
   created_at: string;
@@ -590,10 +592,10 @@ export const useUpdateProgress = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['user-progress', data.user_id] });
-      toast.success(data.completed ? 'השיעור הושלם!' : 'התקדמות נשמרה');
+      queryClient.invalidateQueries({ queryKey: ['lesson-progress', data.lesson_id, data.user_id] });
     },
     onError: (error) => {
-      toast.error(`שגיאה בשמירת התקדמות: ${error.message}`);
+      console.error('Progress update error:', error);
     },
   });
 };

@@ -36,6 +36,7 @@ export interface AdminModule {
   order: number;
   status: 'draft' | 'active' | 'archived';
   chapters: AdminChapter[];
+  thumbnail_url?: string;
   createdAt: Date;
   updatedAt: Date;
   publishedAt?: Date;
@@ -66,6 +67,7 @@ export interface AdminLesson {
   richText?: string;
   attachments: LessonAttachment[];
   durationSec?: number;
+  thumbnail_url?: string;
   createdAt: Date;
   updatedAt: Date;
   publishedAt?: Date;

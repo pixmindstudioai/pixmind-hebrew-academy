@@ -109,7 +109,8 @@ All colors MUST be HSL. RTL optimized.
   }
 
   body {
-    @apply bg-background text-foreground font-['Poppins',sans-serif] antialiased;
+    @apply bg-background text-foreground antialiased;
+    font-family: "Rubik", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
     direction: rtl;
   }
 

@@ -86,12 +86,14 @@ const ModuleCard = ({
   return (
     <Card className="glass-card hover:shadow-[var(--shadow-card)] transition-all duration-300 hover:scale-105 group">
       <CardHeader className="p-0">
+        {/* Thumbnail */}
         <div className="relative overflow-hidden rounded-t-lg bg-gradient-secondary aspect-video">
-          {module.image_url ? (
+          {module.thumbnail_url ? (
             <img 
-              src={module.image_url} 
+              src={module.thumbnail_url} 
               alt={module.title}
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              loading="lazy"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-secondary">
