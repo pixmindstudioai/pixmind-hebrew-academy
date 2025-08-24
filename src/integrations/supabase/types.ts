@@ -356,6 +356,7 @@ export type Database = {
           published_at: string | null
           rich_text: string | null
           status: Database["public"]["Enums"]["content_status"]
+          thumbnail_url: string | null
           title: string
           updated_at: string
           video_id: string | null
@@ -376,6 +377,7 @@ export type Database = {
           published_at?: string | null
           rich_text?: string | null
           status?: Database["public"]["Enums"]["content_status"]
+          thumbnail_url?: string | null
           title: string
           updated_at?: string
           video_id?: string | null
@@ -396,6 +398,7 @@ export type Database = {
           published_at?: string | null
           rich_text?: string | null
           status?: Database["public"]["Enums"]["content_status"]
+          thumbnail_url?: string | null
           title?: string
           updated_at?: string
           video_id?: string | null
@@ -469,6 +472,7 @@ export type Database = {
           payment_url: string | null
           published_at: string | null
           status: Database["public"]["Enums"]["content_status"]
+          thumbnail_url: string | null
           title: string
           updated_at: string
         }
@@ -484,6 +488,7 @@ export type Database = {
           payment_url?: string | null
           published_at?: string | null
           status?: Database["public"]["Enums"]["content_status"]
+          thumbnail_url?: string | null
           title: string
           updated_at?: string
         }
@@ -499,6 +504,7 @@ export type Database = {
           payment_url?: string | null
           published_at?: string | null
           status?: Database["public"]["Enums"]["content_status"]
+          thumbnail_url?: string | null
           title?: string
           updated_at?: string
         }
