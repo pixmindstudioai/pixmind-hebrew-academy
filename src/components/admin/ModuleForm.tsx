@@ -20,7 +20,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import ThumbnailUploader from './ThumbnailUploader';
 
 const moduleSchema = z.object({
   title: z.string().min(2, 'כותרת המודול חייבת להכיל לפחות 2 תווים').max(120, 'כותרת המודול לא יכולה להכיל יותר מ-120 תווים'),
@@ -29,7 +28,6 @@ const moduleSchema = z.object({
   order_index: z.number().min(0, 'מספר הסדר חייב להיות 0 או יותר').optional(),
   is_paid: z.boolean().default(false),
   payment_url: z.string().url('יש להזין כתובת URL תקינה').optional().or(z.literal('')),
-  thumbnail_url: z.string().optional(),
 }).refine((data) => {
   // If is_paid is true, payment_url must be provided and not empty
   if (data.is_paid && (!data.payment_url || data.payment_url.trim() === '')) {
@@ -51,7 +49,6 @@ interface Module {
   order_index: number;
   is_paid: boolean;
   payment_url?: string;
-  thumbnail_url?: string;
   created_at: string;
   updated_at: string;
   published_at?: string;
@@ -75,7 +72,6 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading, showActions = true 
       order_index: module?.order_index || 0,
       is_paid: module?.is_paid || false,
       payment_url: module?.payment_url || '',
-      thumbnail_url: module?.thumbnail_url || '',
     },
   });
 
@@ -167,14 +163,6 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading, showActions = true 
                 <FormMessage />
               </FormItem>
             )}
-          />
-
-          <ThumbnailUploader
-            thumbnailUrl={form.watch('thumbnail_url')}
-            onThumbnailChange={(url) => form.setValue('thumbnail_url', url)}
-            disabled={isLoading}
-            entityType="module"
-            entityId={module?.id}
           />
 
           <FormField

@@ -26,7 +26,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import VideoUrlInput from './VideoUrlInput';
 import AttachmentManager from './AttachmentManager';
 import EmbedManager from './EmbedManager';
-import ThumbnailUploader from './ThumbnailUploader';
 import { AdminLesson, AdminChapter, LessonVideo, LessonEmbed, LessonAttachment } from '@/types/admin';
 
 const lessonSchema = z.object({
@@ -37,7 +36,6 @@ const lessonSchema = z.object({
   status: z.enum(['draft', 'active', 'archived']).default('draft'),
   duration_sec: z.number().optional(),
   rich_text: z.string().optional(),
-  thumbnail_url: z.string().optional(),
 });
 
 type LessonFormData = z.infer<typeof lessonSchema>;
@@ -69,7 +67,6 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
       status: lesson?.status || 'draft',
       duration_sec: lesson?.durationSec,
       rich_text: lesson?.richText || '',
-      thumbnail_url: lesson?.thumbnail_url || '',
     },
   });
 
@@ -230,14 +227,6 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
                 <FormMessage />
               </FormItem>
             )}
-          />
-
-          <ThumbnailUploader
-            thumbnailUrl={form.watch('thumbnail_url')}
-            onThumbnailChange={(url) => form.setValue('thumbnail_url', url)}
-            disabled={isLoading}
-            entityType="lesson"
-            entityId={lesson?.id}
           />
 
           <Tabs defaultValue="video" className="w-full">
