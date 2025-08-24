@@ -10,6 +10,7 @@ export interface Module {
   title: string;
   description: string;
   image_url?: string;
+  thumbnail_url?: string;
   order_index: number;
   status: 'draft' | 'active' | 'archived';
   is_paid: boolean;
@@ -45,6 +46,7 @@ export interface Lesson {
   video_id?: string;
   video_start_time?: number;
   video_thumbnail?: string;
+  thumbnail_url?: string;
   rich_text?: string;
   duration_sec?: number;
   created_at: string;

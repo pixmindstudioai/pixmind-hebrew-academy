@@ -11,6 +11,7 @@ import CommentSection from "@/components/CommentSection";
 import ProgressBadge from "@/components/ProgressBadge";
 import LessonRating from "@/components/LessonRating";
 import AccessGuard from "@/components/AccessGuard";
+import ProgressToggle from "@/components/ProgressToggle";
 import { 
   useLesson, 
   useLessonAttachments, 
@@ -34,8 +35,7 @@ const LessonView = () => {
   const { data: chapterLessons = [] } = useLessons(lesson?.chapter_id || '', 'active');
   const { data: userProgress } = useLessonProgress(lessonId!, user?.id);
   
-  // Progress management
-  const updateProgress = useUpdateProgress();
+  // Progress management - now handled by ProgressToggle component
   const [isCompleted, setIsCompleted] = useState(false);
 
   // Find current lesson index and navigation
@@ -54,26 +54,9 @@ const LessonView = () => {
     }
   }, [userProgress]);
 
-  const handleComplete = () => {
-    if (!isAuthenticated || !lessonId) {
-      toast.error('יש להתחבר כדי לסמן שיעורים כהושלמו');
-      return;
-    }
-    
-    const newCompletedState = !isCompleted;
-    
-    updateProgress.mutate({
-      userId: user!.id,
-      lessonId: lessonId,
-      completed: newCompletedState
-    }, {
-      onSuccess: () => {
-        setIsCompleted(newCompletedState);
-      },
-      onError: () => {
-        toast.error('שגיאה בעדכון התקדמות. נסה שוב.');
-      }
-    });
+  const handleProgressToggle = (completed: boolean) => {
+    setIsCompleted(completed);
+    // Could trigger a refetch of chapter progress here if needed
   };
 
   const getFileIcon = (mimeType: string) => {
@@ -159,6 +142,18 @@ const LessonView = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-8">
+              {/* Lesson Thumbnail */}
+              {lesson.thumbnail_url && (
+                <div className="aspect-video w-full rounded-lg overflow-hidden bg-muted">
+                  <img
+                    src={lesson.thumbnail_url}
+                    alt={lesson.title}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              )}
+
               {/* Video Player */}
               <EmbeddedVideoPlayer
                 videoUrl={lesson.video_url}
@@ -192,24 +187,11 @@ const LessonView = () => {
                       {lesson.duration_sec ? `משך השיעור: ${Math.ceil(lesson.duration_sec / 60)} דקות` : 'משך לא צוין'}
                     </div>
                     
-                    <Button
-                      onClick={handleComplete}
-                      variant={isCompleted ? "secondary" : "default"}
-                      className="button-glow"
-                      disabled={!isAuthenticated || updateProgress.isPending}
-                    >
-                      {updateProgress.isPending ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          מעדכן...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="w-4 h-4" />
-                          {isCompleted ? "הושלם ✓" : "סמן כהושלם"}
-                        </>
-                      )}
-                    </Button>
+                    <ProgressToggle
+                      lessonId={lesson.id!}
+                      initialCompleted={userProgress?.completed || false}
+                      onToggle={handleProgressToggle}
+                    />
                   </div>
                   
                   {!isAuthenticated && (
