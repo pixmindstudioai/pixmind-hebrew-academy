@@ -229,14 +229,49 @@ const ContentPage = () => {
   };
 
   const handleUpdateLesson = (data: any) => {
-    if (editingLesson) {
-      updateLesson.mutate({ id: editingLesson.id, ...data }, {
-        onSuccess: () => {
-          setLessonDialogOpen(false);
-          setEditingLesson(null);
-        }
-      });
+    if (!editingLesson) return;
+    
+    const { video, embeds, attachments, ...formData } = data;
+    
+    // Transform camelCase to snake_case for database
+    const lessonData: any = {
+      id: editingLesson.id,
+      chapter_id: formData.chapter_id,
+      title: formData.title,
+      description: formData.description,
+      order_index: formData.order || 0,
+      status: formData.status,
+      duration_sec: formData.duration_sec,
+      rich_text: formData.rich_text,
+      thumbnail_url: formData.thumbnail_url,
+    };
+    
+    // Handle video data
+    if (video) {
+      lessonData.video_provider = video.provider;
+      lessonData.video_url = video.url;
+      lessonData.video_id = video.videoId;
+      lessonData.video_start_time = video.startTime;
+      lessonData.video_thumbnail = video.thumbnail;
     }
+    
+    // Add JSONB fields
+    if (embeds) lessonData.embeds = embeds;
+    if (attachments) lessonData.attachments = attachments;
+    
+    console.log('Updating lesson with data:', lessonData);
+    
+    updateLesson.mutate(lessonData, {
+      onSuccess: () => {
+        setLessonDialogOpen(false);
+        setEditingLesson(null);
+        toast.success('השיעור עודכן בהצלחה');
+      },
+      onError: (error) => {
+        console.error('שגיאה בעדכון השיעור:', error);
+        toast.error(`שגיאה בעדכון השיעור: ${error.message}`);
+      }
+    });
   };
 
   const handleEditLesson = (lesson: any) => {
