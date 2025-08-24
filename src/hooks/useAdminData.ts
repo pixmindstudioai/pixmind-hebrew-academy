@@ -355,6 +355,7 @@ export const useUpdateLesson = () => {
   return useMutation({
     mutationFn: async ({ id, ...updateData }: {
       id: string;
+      chapter_id?: string;
       title?: string;
       description?: string;
       status?: 'draft' | 'active' | 'archived';
@@ -366,12 +367,36 @@ export const useUpdateLesson = () => {
       video_thumbnail?: string;
       rich_text?: string;
       duration_sec?: number;
+      thumbnail_url?: string;
+      links?: any[];
+      attachments?: any[];
+      embeds?: any[];
     }) => {
+      // Admin authentication check
+      const adminAuth = localStorage.getItem('pixmind_admin_session');
+      const sessionExpiry = localStorage.getItem('pixmind_admin_expiry');
+      
+      if (adminAuth !== 'true' || !sessionExpiry) {
+        throw new Error('אין הרשאה לעדכן שיעורים - יש להתחבר כמנהל');
+      }
+
+      const now = Date.now();
+      const expiry = parseInt(sessionExpiry, 10);
+      
+      if (now >= expiry) {
+        localStorage.removeItem('pixmind_admin_session');
+        localStorage.removeItem('pixmind_admin_expiry');
+        throw new Error('פג תוקף ההתחברות. יש להתחבר שוב');
+      }
+
       const updates: any = { ...updateData };
       
+      // Set published_at when status changes to active
       if (updateData.status === 'active') {
         updates.published_at = new Date().toISOString();
       }
+
+      console.log('Updating lesson with payload:', updates);
 
       const { data, error } = await supabase
         .from('lessons')
@@ -380,15 +405,29 @@ export const useUpdateLesson = () => {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Update lesson error:', error);
+        throw error;
+      }
       return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['admin-lessons', data.chapter_id] });
-      toast.success('השיעור עודכן בהצלחה');
+      queryClient.invalidateQueries({ queryKey: ['lessons'] });
+      queryClient.invalidateQueries({ queryKey: ['modules'] });
     },
     onError: (error) => {
-      toast.error(`שגיאה בעדכון השיעור: ${error.message}`);
+      console.error('Update lesson mutation error:', error);
+      if (error.message.includes('התחבר')) {
+        toast.error(error.message, {
+          action: {
+            label: 'התחבר',
+            onClick: () => window.location.href = '/admin-login'
+          }
+        });
+      } else {
+        toast.error(`שגיאה בעדכון השיעור: ${error.message}`);
+      }
     },
   });
 };

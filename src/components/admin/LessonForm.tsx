@@ -26,6 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import VideoUrlInput from './VideoUrlInput';
 import AttachmentManager from './AttachmentManager';
 import EmbedManager from './EmbedManager';
+import LinksManager from './LinksManager';
 import ThumbnailUploader from './ThumbnailUploader';
 import { AdminLesson, AdminChapter, LessonVideo, LessonEmbed, LessonAttachment } from '@/types/admin';
 
@@ -49,6 +50,7 @@ interface LessonFormProps {
     video?: LessonVideo;
     embeds: LessonEmbed[];
     attachments: LessonAttachment[];
+    links: Array<{ label: string; url: string; }>;
   }) => void;
   onCancel: () => void;
   isLoading?: boolean;
@@ -58,6 +60,7 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
   const [video, setVideo] = useState<LessonVideo | undefined>(lesson?.video);
   const [embeds, setEmbeds] = useState<LessonEmbed[]>(lesson?.embeds || []);
   const [attachments, setAttachments] = useState<LessonAttachment[]>(lesson?.attachments || []);
+  const [links, setLinks] = useState<Array<{ label: string; url: string; }>>(lesson?.links || []);
 
   const form = useForm<LessonFormData>({
     resolver: zodResolver(lessonSchema),
@@ -67,7 +70,7 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
       chapter_id: lesson?.chapterId || '',
       order: lesson?.order || 0,
       status: lesson?.status || 'draft',
-      duration_sec: lesson?.durationSec,
+      duration_sec: lesson?.durationSec || undefined,
       rich_text: lesson?.richText || '',
       thumbnail_url: lesson?.thumbnailUrl || '',
     },
@@ -79,6 +82,7 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
       video,
       embeds,
       attachments,
+      links,
     });
   };
 
@@ -113,6 +117,14 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
 
   const handleRemoveAttachment = (attachmentId: string) => {
     setAttachments(prev => prev.filter(a => a.id !== attachmentId));
+  };
+
+  const handleAddLink = (link: { label: string; url: string; }) => {
+    setLinks(prev => [...prev, link]);
+  };
+
+  const handleRemoveLink = (linkIndex: number) => {
+    setLinks(prev => prev.filter((_, index) => index !== linkIndex));
   };
 
   const getFileKind = (mimeType: string): LessonAttachment['kind'] => {
@@ -252,7 +264,7 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="video">וידאו</TabsTrigger>
               <TabsTrigger value="content">תוכן</TabsTrigger>
-              <TabsTrigger value="embeds">קישורים</TabsTrigger>
+              <TabsTrigger value="links">לינקים</TabsTrigger>
               <TabsTrigger value="attachments">קבצים</TabsTrigger>
             </TabsList>
 
@@ -312,11 +324,11 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
               />
             </TabsContent>
 
-            <TabsContent value="embeds" className="space-y-4">
-              <EmbedManager
-                embeds={embeds}
-                onAdd={handleAddEmbed}
-                onRemove={handleRemoveEmbed}
+            <TabsContent value="links" className="space-y-4">
+              <LinksManager
+                links={links}
+                onAdd={handleAddLink}
+                onRemove={handleRemoveLink}
                 isLoading={isLoading}
               />
             </TabsContent>

@@ -246,6 +246,22 @@ const ContentPage = () => {
     
     const { video, embeds, attachments, links, ...formData } = data;
     
+    // Validate required fields
+    if (!formData.title?.trim()) {
+      toast.error('כותרת השיעור נדרשת');
+      return;
+    }
+    
+    if (!formData.description?.trim()) {
+      toast.error('תיאור השיעור נדרש');
+      return;
+    }
+    
+    if (!formData.chapter_id) {
+      toast.error('יש לבחור פרק');
+      return;
+    }
+
     // Transform camelCase to snake_case for database
     const lessonData: any = {
       id: editingLesson.id,
@@ -269,9 +285,15 @@ const ContentPage = () => {
     }
     
     // Add JSONB fields
-    if (embeds) lessonData.embeds = embeds;
-    if (attachments) lessonData.attachments = attachments;
-    if (links) lessonData.links = links;
+    if (embeds && Array.isArray(embeds)) {
+      lessonData.embeds = embeds;
+    }
+    if (attachments && Array.isArray(attachments)) {
+      lessonData.attachments = attachments;
+    }
+    if (links && Array.isArray(links)) {
+      lessonData.links = links;
+    }
     
     console.log('Updating lesson with data:', lessonData);
     
