@@ -70,10 +70,23 @@ const transformToAdminLesson = (lesson: Lesson): AdminLesson => ({
     startTime: lesson.video_start_time,
     thumbnail: lesson.video_thumbnail,
   } : undefined,
-  embeds: [],
-  attachments: [],
+  embeds: (lesson as any).embeds && Array.isArray((lesson as any).embeds) ? (lesson as any).embeds : [],
+  attachments: (lesson as any).attachments && Array.isArray((lesson as any).attachments) 
+    ? (lesson as any).attachments.map((att: any) => ({
+        id: att.id || `att-${Date.now()}-${Math.random()}`,
+        lessonId: lesson.id,
+        name: att.name,
+        url: att.url,
+        mime: att.type || att.mime,
+        size: att.size,
+        kind: att.kind || 'other',
+        uploadedAt: new Date(att.uploadedAt || Date.now())
+      }))
+    : [],
+  links: (lesson as any).links && Array.isArray((lesson as any).links) ? (lesson as any).links : [],
   richText: lesson.rich_text,
   durationSec: lesson.duration_sec,
+  thumbnailUrl: lesson.thumbnail_url,
   createdAt: new Date(lesson.created_at),
   updatedAt: new Date(lesson.updated_at),
   publishedAt: lesson.published_at ? new Date(lesson.published_at) : undefined,
@@ -231,7 +244,7 @@ const ContentPage = () => {
   const handleUpdateLesson = (data: any) => {
     if (!editingLesson) return;
     
-    const { video, embeds, attachments, ...formData } = data;
+    const { video, embeds, attachments, links, ...formData } = data;
     
     // Transform camelCase to snake_case for database
     const lessonData: any = {
@@ -258,6 +271,7 @@ const ContentPage = () => {
     // Add JSONB fields
     if (embeds) lessonData.embeds = embeds;
     if (attachments) lessonData.attachments = attachments;
+    if (links) lessonData.links = links;
     
     console.log('Updating lesson with data:', lessonData);
     

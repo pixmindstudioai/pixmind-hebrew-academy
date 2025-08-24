@@ -64,8 +64,9 @@ export interface AdminLesson {
   status: 'draft' | 'active' | 'archived';
   video?: LessonVideo;
   embeds: LessonEmbed[];
-  richText?: string;
   attachments: LessonAttachment[];
+  links: Array<{ label: string; url: string; }>;
+  richText?: string;
   durationSec?: number;
   thumbnailUrl?: string;
   createdAt: Date;
