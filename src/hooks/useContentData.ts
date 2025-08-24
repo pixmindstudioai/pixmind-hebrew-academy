@@ -49,12 +49,14 @@ export interface Lesson {
   thumbnail_url?: string;
   rich_text?: string;
   duration_sec?: number;
+  links?: Array<{label: string; url: string}> | null;
+  attachments?: Array<{name: string; url: string; type: string; size: number}> | null;
   created_at: string;
   updated_at: string;
   published_at?: string;
 }
 
-// Hook for fetching verified public modules (Home page)
+// Hook for fetching verified public modules (Home page) - Issue E fix
 export const useVerifiedModules = () => {
   const queryClient = useQueryClient();
 
@@ -220,7 +222,19 @@ export const useLessons = (chapterId: string, includeStatus?: 'active' | 'all') 
       
       const { data, error } = await query;
       if (error) throw error;
-      return data as Lesson[];
+      
+      // Parse JSON fields safely with proper typing
+      const lessons = (data || []).map(lesson => ({
+        ...lesson,
+        links: lesson.links && Array.isArray(lesson.links) 
+          ? lesson.links as Array<{label: string; url: string}> 
+          : null,
+        attachments: lesson.attachments && Array.isArray(lesson.attachments) 
+          ? lesson.attachments as Array<{name: string; url: string; type: string; size: number}>
+          : null,
+      })) as Lesson[];
+      
+      return lessons;
     },
     enabled: !!chapterId,
   });
@@ -323,7 +337,18 @@ export const useLesson = (lessonId: string) => {
 
       if (lessonError) throw lessonError;
       
-      return lesson;
+      // Parse JSON fields safely with proper typing
+      const parsedLesson = {
+        ...lesson,
+        links: lesson.links && Array.isArray(lesson.links) 
+          ? lesson.links as Array<{label: string; url: string}> 
+          : null,
+        attachments: lesson.attachments && Array.isArray(lesson.attachments) 
+          ? lesson.attachments as Array<{name: string; url: string; type: string; size: number}>
+          : null,
+      } as any; // Cast as any to avoid type conflicts with Supabase relations
+      
+      return parsedLesson;
     },
     enabled: !!lessonId,
   });

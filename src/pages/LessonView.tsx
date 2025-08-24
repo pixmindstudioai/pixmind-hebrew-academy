@@ -205,6 +205,136 @@ const LessonView = () => {
                 </CardContent>
               </Card>
 
+              {/* Lesson Links Section - Issue A fix */}
+              {lesson.links && Array.isArray(lesson.links) && lesson.links.length > 0 && (
+                <Card className="glass-card">
+                  <CardHeader>
+                    <CardTitle className="text-lg">לינקים מצורפים</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {lesson.links.map((link: any, index: number) => {
+                      // Validate URL
+                      const isValidUrl = link.url && (link.url.startsWith('http://') || link.url.startsWith('https://'));
+                      
+                      if (!isValidUrl) {
+                        console.warn('Invalid URL found in lesson links:', link.url);
+                        return null;
+                      }
+                      
+                      return (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors border border-border/10"
+                        >
+                          <div className="flex items-center space-x-3 space-x-reverse">
+                            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                              <ExternalLink className="w-5 h-5 text-primary" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium">
+                                {link.label || 'קישור'}
+                              </div>
+                              <div className="text-xs text-muted-foreground truncate max-w-xs">
+                                {link.url}
+                              </div>
+                            </div>
+                          </div>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            asChild
+                            className="hover:bg-primary hover:text-primary-foreground"
+                          >
+                            <a 
+                              href={link.url}
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                              פתח קישור
+                            </a>
+                          </Button>
+                        </div>
+                      );
+                    }).filter(Boolean)}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Lesson Attachments Section - Issue B fix */}
+              <Card className="glass-card">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center space-x-2 space-x-reverse">
+                    <FileText className="w-5 h-5" />
+                    <span>קבצים מצורפים</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {lesson.attachments && Array.isArray(lesson.attachments) && lesson.attachments.length > 0 ? lesson.attachments.map((attachment: any, index: number) => {
+                    const getFileIcon = (mimeType: string) => {
+                      if (mimeType?.includes('pdf')) return '📄';
+                      if (mimeType?.includes('zip') || mimeType?.includes('rar')) return '🗜️';
+                      if (mimeType?.includes('word')) return '📝';
+                      if (mimeType?.includes('excel')) return '📊';
+                      if (mimeType?.includes('powerpoint')) return '📋';
+                      if (mimeType?.includes('image')) return '🖼️';
+                      return '📎';
+                    };
+
+                    const formatFileSize = (bytes: number) => {
+                      if (!bytes) return 'גודל לא ידוע';
+                      const sizes = ['B', 'KB', 'MB', 'GB'];
+                      const i = Math.floor(Math.log(bytes) / Math.log(1024));
+                      return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+                    };
+
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors border border-border/10"
+                      >
+                        <div className="flex items-center space-x-3 space-x-reverse">
+                          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                            <span className="text-lg">{getFileIcon(attachment.type)}</span>
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium">
+                              {attachment.name}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {formatFileSize(attachment.size || 0)}
+                            </div>
+                          </div>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          asChild
+                          className="hover:bg-primary hover:text-primary-foreground"
+                        >
+                          <a 
+                            href={attachment.url} 
+                            download={attachment.name} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2"
+                          >
+                            <Download className="w-4 h-4" />
+                            הורדה
+                          </a>
+                        </Button>
+                      </div>
+                    );
+                  }) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Paperclip className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p>אין קבצים להורדה בשיעור זה</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Lesson Rating */}
               <LessonRating lessonId={lesson.id} />
 
@@ -267,63 +397,6 @@ const LessonView = () => {
                       </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Attachments */}
-              <Card className="glass-card">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center space-x-2 space-x-reverse">
-                    <FileText className="w-5 h-5" />
-                    <span>קבצים להורדה</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {attachments.length > 0 ? attachments.map((attachment) => (
-                    <div
-                      key={attachment.id}
-                      className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors border border-border/10"
-                    >
-                      <div className="flex items-center space-x-3 space-x-reverse">
-                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                          <span className="text-lg">{getFileIcon(attachment.mime)}</span>
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium">
-                            {attachment.name}
-                          </div>
-                          <div className="text-xs text-muted-foreground flex items-center gap-2">
-                            <span>{formatFileSize(attachment.size || 0)}</span>
-                            <Badge variant="outline" className="text-xs">
-                              {attachment.kind}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        asChild
-                        className="hover:bg-primary hover:text-primary-foreground"
-                      >
-                        <a 
-                          href={attachment.url} 
-                          download={attachment.name} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2"
-                        >
-                          <Download className="w-4 h-4" />
-                          הורד קובץ
-                        </a>
-                      </Button>
-                    </div>
-                  )) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Paperclip className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                      <p>אין קבצים להורדה בשיעור זה</p>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
 

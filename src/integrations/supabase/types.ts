@@ -352,6 +352,7 @@ export type Database = {
           duration_sec: number | null
           embeds: Json | null
           id: string
+          links: Json | null
           order_index: number
           published_at: string | null
           rich_text: string | null
@@ -373,6 +374,7 @@ export type Database = {
           duration_sec?: number | null
           embeds?: Json | null
           id?: string
+          links?: Json | null
           order_index?: number
           published_at?: string | null
           rich_text?: string | null
@@ -394,6 +396,7 @@ export type Database = {
           duration_sec?: number | null
           embeds?: Json | null
           id?: string
+          links?: Json | null
           order_index?: number
           published_at?: string | null
           rich_text?: string | null

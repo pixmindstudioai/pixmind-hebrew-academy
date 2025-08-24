@@ -239,13 +239,35 @@ const ContentPage = () => {
     }
   };
 
-  const handleEditLesson = (lesson: Lesson) => {
-    setEditingLesson(lesson);
+  const handleEditLesson = (lesson: any) => {
+    // Cast the lesson with proper types
+    const castLesson = {
+      ...lesson,
+      links: lesson.links && Array.isArray(lesson.links) 
+        ? lesson.links as Array<{label: string; url: string}> 
+        : null,
+      attachments: lesson.attachments && Array.isArray(lesson.attachments) 
+        ? lesson.attachments as Array<{name: string; url: string; type: string; size: number}>
+        : null,
+    } as Lesson;
+    
+    setEditingLesson(castLesson);
     setLessonDialogOpen(true);
   };
 
-  const handleDeleteLesson = (lesson: Lesson) => {
-    setItemToDelete({ type: 'lesson', id: lesson.id, name: lesson.title });
+  const handleDeleteLesson = (lesson: any) => {
+    // Cast the lesson with proper types  
+    const castLesson = {
+      ...lesson,
+      links: lesson.links && Array.isArray(lesson.links) 
+        ? lesson.links as Array<{label: string; url: string}> 
+        : null,
+      attachments: lesson.attachments && Array.isArray(lesson.attachments) 
+        ? lesson.attachments as Array<{name: string; url: string; type: string; size: number}>
+        : null,
+    } as Lesson;
+    
+    setItemToDelete({ type: 'lesson', id: castLesson.id, name: castLesson.title });
     setDeleteDialogOpen(true);
   };
 
@@ -257,10 +279,19 @@ const ContentPage = () => {
         onSuccess: () => {
           setDeleteDialogOpen(false);
           setItemToDelete(null);
+          toast.success('המודול נמחק בהצלחה');
+        },
+        onError: () => {
+          toast.error('שגיאה במחיקת המודול');
         }
       });
+    } else if (itemToDelete.type === 'chapter') {
+      // Add chapter delete when available
+      toast.error('מחיקת פרקים עדיין לא זמינה');
+    } else if (itemToDelete.type === 'lesson') {
+      // Add lesson delete when available  
+      toast.error('מחיקת שיעורים עדיין לא זמינה');
     }
-    // Add delete handlers for chapters and lessons here
   };
 
   // Filter functions
@@ -378,7 +409,15 @@ const ContentPage = () => {
                 <ChapterAccordion
                   key={chapter.id}
                   chapter={chapter}
-                  lessons={lessons.filter(lesson => lesson.chapter_id === chapter.id)}
+                  lessons={lessons.filter(lesson => lesson.chapter_id === chapter.id).map(lesson => ({
+                    ...lesson,
+                    links: lesson.links && Array.isArray(lesson.links) 
+                      ? lesson.links as Array<{label: string; url: string}> 
+                      : null,
+                    attachments: lesson.attachments && Array.isArray(lesson.attachments) 
+                      ? lesson.attachments as Array<{name: string; url: string; type: string; size: number}>
+                      : null,
+                  })) as any[]}
                   isAdminView
                   onEditChapter={handleEditChapter}
                   onDeleteChapter={handleDeleteChapter}
@@ -563,17 +602,19 @@ const ContentPage = () => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
-            <AlertDialogTitle>האם אתה בטוח?</AlertDialogTitle>
+            <AlertDialogTitle>מחיקה?</AlertDialogTitle>
             <AlertDialogDescription>
-              פעולה זו תמחק את "{itemToDelete?.name}" לצמיתות. לא ניתן לבטל פעולה זו.
+              הפעולה אינה ניתנת לשחזור.
+              <br />
+              פעולה זו תמחק את "{itemToDelete?.name}" לצמיתות.
               {itemToDelete?.type === 'module' && ' מחיקת המודול תמחק גם את כל הפרקים והשיעורים שבו.'}
               {itemToDelete?.type === 'chapter' && ' מחיקת הפרק תמחק גם את כל השיעורים שבו.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>ביטול</AlertDialogCancel>
+            <AlertDialogCancel>בטל</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-              מחיקה
+              מחק
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

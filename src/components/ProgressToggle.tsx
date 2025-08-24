@@ -36,7 +36,7 @@ const ProgressToggle = ({
     const newCompletedState = !isCompleted;
 
     try {
-      // Use upsert to handle both insert and update cases
+      // Use upsert to handle both insert and update cases - Issue F fix
       const { error } = await supabase
         .from('user_progress')
         .upsert({
@@ -51,7 +51,7 @@ const ProgressToggle = ({
 
       if (error) throw error;
 
-      // Update local state
+      // Update local state - optimistic UI
       setIsCompleted(newCompletedState);
       
       // Call callback if provided
@@ -67,6 +67,8 @@ const ProgressToggle = ({
     } catch (error) {
       console.error('Error updating progress:', error);
       toast.error('שגיאה בעדכון ההתקדמות. נסו שוב.');
+      // Revert optimistic update on error
+      setIsCompleted(!newCompletedState);
     } finally {
       setIsLoading(false);
     }
