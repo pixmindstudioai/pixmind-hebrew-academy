@@ -16,6 +16,7 @@ import AdminLoginPage from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminShell from "./components/admin/AdminShell";
 import ContentPage from "./pages/admin/ContentPage";
+import CourseEnrollmentsPage from "./pages/admin/CourseEnrollmentsPage";
 import UserManagementPage from "./pages/admin/UserManagementPage";
 import ModerationPage from "./pages/admin/ModerationPage";
 import SettingsPage from "./pages/admin/SettingsPage";
@@ -51,6 +52,9 @@ const App = () => (
                 </Route>
                 <Route path="content" element={<AdminShell />}>
                   <Route index element={<ContentPage />} />
+                </Route>
+                <Route path="enrollments" element={<AdminShell />}>
+                  <Route index element={<CourseEnrollmentsPage />} />
                 </Route>
                 <Route path="users" element={<AdminShell />}>
                   <Route index element={<UserManagementPage />} />
