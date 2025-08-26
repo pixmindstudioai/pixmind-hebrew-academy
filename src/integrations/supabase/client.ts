@@ -8,37 +8,104 @@ const SUPABASE_URL = "https://your-project-ref.supabase.co"; // Replace with you
 const SUPABASE_PUBLISHABLE_KEY = "your-anon-key-here"; // Replace with your actual anon/public key
 
 // Create mock client to prevent app crash during setup
-const createMockSupabase = () => ({
-  auth: {
-    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-    getSession: () => Promise.resolve({ data: { session: null }, error: null }),
-    signUp: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-    signInWithPassword: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-    signOut: () => Promise.resolve({ error: null }),
-  },
-  from: () => ({
-    select: () => Promise.resolve({ data: [], error: null }),
-    insert: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-    update: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-    delete: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-    eq: function() { return this; },
-    order: function() { return this; },
-    limit: function() { return this; },
-    single: function() { return this; },
-    maybeSingle: function() { return this; },
-  }),
-  channel: (name: string) => ({
-    on: function() { 
-      return this; 
+const createMockSupabase = () => {
+  let mockSession: any = null;
+  let authListeners: Array<(event: string, session: any) => void> = [];
+  
+  // Check for existing mock session
+  const existingSession = localStorage.getItem('mock_session');
+  if (existingSession) {
+    mockSession = JSON.parse(existingSession);
+  }
+
+  return {
+    auth: {
+      onAuthStateChange: (callback: (event: string, session: any) => void) => {
+        authListeners.push(callback);
+        // Immediately call with current session
+        setTimeout(() => callback('INITIAL_SESSION', mockSession), 0);
+        return { data: { subscription: { unsubscribe: () => {
+          authListeners = authListeners.filter(l => l !== callback);
+        } } } };
+      },
+      getSession: () => Promise.resolve({ data: { session: mockSession }, error: null }),
+      signUp: async (credentials: any) => {
+        console.log('Mock signup with:', credentials.email);
+        // Create mock user and session
+        const mockUser = {
+          id: `mock-user-${Date.now()}`,
+          email: credentials.email,
+          user_metadata: { full_name: credentials.options?.data?.full_name || '' },
+          created_at: new Date().toISOString()
+        };
+        mockSession = {
+          user: mockUser,
+          access_token: 'mock-access-token',
+          refresh_token: 'mock-refresh-token'
+        };
+        localStorage.setItem('mock_session', JSON.stringify(mockSession));
+        
+        // Notify listeners
+        authListeners.forEach(callback => callback('SIGNED_IN', mockSession));
+        
+        return { data: { user: mockUser, session: mockSession }, error: null };
+      },
+      signInWithPassword: async (credentials: any) => {
+        console.log('Mock login with:', credentials.email);
+        // Create mock user and session
+        const mockUser = {
+          id: `mock-user-${credentials.email}`,
+          email: credentials.email,
+          user_metadata: { full_name: credentials.email.split('@')[0] },
+          created_at: new Date().toISOString()
+        };
+        mockSession = {
+          user: mockUser,
+          access_token: 'mock-access-token',
+          refresh_token: 'mock-refresh-token'
+        };
+        localStorage.setItem('mock_session', JSON.stringify(mockSession));
+        
+        // Notify listeners
+        authListeners.forEach(callback => callback('SIGNED_IN', mockSession));
+        
+        return { data: { user: mockUser, session: mockSession }, error: null };
+      },
+      signOut: async () => {
+        mockSession = null;
+        localStorage.removeItem('mock_session');
+        
+        // Notify listeners
+        authListeners.forEach(callback => callback('SIGNED_OUT', null));
+        
+        return { error: null };
+      },
+      resetPasswordForEmail: () => Promise.resolve({ error: null }),
     },
-    subscribe: () => ({ unsubscribe: () => {} })
-  }),
-  removeChannel: () => {},
-  rpc: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-  functions: {
-    invoke: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-  },
-});
+    from: () => ({
+      select: () => Promise.resolve({ data: [], error: null }),
+      insert: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+      update: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+      delete: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+      eq: function() { return this; },
+      order: function() { return this; },
+      limit: function() { return this; },
+      single: function() { return this; },
+      maybeSingle: function() { return this; },
+    }),
+    channel: (name: string) => ({
+      on: function() { 
+        return this; 
+      },
+      subscribe: () => ({ unsubscribe: () => {} })
+    }),
+    removeChannel: () => {},
+    rpc: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+    functions: {
+      invoke: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+    },
+  };
+};
 
 // Determine which client to use
 let supabaseClient: any;
