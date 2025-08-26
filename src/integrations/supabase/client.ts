@@ -83,10 +83,62 @@ const createMockSupabase = () => {
       resetPasswordForEmail: () => Promise.resolve({ error: null }),
     },
     from: () => ({
-      select: () => Promise.resolve({ data: [], error: null }),
-      insert: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-      update: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-      delete: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+      select: function() { 
+        return { 
+          ...this, 
+          then: (resolve: any) => resolve({ data: [], error: null }),
+          catch: () => this 
+        }; 
+      },
+      insert: function() { 
+        return {
+          ...this,
+          select: function() {
+            return {
+              ...this,
+              single: function() {
+                return {
+                  ...this,
+                  then: (resolve: any) => resolve({ data: null, error: { message: 'Supabase not configured' } }),
+                  catch: () => this
+                };
+              },
+              then: (resolve: any) => resolve({ data: [], error: { message: 'Supabase not configured' } }),
+              catch: () => this
+            };
+          },
+          then: (resolve: any) => resolve({ data: null, error: { message: 'Supabase not configured' } }),
+          catch: () => this
+        }; 
+      },
+      update: function() { 
+        return {
+          ...this,
+          select: function() {
+            return {
+              ...this,
+              single: function() {
+                return {
+                  ...this,
+                  then: (resolve: any) => resolve({ data: null, error: { message: 'Supabase not configured' } }),
+                  catch: () => this
+                };
+              },
+              then: (resolve: any) => resolve({ data: [], error: { message: 'Supabase not configured' } }),
+              catch: () => this
+            };
+          },
+          then: (resolve: any) => resolve({ data: null, error: { message: 'Supabase not configured' } }),
+          catch: () => this
+        }; 
+      },
+      delete: function() { 
+        return {
+          ...this,
+          then: (resolve: any) => resolve({ data: null, error: { message: 'Supabase not configured' } }),
+          catch: () => this
+        }; 
+      },
       eq: function() { return this; },
       order: function() { return this; },
       limit: function() { return this; },
