@@ -551,8 +551,6 @@ export type Database = {
           id: string
           module_id: string
           notes: string | null
-          provider: string | null
-          transaction_id: string | null
           user_email: string
         }
         Insert: {
@@ -562,8 +560,6 @@ export type Database = {
           id?: string
           module_id: string
           notes?: string | null
-          provider?: string | null
-          transaction_id?: string | null
           user_email: string
         }
         Update: {
@@ -573,8 +569,6 @@ export type Database = {
           id?: string
           module_id?: string
           notes?: string | null
-          provider?: string | null
-          transaction_id?: string | null
           user_email?: string
         }
         Relationships: [
