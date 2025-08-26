@@ -27,6 +27,13 @@ const createMockSupabase = () => ({
     single: function() { return this; },
     maybeSingle: function() { return this; },
   }),
+  channel: (name: string) => ({
+    on: function() { 
+      return this; 
+    },
+    subscribe: () => ({ unsubscribe: () => {} })
+  }),
+  removeChannel: () => {},
   rpc: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
   functions: {
     invoke: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
