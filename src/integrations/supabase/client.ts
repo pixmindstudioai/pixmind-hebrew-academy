@@ -2,16 +2,61 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "https://agodijuyujiliengmail.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnb2RpanV5dWppbGllbmdtYWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU5NjcwMzIsImV4cCI6MjA3MTU0MzAzMn0.zdZgTihlA-k3JLxG4iNTmvSg4eolTT7vJZ4UHSENxYA";
+// TEMPORARY CONFIGURATION - REPLACE WITH YOUR ACTUAL SUPABASE PROJECT DETAILS
+// Go to https://supabase.com/dashboard -> Your Project -> Settings -> API
+const SUPABASE_URL = "https://your-project-ref.supabase.co"; // Replace with your actual project URL
+const SUPABASE_PUBLISHABLE_KEY = "your-anon-key-here"; // Replace with your actual anon/public key
 
-// Import the supabase client like this:
-// import { supabase } from "@/integrations/supabase/client";
-
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+// Create mock client to prevent app crash during setup
+const createMockSupabase = () => ({
   auth: {
-    storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
-  }
+    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+    getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+    signUp: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+    signInWithPassword: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+    signOut: () => Promise.resolve({ error: null }),
+  },
+  from: () => ({
+    select: () => Promise.resolve({ data: [], error: null }),
+    insert: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+    update: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+    delete: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+    eq: function() { return this; },
+    order: function() { return this; },
+    limit: function() { return this; },
+    single: function() { return this; },
+    maybeSingle: function() { return this; },
+  }),
+  rpc: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+  functions: {
+    invoke: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+  },
 });
+
+// Determine which client to use
+let supabaseClient: any;
+
+if (!SUPABASE_URL || SUPABASE_URL === "https://your-project-ref.supabase.co" || !SUPABASE_PUBLISHABLE_KEY || SUPABASE_PUBLISHABLE_KEY === "your-anon-key-here") {
+  console.error('⚠️ SUPABASE NOT CONFIGURED: Please update src/integrations/supabase/client.ts with your actual Supabase project details');
+  console.log('Visit https://supabase.com/dashboard -> Your Project -> Settings -> API to get your project details');
+  supabaseClient = createMockSupabase();
+} else {
+  // Validate URL format
+  try {
+    new URL(SUPABASE_URL);
+    // Create the actual Supabase client
+    supabaseClient = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth: {
+        storage: localStorage,
+        persistSession: true,
+        autoRefreshToken: true,
+      }
+    });
+  } catch (error) {
+    console.error('Invalid Supabase URL:', SUPABASE_URL);
+    console.error('Creating mock client to prevent app crash. Please fix your Supabase configuration.');
+    supabaseClient = createMockSupabase();
+  }
+}
+
+export const supabase = supabaseClient;
