@@ -79,27 +79,27 @@ export const useVerifiedModules = () => {
     },
   });
 
-  // Set up real-time subscription
-  useEffect(() => {
-    const channel = supabase
-      .channel('verified-modules-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'modules'
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['verified-modules'] });
-        }
-      )
-      .subscribe();
+  // Real-time subscription disabled in mock environment
+  // useEffect(() => {
+  //   const channel = supabase
+  //     .channel('verified-modules-changes')
+  //     .on(
+  //       'postgres_changes',
+  //       {
+  //         event: '*',
+  //         schema: 'public',
+  //         table: 'modules'
+  //       },
+  //       () => {
+  //         queryClient.invalidateQueries({ queryKey: ['verified-modules'] });
+  //       }
+  //     )
+  //     .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
+  //   return () => {
+  //     supabase.removeChannel(channel);
+  //   };
+  // }, [queryClient]);
 
   return query;
 };
@@ -126,27 +126,27 @@ export const useModules = (includeStatus?: 'active' | 'all') => {
     },
   });
 
-  // Set up real-time subscription
-  useEffect(() => {
-    const channel = supabase
-      .channel('modules-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'modules'
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['modules'] });
-        }
-      )
-      .subscribe();
+  // Real-time subscription disabled in mock environment
+  // useEffect(() => {
+  //   const channel = supabase
+  //     .channel('modules-changes')
+  //     .on(
+  //       'postgres_changes',
+  //       {
+  //         event: '*',
+  //         schema: 'public',
+  //         table: 'modules'
+  //       },
+  //       () => {
+  //         queryClient.invalidateQueries({ queryKey: ['modules'] });
+  //       }
+  //     )
+  //     .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
+  //   return () => {
+  //     supabase.removeChannel(channel);
+  //   };
+  // }, [queryClient]);
 
   return query;
 };
@@ -175,30 +175,30 @@ export const useChapters = (moduleId: string, includeStatus?: 'active' | 'all') 
     enabled: !!moduleId,
   });
 
-  // Real-time subscription for chapters
-  useEffect(() => {
-    if (!moduleId) return;
+  // Real-time subscription disabled in mock environment
+  // useEffect(() => {
+  //   if (!moduleId) return;
 
-    const channel = supabase
-      .channel(`chapters-${moduleId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'chapters',
-          filter: `module_id=eq.${moduleId}`
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['chapters', moduleId] });
-        }
-      )
-      .subscribe();
+  //   const channel = supabase
+  //     .channel(`chapters-${moduleId}`)
+  //     .on(
+  //       'postgres_changes',
+  //       {
+  //         event: '*',
+  //         schema: 'public',
+  //         table: 'chapters',
+  //         filter: `module_id=eq.${moduleId}`
+  //       },
+  //       () => {
+  //         queryClient.invalidateQueries({ queryKey: ['chapters', moduleId] });
+  //       }
+  //     )
+  //     .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [moduleId, queryClient]);
+  //   return () => {
+  //     supabase.removeChannel(channel);
+  //   };
+  // }, [moduleId, queryClient]);
 
   return query;
 };
@@ -239,30 +239,30 @@ export const useLessons = (chapterId: string, includeStatus?: 'active' | 'all') 
     enabled: !!chapterId,
   });
 
-  // Real-time subscription for lessons
-  useEffect(() => {
-    if (!chapterId) return;
+  // Real-time subscription disabled in mock environment
+  // useEffect(() => {
+  //   if (!chapterId) return;
 
-    const channel = supabase
-      .channel(`lessons-${chapterId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'lessons',
-          filter: `chapter_id=eq.${chapterId}`
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['lessons', chapterId] });
-        }
-      )
-      .subscribe();
+  //   const channel = supabase
+  //     .channel(`lessons-${chapterId}`)
+  //     .on(
+  //       'postgres_changes',
+  //       {
+  //         event: '*',
+  //         schema: 'public',
+  //         table: 'lessons',
+  //         filter: `chapter_id=eq.${chapterId}`
+  //       },
+  //       () => {
+  //         queryClient.invalidateQueries({ queryKey: ['lessons', chapterId] });
+  //       }
+  //     )
+  //     .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [chapterId, queryClient]);
+  //   return () => {
+  //     supabase.removeChannel(channel);
+  //   };
+  // }, [chapterId, queryClient]);
 
   return query;
 };
@@ -285,30 +285,30 @@ export const useUserProgress = (userId?: string) => {
     enabled: !!userId,
   });
 
-  // Real-time subscription for user progress
-  useEffect(() => {
-    if (!userId) return;
+  // Real-time subscription disabled in mock environment
+  // useEffect(() => {
+  //   if (!userId) return;
 
-    const channel = supabase
-      .channel(`progress-${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_progress',
-          filter: `user_id=eq.${userId}`
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['user-progress', userId] });
-        }
-      )
-      .subscribe();
+  //   const channel = supabase
+  //     .channel(`progress-${userId}`)
+  //     .on(
+  //       'postgres_changes',
+  //       {
+  //         event: '*',
+  //         schema: 'public',
+  //         table: 'user_progress',
+  //         filter: `user_id=eq.${userId}`
+  //       },
+  //       () => {
+  //         queryClient.invalidateQueries({ queryKey: ['user-progress', userId] });
+  //       }
+  //     )
+  //     .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId, queryClient]);
+  //   return () => {
+  //     supabase.removeChannel(channel);
+  //   };
+  // }, [userId, queryClient]);
 
   return query;
 };
@@ -421,30 +421,30 @@ export const useLessonComments = (lessonId: string) => {
     enabled: !!lessonId,
   });
 
-  // Real-time subscription for comments
-  useEffect(() => {
-    if (!lessonId) return;
+  // Real-time subscription disabled in mock environment
+  // useEffect(() => {
+  //   if (!lessonId) return;
 
-    const channel = supabase
-      .channel(`comments-${lessonId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'comments',
-          filter: `lesson_id=eq.${lessonId}`
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['lesson-comments', lessonId] });
-        }
-      )
-      .subscribe();
+  //   const channel = supabase
+  //     .channel(`comments-${lessonId}`)
+  //     .on(
+  //       'postgres_changes',
+  //       {
+  //         event: '*',
+  //         schema: 'public',
+  //         table: 'comments',
+  //         filter: `lesson_id=eq.${lessonId}`
+  //       },
+  //       () => {
+  //         queryClient.invalidateQueries({ queryKey: ['lesson-comments', lessonId] });
+  //       }
+  //     )
+  //     .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [lessonId, queryClient]);
+  //   return () => {
+  //     supabase.removeChannel(channel);
+  //   };
+  // }, [lessonId, queryClient]);
 
   return query;
 };
@@ -506,30 +506,30 @@ export const useLessonRatings = (lessonId: string) => {
     enabled: !!lessonId,
   });
 
-  // Real-time subscription for ratings
-  useEffect(() => {
-    if (!lessonId) return;
+  // Real-time subscription disabled in mock environment
+  // useEffect(() => {
+  //   if (!lessonId) return;
 
-    const channel = supabase
-      .channel(`ratings-${lessonId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'lesson_ratings',
-          filter: `lesson_id=eq.${lessonId}`
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['lesson-ratings', lessonId] });
-        }
-      )
-      .subscribe();
+  //   const channel = supabase
+  //     .channel(`ratings-${lessonId}`)
+  //     .on(
+  //       'postgres_changes',
+  //       {
+  //         event: '*',
+  //         schema: 'public',
+  //         table: 'lesson_ratings',
+  //         filter: `lesson_id=eq.${lessonId}`
+  //       },
+  //       () => {
+  //         queryClient.invalidateQueries({ queryKey: ['lesson-ratings', lessonId] });
+  //       }
+  //     )
+  //     .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [lessonId, queryClient]);
+  //   return () => {
+  //     supabase.removeChannel(channel);
+  //   };
+  // }, [lessonId, queryClient]);
 
   return query;
 };
