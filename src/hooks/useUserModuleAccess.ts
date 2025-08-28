@@ -42,30 +42,30 @@ export const useUserModuleAccess = () => {
     staleTime: 2 * 60 * 1000, // 2 minutes for fresh access checks
   });
 
-  // Set up real-time subscription for user access changes
-  useEffect(() => {
-    if (!user?.email) return;
+  // Real-time subscription disabled in mock environment
+  // useEffect(() => {
+  //   if (!user?.email) return;
     
-    const channel = supabase
-      .channel(`user-access-${user.email}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_module_access',
-          filter: `user_email=eq.${user.email.toLowerCase()}`
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['user-module-access', user.email] });
-        }
-      )
-      .subscribe();
+  //   const channel = supabase
+  //     .channel(`user-access-${user.email}`)
+  //     .on(
+  //       'postgres_changes',
+  //       {
+  //         event: '*',
+  //         schema: 'public',
+  //         table: 'user_module_access',
+  //         filter: `user_email=eq.${user.email.toLowerCase()}`
+  //       },
+  //       () => {
+  //         queryClient.invalidateQueries({ queryKey: ['user-module-access', user.email] });
+  //       }
+  //     )
+  //     .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user?.email, queryClient]);
+  //   return () => {
+  //     supabase.removeChannel(channel);
+  //   };
+  // }, [user?.email, queryClient]);
 
   return query;
 };
