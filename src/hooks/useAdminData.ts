@@ -248,6 +248,35 @@ export const useUpdateChapter = () => {
   });
 };
 
+export const useDeleteChapter = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ id, module_id }: { id: string; module_id: string }) => {
+      const { error } = await supabase
+        .from('chapters')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        if (error.message.includes('permission denied')) {
+          throw new Error('אין הרשאה למחיקת פרקים. נדרשת גישת מנהל');
+        }
+        throw error;
+      }
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-chapters', variables.module_id] });
+      queryClient.invalidateQueries({ queryKey: ['admin-lessons'] }); // Clear lessons cache
+      toast.success('הפרק נמחק בהצלחה');
+    },
+    onError: (error) => {
+      console.error('Chapter deletion error:', error);
+      toast.error(`שגיאת הרשאה במחיקה: ${error.message}`);
+    },
+  });
+};
+
 // Lesson operations
 export const useLessons = (chapterId?: string) => {
   return useQuery({
@@ -427,6 +456,61 @@ export const useUpdateLesson = () => {
         });
       } else {
         toast.error(`שגיאה בעדכון השיעור: ${error.message}`);
+      }
+    },
+  });
+};
+
+export const useDeleteLesson = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ id, chapter_id }: { id: string; chapter_id: string }) => {
+      // Admin authentication check
+      const adminAuth = localStorage.getItem('pixmind_admin_session');
+      const sessionExpiry = localStorage.getItem('pixmind_admin_expiry');
+      
+      if (adminAuth !== 'true' || !sessionExpiry) {
+        throw new Error('אין הרשאה למחיקת שיעורים - יש להתחבר כמנהל');
+      }
+
+      const now = Date.now();
+      const expiry = parseInt(sessionExpiry, 10);
+      
+      if (now >= expiry) {
+        localStorage.removeItem('pixmind_admin_session');
+        localStorage.removeItem('pixmind_admin_expiry');
+        throw new Error('פג תוקף ההתחברות. יש להתחבר שוב');
+      }
+
+      const { error } = await supabase
+        .from('lessons')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        if (error.message.includes('permission denied')) {
+          throw new Error('אין הרשאה למחיקת שיעורים. נדרשת גישת מנהל');
+        }
+        throw error;
+      }
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-lessons', variables.chapter_id] });
+      queryClient.invalidateQueries({ queryKey: ['lessons'] });
+      toast.success('השיעור נמחק בהצלחה');
+    },
+    onError: (error) => {
+      console.error('Lesson deletion error:', error);
+      if (error.message.includes('התחבר')) {
+        toast.error(error.message, {
+          action: {
+            label: 'התחבר',
+            onClick: () => window.location.href = '/admin-login'
+          }
+        });
+      } else {
+        toast.error(`שגיאת הרשאה במחיקה: ${error.message}`);
       }
     },
   });

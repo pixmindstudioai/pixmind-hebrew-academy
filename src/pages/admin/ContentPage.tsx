@@ -34,9 +34,11 @@ import {
   useChapters,
   useCreateChapter,
   useUpdateChapter,
+  useDeleteChapter,
   useLessons,
   useCreateLesson,
-  useUpdateLesson
+  useUpdateLesson,
+  useDeleteLesson
 } from '@/hooks/useAdminData';
 import { Module, Chapter, Lesson } from '@/hooks/useContentData';
 import { AdminModule, AdminChapter, AdminLesson } from '@/types/admin';
@@ -121,8 +123,10 @@ const ContentPage = () => {
   const deleteModule = useDeleteModule();
   const createChapter = useCreateChapter();
   const updateChapter = useUpdateChapter();
+  const deleteChapter = useDeleteChapter();
   const createLesson = useCreateLesson();
   const updateLesson = useUpdateLesson();
+  const deleteLesson = useDeleteLesson();
 
   // Module handlers
   const handleCreateModule = (data: any) => {
@@ -350,18 +354,45 @@ const ContentPage = () => {
         onSuccess: () => {
           setDeleteDialogOpen(false);
           setItemToDelete(null);
-          toast.success('המודול נמחק בהצלחה');
         },
         onError: () => {
-          toast.error('שגיאה במחיקת המודול');
+          setDeleteDialogOpen(false);
+          setItemToDelete(null);
         }
       });
     } else if (itemToDelete.type === 'chapter') {
-      // Add chapter delete when available
-      toast.error('מחיקת פרקים עדיין לא זמינה');
+      const chapter = chapters.find(c => c.id === itemToDelete.id);
+      if (chapter) {
+        deleteChapter.mutate({ id: itemToDelete.id, module_id: chapter.module_id }, {
+          onSuccess: () => {
+            setDeleteDialogOpen(false);
+            setItemToDelete(null);
+            // Clear lessons list if we were viewing this chapter's lessons
+            if (selectedChapter === itemToDelete.id) {
+              setSelectedChapter('');
+              setActiveTab('chapters');
+            }
+          },
+          onError: () => {
+            setDeleteDialogOpen(false);
+            setItemToDelete(null);
+          }
+        });
+      }
     } else if (itemToDelete.type === 'lesson') {
-      // Add lesson delete when available  
-      toast.error('מחיקת שיעורים עדיין לא זמינה');
+      const lesson = lessons.find(l => l.id === itemToDelete.id);
+      if (lesson) {
+        deleteLesson.mutate({ id: itemToDelete.id, chapter_id: lesson.chapter_id }, {
+          onSuccess: () => {
+            setDeleteDialogOpen(false);
+            setItemToDelete(null);
+          },
+          onError: () => {
+            setDeleteDialogOpen(false);
+            setItemToDelete(null);
+          }
+        });
+      }
     }
   };
 
@@ -674,18 +705,51 @@ const ContentPage = () => {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <AlertDialogTitle>מחיקה?</AlertDialogTitle>
-            <AlertDialogDescription>
-              הפעולה אינה ניתנת לשחזור.
-              <br />
-              פעולה זו תמחק את "{itemToDelete?.name}" לצמיתות.
-              {itemToDelete?.type === 'module' && ' מחיקת המודול תמחק גם את כל הפרקים והשיעורים שבו.'}
-              {itemToDelete?.type === 'chapter' && ' מחיקת הפרק תמחק גם את כל השיעורים שבו.'}
+            <AlertDialogDescription className="space-y-2">
+              {itemToDelete?.type === 'chapter' && (
+                <>
+                  <div className="font-semibold text-destructive">
+                    מחיקת פרק תסיר גם את כל השיעורים והמידע הקשור. הפעולה אינה ניתנת לשחזור.
+                  </div>
+                  <div>
+                    פעולה זו תמחק את הפרק "{itemToDelete?.name}" וכל השיעורים שבו לצמיתות.
+                  </div>
+                </>
+              )}
+              {itemToDelete?.type === 'lesson' && (
+                <>
+                  <div className="font-semibold text-destructive">
+                    האם למחוק את השיעור? הפעולה אינה ניתנת לשחזור.
+                  </div>
+                  <div>
+                    פעולה זו תמחק את השיעור "{itemToDelete?.name}" לצמיתות.
+                  </div>
+                </>
+              )}
+              {itemToDelete?.type === 'module' && (
+                <>
+                  <div className="font-semibold text-destructive">
+                    הפעולה אינה ניתנת לשחזור.
+                  </div>
+                  <div>
+                    פעולה זו תמחק את המודול "{itemToDelete?.name}" וכל הפרקים והשיעורים שבו לצמיתות.
+                  </div>
+                </>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>בטל</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-              מחק
+            <AlertDialogCancel 
+              disabled={deleteModule.isPending || deleteChapter.isPending || deleteLesson.isPending}
+            >
+              בטל
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete} 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteModule.isPending || deleteChapter.isPending || deleteLesson.isPending}
+            >
+              {(deleteModule.isPending || deleteChapter.isPending || deleteLesson.isPending) ? 'מוחק...' : 'מחק'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
