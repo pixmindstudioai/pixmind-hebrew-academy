@@ -156,12 +156,14 @@ const LessonView = () => {
 
               {/* Video Player */}
               {lesson.video_url && (
-                <StandardCustomVideoPlayer
-                  src={lesson.video_url}
-                  title={lesson.title}
-                  poster={lesson.thumbnail_url}
-                  className="w-full aspect-video"
-                />
+                <div className="w-full">
+                  <StandardCustomVideoPlayer
+                    src={lesson.video_url}
+                    title={lesson.title}
+                    poster={lesson.thumbnail_url}
+                    className="w-full"
+                  />
+                </div>
               )}
 
               {/* Lesson Info */}
