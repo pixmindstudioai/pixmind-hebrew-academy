@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import EmbeddedVideoPlayer from "@/components/EmbeddedVideoPlayer";
+import StandardCustomVideoPlayer from "@/components/StandardCustomVideoPlayer";
 import CommentSection from "@/components/CommentSection";
 import ProgressBadge from "@/components/ProgressBadge";
 import LessonRating from "@/components/LessonRating";
@@ -155,11 +155,14 @@ const LessonView = () => {
               )}
 
               {/* Video Player */}
-              <EmbeddedVideoPlayer
-                videoUrl={lesson.video_url}
-                title={lesson.title}
-                className="w-full"
-              />
+              {lesson.video_url && (
+                <StandardCustomVideoPlayer
+                  src={lesson.video_url}
+                  title={lesson.title}
+                  poster={lesson.thumbnail_url}
+                  className="w-full aspect-video"
+                />
+              )}
 
               {/* Lesson Info */}
               <Card className="glass-card">
