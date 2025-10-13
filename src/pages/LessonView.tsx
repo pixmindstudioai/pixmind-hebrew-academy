@@ -12,6 +12,7 @@ import ProgressBadge from "@/components/ProgressBadge";
 import LessonRating from "@/components/LessonRating";
 import AccessGuard from "@/components/AccessGuard";
 import ProgressToggle from "@/components/ProgressToggle";
+import { convertToEmbedUrl } from "@/lib/videoUtils";
 import { 
   useLesson, 
   useLessonAttachments, 
@@ -158,7 +159,7 @@ const LessonView = () => {
               {lesson.video_url && (
                 <div className="w-full">
                   <StandardCustomVideoPlayer
-                    src={lesson.video_url}
+                    src={convertToEmbedUrl(lesson.video_url)}
                     title={lesson.title}
                     poster={lesson.thumbnail_url}
                     className="w-full"
