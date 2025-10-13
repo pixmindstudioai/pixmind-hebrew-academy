@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LessonVideo } from '@/types/admin';
+import { parseVideoUrl } from '@/lib/videoUtils';
 
 interface VideoUrlInputProps {
   video?: LessonVideo;
@@ -21,53 +22,17 @@ const VideoUrlInput = ({ video, onChange, disabled }: VideoUrlInputProps) => {
   const validateAndParseUrl = (inputUrl: string): LessonVideo | null => {
     if (!inputUrl.trim()) return null;
 
-    // YouTube patterns
-    const youtubePatterns = [
-      /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/,
-      /(?:https?:\/\/)?(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]+)/,
-      /(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([a-zA-Z0-9_-]+)/,
-    ];
+    const parsed = parseVideoUrl(inputUrl);
+    if (!parsed) return null;
 
-    // Vimeo patterns
-    const vimeoPatterns = [
-      /(?:https?:\/\/)?(?:www\.)?vimeo\.com\/([0-9]+)/,
-      /(?:https?:\/\/)?player\.vimeo\.com\/video\/([0-9]+)/,
-    ];
-
-    // Check YouTube
-    for (const pattern of youtubePatterns) {
-      const match = inputUrl.match(pattern);
-      if (match) {
-        const videoId = match[1];
-        // Extract start time if present (t=123s or start=123)
-        const timeMatch = inputUrl.match(/[?&](?:t|start)=(\d+)/);
-        const startTime = timeMatch ? parseInt(timeMatch[1]) : undefined;
-        
-        return {
-          provider: 'youtube',
-          url: inputUrl,
-          videoId,
-          startTime,
-          thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
-        };
-      }
-    }
-
-    // Check Vimeo
-    for (const pattern of vimeoPatterns) {
-      const match = inputUrl.match(pattern);
-      if (match) {
-        const videoId = match[1];
-        return {
-          provider: 'vimeo',
-          url: inputUrl,
-          videoId,
-          thumbnail: `https://vumbnail.com/${videoId}.jpg`,
-        };
-      }
-    }
-
-    return null;
+    // Return LessonVideo with embed URL
+    return {
+      provider: parsed.provider as 'youtube' | 'vimeo',
+      url: parsed.embedUrl, // Store the embed URL
+      videoId: parsed.videoId,
+      startTime: parsed.startTime,
+      thumbnail: parsed.thumbnail,
+    };
   };
 
   const handleUrlChange = (newUrl: string) => {
@@ -125,7 +90,7 @@ const VideoUrlInput = ({ video, onChange, disabled }: VideoUrlInputProps) => {
           )}
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          תמיכה בקישורי YouTube ו-Vimeo בלבד
+          תמיכה בקישורי YouTube, Vimeo, ו-mp4/webm. הקישור יומר אוטומטית לפורמט הטמעה.
         </p>
       </div>
 
