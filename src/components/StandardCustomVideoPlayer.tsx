@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { Play, Pause, Volume2, VolumeX, Maximize, Minimize } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, AlertCircle, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import ReactPlayer from "react-player";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
@@ -39,6 +40,9 @@ const StandardCustomVideoPlayer = ({
   const [showControls, setShowControls] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [loadTimeout, setLoadTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // Format time (seconds to MM:SS)
   const formatTime = (seconds: number) => {
@@ -94,6 +98,41 @@ const StandardCustomVideoPlayer = ({
   // Handle ready
   const handleReady = () => {
     setIsReady(true);
+    setIsLoading(false);
+    setError(null);
+    if (loadTimeout) {
+      clearTimeout(loadTimeout);
+      setLoadTimeout(null);
+    }
+  };
+
+  // Handle error
+  const handleError = (e: any) => {
+    console.error("Video player error:", e);
+    setIsLoading(false);
+    
+    // Determine error type and provide helpful message
+    const errorMessage = getErrorMessage(src, e);
+    setError(errorMessage);
+  };
+
+  // Get user-friendly error message
+  const getErrorMessage = (url: string, error: any): string => {
+    const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
+    const isVimeo = url.includes('vimeo.com');
+
+    if (isYouTube || isVimeo) {
+      return `הוידאו לא נטען. סיבות אפשריות:
+      
+• הוידאו פרטי או לא מאפשר הטמעה
+• ב-YouTube: יש להפעיל "Allow embedding" בהגדרות הוידאו (גם עבור סרטונים לא רשומים)
+• ב-Vimeo: יש לשנות את הגדרות הפרטיות ל-"Anywhere" תחת "Who can embed this video"
+• הוידאו נמחק או אינו זמין יותר
+
+פתרון: ${isYouTube ? 'ודא שבהגדרות YouTube הוידאו מסומן כ-"Unlisted" והאופציה "Allow embedding" מופעלת' : 'ודא שבהגדרות Vimeo האפשרות "Who can embed" מוגדרת ל-"Anywhere"'}`;
+    }
+
+    return 'שגיאה בטעינת הוידאו. אנא בדוק שהקישור תקין או נסה שוב מאוחר יותר.';
   };
 
   // Toggle fullscreen
@@ -159,6 +198,26 @@ const StandardCustomVideoPlayer = ({
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
 
+  // Loading timeout
+  useEffect(() => {
+    setIsLoading(true);
+    setError(null);
+    
+    // Set a timeout for loading (15 seconds)
+    const timeout = setTimeout(() => {
+      if (!isReady && isLoading) {
+        setIsLoading(false);
+        setError('הוידאו אורך זמן רב לטעינה. אנא בדוק את חיבור האינטרנט שלך או נסה שוב.');
+      }
+    }, 15000);
+    
+    setLoadTimeout(timeout);
+    
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [src]);
+
   // Auto-hide controls
   useEffect(() => {
     if (!isPlaying) {
@@ -195,156 +254,192 @@ const StandardCustomVideoPlayer = ({
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => isPlaying && setShowControls(false)}
     >
+      {/* Error state */}
+      {error && (
+        <div className="relative aspect-video w-full bg-muted flex items-center justify-center p-6">
+          <Alert variant="destructive" className="max-w-lg">
+            <AlertCircle className="h-5 w-5" />
+            <AlertDescription className="text-right whitespace-pre-line mt-2">
+              {error}
+            </AlertDescription>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-4 gap-2"
+              asChild
+            >
+              <a href={src} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="w-4 h-4" />
+                פתיחת הוידאו בחלון חדש
+              </a>
+            </Button>
+          </Alert>
+        </div>
+      )}
+
+      {/* Loading state */}
+      {isLoading && !error && (
+        <div className="relative aspect-video w-full bg-black flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
+            <p className="text-muted-foreground text-sm">טוען וידאו...</p>
+          </div>
+        </div>
+      )}
+
       {/* ReactPlayer */}
-      <div className="relative aspect-video w-full">
-        <PlayerComponent
-          ref={playerRef}
-          url={src}
-          playing={isPlaying}
-          volume={volume / 100}
-          muted={isMuted}
-          playbackRate={parseFloat(playbackRate)}
-          onProgress={handleProgress}
-          onDuration={handleDuration}
-          onReady={handleReady}
-          width="100%"
-          height="100%"
-          style={{ backgroundColor: "#000" }}
-          config={{
-            youtube: {
-              playerVars: {
-                controls: 0,
-                modestbranding: 1,
-                rel: 0,
+      {!error && (
+        <div className="relative aspect-video w-full">
+          <PlayerComponent
+            ref={playerRef}
+            url={src}
+            playing={isPlaying}
+            volume={volume / 100}
+            muted={isMuted}
+            playbackRate={parseFloat(playbackRate)}
+            onProgress={handleProgress}
+            onDuration={handleDuration}
+            onReady={handleReady}
+            onError={handleError}
+            width="100%"
+            height="100%"
+            style={{ backgroundColor: "#000" }}
+            config={{
+              youtube: {
+                playerVars: {
+                  controls: 0,
+                  modestbranding: 1,
+                  rel: 0,
+                },
               },
-            },
-            vimeo: {
-              playerOptions: {
-                controls: false,
-                title: false,
-                byline: false,
-                portrait: false,
+              vimeo: {
+                playerOptions: {
+                  controls: false,
+                  title: false,
+                  byline: false,
+                  portrait: false,
+                },
               },
-            },
-          }}
-        />
+            }}
+          />
 
-        {/* Play overlay when paused */}
-        {!isPlaying && isReady && (
-          <div
-            className="absolute inset-0 bg-black/30 flex items-center justify-center cursor-pointer z-10"
-            onClick={togglePlay}
-          >
-            <div className="w-20 h-20 bg-cyan-500/90 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-cyan-500 transition-colors">
-              <Play className="w-10 h-10 text-white ml-1" />
+          {/* Play overlay when paused */}
+          {!isPlaying && isReady && (
+            <div
+              className="absolute inset-0 bg-black/30 flex items-center justify-center cursor-pointer z-10"
+              onClick={togglePlay}
+            >
+              <div className="w-20 h-20 bg-cyan-500/90 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-cyan-500 transition-colors">
+                <Play className="w-10 h-10 text-white ml-1" />
+              </div>
             </div>
-          </div>
-        )}
-
-        {/* Custom Controls Overlay */}
-        <div
-          className={cn(
-            "absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/90 to-transparent transition-opacity duration-300 z-20",
-            showControls || !isPlaying ? "opacity-100" : "opacity-0"
           )}
-        >
-          {/* Time display */}
-          <div className="px-4 sm:px-6 pb-2 pt-8">
-            <span className="text-white text-xs font-medium">
-              {formatTime(currentTime)} / {formatTime(duration)}
-            </span>
-          </div>
 
-          {/* Progress bar */}
-          <div className="px-4 sm:px-6 pb-3 sm:pb-4">
-            <Slider
-              value={[currentTime]}
-              min={0}
-              max={duration || 100}
-              step={0.1}
-              onValueChange={handleSeek}
-              className="cursor-pointer"
-            />
-          </div>
+          {/* Custom Controls Overlay */}
+          <div
+            className={cn(
+              "absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/90 to-transparent transition-opacity duration-300 z-20",
+              showControls || !isPlaying ? "opacity-100" : "opacity-0"
+            )}
+          >
+            {/* Time display */}
+            <div className="px-4 sm:px-6 pb-2 pt-8">
+              <span className="text-white text-xs font-medium">
+                {formatTime(currentTime)} / {formatTime(duration)}
+              </span>
+            </div>
 
-          {/* Control buttons */}
-          <div className="flex items-center justify-between px-4 sm:px-6 pb-4 sm:pb-6">
-            <div className="flex items-center gap-2 sm:gap-4">
-              {/* Play/Pause */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={togglePlay}
-                className="text-white hover:text-cyan-400 hover:bg-white/10 h-8 w-8 sm:h-10 sm:w-10"
-                aria-label={isPlaying ? "Pause" : "Play"}
-              >
-                {isPlaying ? (
-                  <Pause className="w-5 h-5 sm:w-6 sm:h-6" />
-                ) : (
-                  <Play className="w-5 h-5 sm:w-6 sm:h-6" />
-                )}
-              </Button>
+            {/* Progress bar */}
+            <div className="px-4 sm:px-6 pb-3 sm:pb-4">
+              <Slider
+                value={[currentTime]}
+                min={0}
+                max={duration || 100}
+                step={0.1}
+                onValueChange={handleSeek}
+                className="cursor-pointer"
+              />
+            </div>
 
-              {/* Volume */}
-              <div className="flex items-center gap-2">
+            {/* Control buttons */}
+            <div className="flex items-center justify-between px-4 sm:px-6 pb-4 sm:pb-6">
+              <div className="flex items-center gap-2 sm:gap-4">
+                {/* Play/Pause */}
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={toggleMute}
+                  onClick={togglePlay}
                   className="text-white hover:text-cyan-400 hover:bg-white/10 h-8 w-8 sm:h-10 sm:w-10"
-                  aria-label={isMuted ? "Unmute" : "Mute"}
+                  aria-label={isPlaying ? "Pause" : "Play"}
                 >
-                  {isMuted || volume === 0 ? (
-                    <VolumeX className="w-5 h-5 sm:w-6 sm:h-6" />
+                  {isPlaying ? (
+                    <Pause className="w-5 h-5 sm:w-6 sm:h-6" />
                   ) : (
-                    <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <Play className="w-5 h-5 sm:w-6 sm:h-6" />
                   )}
                 </Button>
-                <div className="w-16 sm:w-24 hidden sm:block">
-                  <Slider
-                    value={[volume]}
-                    min={0}
-                    max={100}
-                    step={1}
-                    onValueChange={handleVolumeChange}
-                    className="cursor-pointer"
-                  />
+
+                {/* Volume */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleMute}
+                    className="text-white hover:text-cyan-400 hover:bg-white/10 h-8 w-8 sm:h-10 sm:w-10"
+                    aria-label={isMuted ? "Unmute" : "Mute"}
+                  >
+                    {isMuted || volume === 0 ? (
+                      <VolumeX className="w-5 h-5 sm:w-6 sm:h-6" />
+                    ) : (
+                      <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />
+                    )}
+                  </Button>
+                  <div className="w-16 sm:w-24 hidden sm:block">
+                    <Slider
+                      value={[volume]}
+                      min={0}
+                      max={100}
+                      step={1}
+                      onValueChange={handleVolumeChange}
+                      className="cursor-pointer"
+                    />
+                  </div>
                 </div>
+
+                {/* Speed control */}
+                <Select value={playbackRate} onValueChange={handleSpeedChange}>
+                  <SelectTrigger className="w-16 sm:w-20 h-8 sm:h-10 bg-transparent border-white/20 text-white hover:bg-white/10 hover:border-cyan-400/40 text-xs sm:text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-black/95 border-white/20 text-white">
+                    <SelectItem value="0.5">0.5x</SelectItem>
+                    <SelectItem value="1">1x</SelectItem>
+                    <SelectItem value="1.25">1.25x</SelectItem>
+                    <SelectItem value="1.5">1.5x</SelectItem>
+                    <SelectItem value="2">2x</SelectItem>
+                    <SelectItem value="4">4x</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              {/* Speed control */}
-              <Select value={playbackRate} onValueChange={handleSpeedChange}>
-                <SelectTrigger className="w-16 sm:w-20 h-8 sm:h-10 bg-transparent border-white/20 text-white hover:bg-white/10 hover:border-cyan-400/40 text-xs sm:text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-black/95 border-white/20 text-white">
-                  <SelectItem value="0.5">0.5x</SelectItem>
-                  <SelectItem value="1">1x</SelectItem>
-                  <SelectItem value="1.25">1.25x</SelectItem>
-                  <SelectItem value="1.5">1.5x</SelectItem>
-                  <SelectItem value="2">2x</SelectItem>
-                  <SelectItem value="4">4x</SelectItem>
-                </SelectContent>
-              </Select>
+              {/* Fullscreen */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleFullscreen}
+                className="text-white hover:text-cyan-400 hover:bg-white/10 h-8 w-8 sm:h-10 sm:w-10"
+                aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+              >
+                {isFullscreen ? (
+                  <Minimize className="w-5 h-5 sm:w-6 sm:h-6" />
+                ) : (
+                  <Maximize className="w-5 h-5 sm:w-6 sm:h-6" />
+                )}
+              </Button>
             </div>
-
-            {/* Fullscreen */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleFullscreen}
-              className="text-white hover:text-cyan-400 hover:bg-white/10 h-8 w-8 sm:h-10 sm:w-10"
-              aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
-            >
-              {isFullscreen ? (
-                <Minimize className="w-5 h-5 sm:w-6 sm:h-6" />
-              ) : (
-                <Maximize className="w-5 h-5 sm:w-6 sm:h-6" />
-              )}
-            </Button>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

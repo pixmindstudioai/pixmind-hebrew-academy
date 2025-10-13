@@ -92,6 +92,13 @@ const VideoUrlInput = ({ video, onChange, disabled }: VideoUrlInputProps) => {
         <p className="text-xs text-muted-foreground mt-1">
           תמיכה בקישורי YouTube, Vimeo, ו-mp4/webm. הקישור יומר אוטומטית לפורמט הטמעה.
         </p>
+        <Alert className="mt-2">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="text-xs">
+            <strong>חשוב:</strong> עבור YouTube - הגדר את הוידאו כ-"Unlisted" והפעל "Allow embedding" בהגדרות הוידאו.
+            עבור Vimeo - הגדר את "Who can embed" ל-"Anywhere" בהגדרות הפרטיות.
+          </AlertDescription>
+        </Alert>
       </div>
 
       {error && (
