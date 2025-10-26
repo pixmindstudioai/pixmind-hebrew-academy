@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { NotificationBell } from "@/components/NotificationBell";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -95,6 +96,7 @@ const Navigation = () => {
             
             {user ? (
               <div className="flex items-center space-x-4 space-x-reverse">
+                <NotificationBell />
                 {userNavItems.map((item) => {
                   const Icon = item.icon;
                   return (
