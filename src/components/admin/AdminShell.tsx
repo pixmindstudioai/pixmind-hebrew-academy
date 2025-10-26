@@ -9,7 +9,8 @@ import {
   Settings as SettingsIcon,
   LogOut,
   Shield,
-  Users
+  Users,
+  CreditCard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -38,6 +39,12 @@ const AdminShell = () => {
       label: 'ניהול משתמשים',
       icon: Users,
       description: 'מנהל הרשאות גישה למודולים עבור משתמשים'
+    },
+    {
+      href: '/admin/payments',
+      label: 'עסקאות ממשולם',
+      icon: CreditCard,
+      description: 'צפייה וניהול רכישות דרך משולם'
     },
     {
       href: '/admin/settings',
