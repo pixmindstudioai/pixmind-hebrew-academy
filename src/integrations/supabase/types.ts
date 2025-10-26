@@ -521,6 +521,32 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_product_map: {
+        Row: {
+          module_id: string | null
+          product_id: string
+          provider: string
+        }
+        Insert: {
+          module_id?: string | null
+          product_id: string
+          provider?: string
+        }
+        Update: {
+          module_id?: string | null
+          product_id?: string
+          provider?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_product_map_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       publish_events: {
         Row: {
           action: string
@@ -681,14 +707,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_admin_user: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
+      is_admin: { Args: never; Returns: boolean }
+      is_admin_user: { Args: { user_id: string }; Returns: boolean }
       set_current_user_admin: {
         Args: { secret_code: string }
         Returns: boolean
