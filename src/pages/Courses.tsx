@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Filter, BookOpen } from "lucide-react";
@@ -17,11 +16,17 @@ import { useModuleAccess } from "@/hooks/useUserModuleAccess";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { useUserModuleAccessRealtime } from "@/hooks/useUserModuleAccessRealtime";
+import type { Module } from "@/hooks/useContentData";
 
 const Courses = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAdminAuth();
   const { canAccessModule } = useModuleAccess();
+  
+  // Enable real-time updates for user module access
+  useUserModuleAccessRealtime();
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("order");
 
@@ -47,7 +52,7 @@ const Courses = () => {
       }
     });
 
-  const handleModuleClick = (module: any) => {
+  const handleModuleClick = (module: Module) => {
     // Check if user has access to this module
     if (!canAccessModule(module)) {
       if (module.payment_url) {
@@ -151,15 +156,16 @@ const Courses = () => {
               );
               
               return (
-                <ModuleCard
-                  key={module.id}
-                  module={module}
-                  lessonsCount={12} // This would come from actual lesson count
-                  completedLessons={moduleProgress.length}
-                  duration="2.5 שעות" // This would be calculated from lesson durations
-                  isStarted={moduleProgress.length > 0}
-                  onClick={handleModuleClick}
-                />
+                <div key={module.id}>
+                  <ModuleCard
+                    module={module}
+                    lessonsCount={12}
+                    completedLessons={moduleProgress.length}
+                    duration="2.5 שעות"
+                    isStarted={moduleProgress.length > 0}
+                    onClick={handleModuleClick}
+                  />
+                </div>
               );
             })}
           </div>

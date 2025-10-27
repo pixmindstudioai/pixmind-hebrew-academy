@@ -6,13 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import StandardCustomVideoPlayer from "@/components/StandardCustomVideoPlayer";
+import EnhancedVideoPlayer from "@/components/EnhancedVideoPlayer";
 import CommentSection from "@/components/CommentSection";
 import ProgressBadge from "@/components/ProgressBadge";
 import LessonRating from "@/components/LessonRating";
 import AccessGuard from "@/components/AccessGuard";
 import ProgressToggle from "@/components/ProgressToggle";
-import { convertToEmbedUrl } from "@/lib/videoUtils";
 import { 
   useLesson, 
   useLessonAttachments, 
@@ -58,6 +57,13 @@ const LessonView = () => {
   const handleProgressToggle = (completed: boolean) => {
     setIsCompleted(completed);
     // Could trigger a refetch of chapter progress here if needed
+  };
+
+  // Handle navigation to next lesson
+  const handleNextLesson = () => {
+    if (nextLesson) {
+      navigate(`/lesson/${nextLesson.id}`);
+    }
   };
 
   const getFileIcon = (mimeType: string) => {
@@ -155,14 +161,16 @@ const LessonView = () => {
                 </div>
               )}
 
-              {/* Video Player */}
+              {/* Enhanced Video Player */}
               {lesson.video_url && (
                 <div className="w-full">
-                  <StandardCustomVideoPlayer
-                    src={convertToEmbedUrl(lesson.video_url)}
+                  <EnhancedVideoPlayer
+                    videoUrl={lesson.video_url}
                     title={lesson.title}
-                    poster={lesson.thumbnail_url}
+                    lessonId={lesson.id!}
                     className="w-full"
+                    onNextLesson={nextLesson ? handleNextLesson : undefined}
+                    nextLessonTitle={nextLesson?.title}
                   />
                 </div>
               )}
