@@ -97,7 +97,7 @@ const Login = () => {
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center justify-center mb-6 hover:opacity-80 transition-opacity">
             <img 
-              src="/lovable-uploads/5e08e54d-dcb2-4cf3-8f3e-5c8e5bf267a7.png" 
+              src="/logo.png" 
               alt="PixMind Studio Academy Logo" 
               className="h-16 w-auto"
             />

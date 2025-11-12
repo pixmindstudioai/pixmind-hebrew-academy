@@ -67,7 +67,7 @@ const Navigation = () => {
             className="flex items-center space-x-2 space-x-reverse hover:opacity-80 transition-opacity"
           >
             <img 
-              src="/lovable-uploads/5e08e54d-dcb2-4cf3-8f3e-5c8e5bf267a7.png" 
+              src="/logo.png" 
               alt="PixMind Studio Academy Logo" 
               className="h-10 w-auto"
             />
