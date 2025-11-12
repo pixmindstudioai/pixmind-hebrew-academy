@@ -20,6 +20,7 @@ import UserManagementPage from "./pages/admin/UserManagementPage";
 import ModerationPage from "./pages/admin/ModerationPage";
 import SettingsPage from "./pages/admin/SettingsPage";
 import PaymentsPage from "./pages/admin/PaymentsPage";
+import PurchasesPage from "./pages/admin/PurchasesPage";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,9 @@ const App = () => (
                 </Route>
                 <Route path="payments" element={<AdminShell />}>
                   <Route index element={<PaymentsPage />} />
+                </Route>
+                <Route path="purchases" element={<AdminShell />}>
+                  <Route index element={<PurchasesPage />} />
                 </Route>
                 <Route path="settings" element={<AdminShell />}>
                   <Route index element={<SettingsPage />} />

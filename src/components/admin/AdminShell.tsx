@@ -10,7 +10,8 @@ import {
   LogOut,
   Shield,
   Users,
-  CreditCard
+  CreditCard,
+  ShoppingCart
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -42,9 +43,15 @@ const AdminShell = () => {
     },
     {
       href: '/admin/payments',
-      label: 'עסקאות ממשולם',
+      label: 'עסקאות והרשמות',
       icon: CreditCard,
-      description: 'צפייה וניהול רכישות דרך משולם'
+      description: 'צפייה וניהול הרשמות ממשולם'
+    },
+    {
+      href: '/admin/purchases',
+      label: 'רכישות',
+      icon: ShoppingCart,
+      description: 'מעקב אחר כל התשלומים והרכישות'
     },
     {
       href: '/admin/settings',

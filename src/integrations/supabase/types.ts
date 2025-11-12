@@ -572,6 +572,62 @@ export type Database = {
         }
         Relationships: []
       }
+      purchases: {
+        Row: {
+          amount: number | null
+          created_at: string | null
+          currency: string | null
+          full_name: string | null
+          id: string
+          module_id: string | null
+          payment_date: string
+          payment_desc: string | null
+          provider: string | null
+          status: string | null
+          transaction_id: string
+          updated_at: string | null
+          user_email: string
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string | null
+          currency?: string | null
+          full_name?: string | null
+          id?: string
+          module_id?: string | null
+          payment_date: string
+          payment_desc?: string | null
+          provider?: string | null
+          status?: string | null
+          transaction_id: string
+          updated_at?: string | null
+          user_email: string
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string | null
+          currency?: string | null
+          full_name?: string | null
+          id?: string
+          module_id?: string | null
+          payment_date?: string
+          payment_desc?: string | null
+          provider?: string | null
+          status?: string | null
+          transaction_id?: string
+          updated_at?: string | null
+          user_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchases_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_module_access: {
         Row: {
           expires_at: string | null
@@ -694,6 +750,36 @@ export type Database = {
           profile_picture_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
+        }
+        Relationships: []
+      }
+      webhook_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          event_type: string | null
+          id: string
+          payload: Json
+          processed: boolean | null
+          provider: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          event_type?: string | null
+          id?: string
+          payload: Json
+          processed?: boolean | null
+          provider: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          event_type?: string | null
+          id?: string
+          payload?: Json
+          processed?: boolean | null
+          provider?: string
         }
         Relationships: []
       }
