@@ -66,11 +66,15 @@ const CourseDetail = () => {
     }
   };
 
+  // Check if module is hidden and user doesn't have access
   if (!module) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center" dir="rtl">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">קורס לא נמצא</h1>
+          <p className="text-muted-foreground mb-6">
+            הקורס שחיפשת אינו זמין או שאין לך הרשאה לצפות בו
+          </p>
           <Button onClick={() => navigate('/courses')}>
             <ArrowRight className="w-4 h-4 ml-2" />
             חזור לקורסים

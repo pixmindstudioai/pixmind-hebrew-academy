@@ -14,6 +14,7 @@ export interface Module {
   order_index: number;
   status: 'draft' | 'active' | 'archived';
   is_paid: boolean;
+  is_hidden: boolean;
   payment_url?: string;
   is_verified: boolean;
   created_at: string;

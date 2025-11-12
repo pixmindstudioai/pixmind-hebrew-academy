@@ -12,7 +12,16 @@ import { toast } from "sonner";
 const Index = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { data: modules = [], isLoading: modulesLoading } = useVerifiedModules();
-  const { canAccessModule } = useModuleAccess();
+  const { canAccessModule, userAccess } = useModuleAccess();
+
+  // Filter modules to hide those with is_hidden unless user has access
+  const visibleModules = modules.filter(module => {
+    // If not hidden, show it
+    if (!module.is_hidden) return true;
+    
+    // If hidden, only show if user has access
+    return userAccess.some(access => access.module_id === module.id);
+  });
 
   const handleModuleClick = (module: any) => {
     if (!canAccessModule(module)) {
@@ -145,8 +154,8 @@ const Index = () => {
               <div className="col-span-full text-center py-8 text-muted-foreground">
                 טוען קורסים...
               </div>
-            ) : modules.length > 0 ? (
-              modules.slice(0, 6).map((module) => (
+            ) : visibleModules.length > 0 ? (
+              visibleModules.slice(0, 6).map((module) => (
                 <ModuleCard
                   key={module.id}
                   module={module}

@@ -30,11 +30,20 @@ const Courses = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("order");
 
-  // Only show active modules to regular users
   const { data: modules = [], isLoading } = useModules('active');
   const { data: userProgress = [] } = useUserProgress(isAuthenticated ? "current-user-id" : undefined);
+  const { userAccess } = useModuleAccess();
 
-  const filteredModules = modules
+  // Filter modules to hide those with is_hidden unless user has access
+  const visibleModules = modules.filter(module => {
+    // If not hidden, show it
+    if (!module.is_hidden) return true;
+    
+    // If hidden, only show if user has access
+    return userAccess.some(access => access.module_id === module.id);
+  });
+
+  const filteredModules = visibleModules
     .filter(module => 
       module.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       module.description.toLowerCase().includes(searchTerm.toLowerCase())

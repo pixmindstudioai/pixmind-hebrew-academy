@@ -28,6 +28,7 @@ const moduleSchema = z.object({
   status: z.enum(['draft', 'active', 'archived']).default('draft'),
   order_index: z.number().min(0, 'מספר הסדר חייב להיות 0 או יותר').optional(),
   is_paid: z.boolean().default(false),
+  is_hidden: z.boolean().default(false),
   payment_url: z.string().url('יש להזין כתובת URL תקינה').optional().or(z.literal('')),
   thumbnail_url: z.string().url('יש להזין כתובת URL תקינה לתמונה').optional().or(z.literal('')),
 }).refine((data) => {
@@ -50,6 +51,7 @@ interface Module {
   status: 'draft' | 'active' | 'archived';
   order_index: number;
   is_paid: boolean;
+  is_hidden: boolean;
   payment_url?: string;
   thumbnail_url?: string;
   created_at: string;
@@ -74,6 +76,7 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading, showActions = true 
       status: module?.status || 'draft',
       order_index: module?.order_index || 0,
       is_paid: module?.is_paid || false,
+      is_hidden: module?.is_hidden || false,
       payment_url: module?.payment_url || '',
       thumbnail_url: module?.thumbnail_url || '',
     },
@@ -237,6 +240,36 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading, showActions = true 
               )}
             />
           )}
+
+          <FormField
+            control={form.control}
+            name="is_hidden"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <FormLabel className="text-base">נראות הקורס</FormLabel>
+                  <FormDescription>
+                    {field.value ? '🔒 הקורס מוסתר - רק משתמשים רשומים רואים אותו' : '👁️ הקורס גלוי - מופיע לכל המבקרים'}
+                  </FormDescription>
+                </div>
+                <Select 
+                  onValueChange={(value) => field.onChange(value === 'hidden')} 
+                  value={field.value ? 'hidden' : 'visible'}
+                  disabled={isLoading}
+                >
+                  <FormControl>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="visible">גלוי</SelectItem>
+                    <SelectItem value="hidden">מוסתר</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
 
           <FormField
             control={form.control}

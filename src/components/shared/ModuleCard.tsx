@@ -1,5 +1,5 @@
 
-import { Play, Clock, BookOpen, CheckCircle, Edit, Trash2, Eye, DollarSign, Shield } from "lucide-react";
+import { Play, Clock, BookOpen, CheckCircle, Edit, Trash2, Eye, DollarSign, Shield, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -111,8 +111,14 @@ const ModuleCard = ({
 
           {/* Status badge for admin view */}
           {isAdminView && (
-            <div className="absolute top-4 left-4">
+            <div className="absolute top-4 left-4 flex gap-2">
               {getStatusBadge()}
+              {module.is_hidden && (
+                <Badge variant="secondary" className="bg-muted/90 text-muted-foreground">
+                  <EyeOff className="w-3 h-3 ml-1" />
+                  מוסתר
+                </Badge>
+              )}
             </div>
           )}
 
@@ -227,9 +233,15 @@ const ModuleCard = ({
 
         {/* Admin info */}
         {isAdminView && (
-          <div className="text-xs text-muted-foreground">
+          <div className="text-xs text-muted-foreground space-y-1">
             <div>סדר: {module.order_index}</div>
             <div>נוצר: {new Date(module.created_at).toLocaleDateString('he-IL')}</div>
+            {module.is_hidden && (
+              <div className="flex items-center gap-1 text-muted-foreground/80 mt-2">
+                <EyeOff className="w-3 h-3" />
+                <span>הקורס לא מופיע בדף הבית</span>
+              </div>
+            )}
           </div>
         )}
       </CardContent>
