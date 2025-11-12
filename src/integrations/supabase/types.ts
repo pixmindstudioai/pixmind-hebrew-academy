@@ -477,6 +477,7 @@ export type Database = {
           description: string
           id: string
           image_url: string | null
+          is_hidden: boolean
           is_paid: boolean
           is_verified: boolean | null
           order_index: number
@@ -493,6 +494,7 @@ export type Database = {
           description: string
           id?: string
           image_url?: string | null
+          is_hidden?: boolean
           is_paid?: boolean
           is_verified?: boolean | null
           order_index?: number
@@ -509,6 +511,7 @@ export type Database = {
           description?: string
           id?: string
           image_url?: string | null
+          is_hidden?: boolean
           is_paid?: boolean
           is_verified?: boolean | null
           order_index?: number
@@ -524,28 +527,20 @@ export type Database = {
       payment_product_map: {
         Row: {
           module_id: string | null
-          product_id: string
-          provider: string
+          product_id: string | null
+          provider: string | null
         }
         Insert: {
           module_id?: string | null
-          product_id: string
-          provider?: string
+          product_id?: string | null
+          provider?: string | null
         }
         Update: {
           module_id?: string | null
-          product_id?: string
-          provider?: string
+          product_id?: string | null
+          provider?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "payment_product_map_module_id_fkey"
-            columns: ["module_id"]
-            isOneToOne: false
-            referencedRelation: "modules"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       publish_events: {
         Row: {
@@ -712,6 +707,15 @@ export type Database = {
       set_current_user_admin: {
         Args: { secret_code: string }
         Returns: boolean
+      }
+      upsert_user_access: {
+        Args: {
+          p_email: string
+          p_expires?: string
+          p_module: string
+          p_notes?: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
