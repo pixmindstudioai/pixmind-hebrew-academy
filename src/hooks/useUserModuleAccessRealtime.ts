@@ -23,8 +23,10 @@ export const useUserModuleAccessRealtime = () => {
         },
         (payload) => {
           // Only process changes for the current user
-          if (payload.new?.user_email?.toLowerCase() === user.email.toLowerCase() || 
-              payload.old?.user_email?.toLowerCase() === user.email.toLowerCase()) {
+          const newRecord = payload.new as any;
+          const oldRecord = payload.old as any;
+          if (newRecord?.user_email?.toLowerCase() === user.email.toLowerCase() || 
+              oldRecord?.user_email?.toLowerCase() === user.email.toLowerCase()) {
             
             // Invalidate the query to trigger a refetch with the latest data
             queryClient.invalidateQueries({ queryKey: ['user-module-access', user.email] });
