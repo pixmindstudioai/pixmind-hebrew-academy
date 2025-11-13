@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useEffect } from 'react';
 
 export interface CommentReply {
   id: string;
@@ -62,7 +63,9 @@ export interface CommentFilters {
 
 // Fetch all comments with filters
 export const useComments = (filters?: CommentFilters) => {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ['admin-comments', filters],
     queryFn: async () => {
       let query = supabase
@@ -117,8 +120,8 @@ export const useComments = (filters?: CommentFilters) => {
         const term = filters.searchTerm.toLowerCase();
         comments = comments.filter(c => 
           c.content.toLowerCase().includes(term) ||
-          c.user.full_name.toLowerCase().includes(term) ||
-          c.user.email.toLowerCase().includes(term) ||
+          c.user?.full_name?.toLowerCase().includes(term) ||
+          c.user?.email?.toLowerCase().includes(term) ||
           c.lesson.title.toLowerCase().includes(term)
         );
       }
@@ -147,12 +150,43 @@ export const useComments = (filters?: CommentFilters) => {
 
       return commentsWithReplies;
     },
+    staleTime: 30000, // 30 seconds
+    retry: 2,
   });
+
+  // Realtime subscription for comments
+  useEffect(() => {
+    const channel = supabase
+      .channel('comments-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'comments'
+        },
+        (payload) => {
+          console.log('Comment change detected:', payload);
+          // Invalidate and refetch comments
+          queryClient.invalidateQueries({ queryKey: ['admin-comments'] });
+          queryClient.invalidateQueries({ queryKey: ['lesson-comment-counts'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  return query;
 };
 
 // Fetch comment count per lesson
 export const useLessonCommentCounts = (lessonIds: string[]) => {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ['lesson-comment-counts', lessonIds],
     queryFn: async () => {
       if (lessonIds.length === 0) return {};
@@ -181,7 +215,35 @@ export const useLessonCommentCounts = (lessonIds: string[]) => {
       return counts;
     },
     enabled: lessonIds.length > 0,
+    staleTime: 30000,
   });
+
+  // Realtime updates for comment counts
+  useEffect(() => {
+    if (lessonIds.length === 0) return;
+
+    const channel = supabase
+      .channel('lesson-comments-counts')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'comments',
+          filter: `lesson_id=in.(${lessonIds.join(',')})`
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['lesson-comment-counts'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [lessonIds, queryClient]);
+
+  return query;
 };
 
 // Update comment status

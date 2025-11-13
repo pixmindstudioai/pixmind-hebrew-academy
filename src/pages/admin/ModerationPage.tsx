@@ -195,6 +195,11 @@ const ModerationPage = () => {
 
         {isLoading ? (
           <div className="text-center py-8 text-muted-foreground">טוען תגובות...</div>
+        ) : comments && comments.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">
+            <p className="text-lg mb-2">לא נמצאו תגובות</p>
+            <p className="text-sm">נסה לשנות את הסינונים או החיפוש</p>
+          </div>
         ) : (
           <ModerationTable
             comments={comments || []}
