@@ -18,6 +18,8 @@ import AdminShell from "./components/admin/AdminShell";
 import ContentPage from "./pages/admin/ContentPage";
 import UserManagementPage from "./pages/admin/UserManagementPage";
 import ModerationPage from "./pages/admin/ModerationPage";
+import StudentsPage from "./pages/admin/StudentsPage";
+import StudentProfilePage from "./pages/admin/StudentProfilePage";
 import SettingsPage from "./pages/admin/SettingsPage";
 import PaymentsPage from "./pages/admin/PaymentsPage";
 import PurchasesPage from "./pages/admin/PurchasesPage";
@@ -53,6 +55,10 @@ const App = () => (
                 </Route>
                 <Route path="content" element={<AdminShell />}>
                   <Route index element={<ContentPage />} />
+                </Route>
+                <Route path="students" element={<AdminShell />}>
+                  <Route index element={<StudentsPage />} />
+                  <Route path=":studentId" element={<StudentProfilePage />} />
                 </Route>
                 <Route path="users" element={<AdminShell />}>
                   <Route index element={<UserManagementPage />} />
