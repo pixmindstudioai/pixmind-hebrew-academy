@@ -111,12 +111,12 @@ const ModerationPage = () => {
 
         <div className="bg-card border border-border rounded-lg p-3 md:p-4 space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <Select value={filters.moduleId || ''} onValueChange={(value) => setFilters(prev => ({ ...prev, moduleId: value || undefined, lessonId: undefined }))}>
+            <Select value={filters.moduleId || 'all'} onValueChange={(value) => setFilters(prev => ({ ...prev, moduleId: value === 'all' ? undefined : value, lessonId: undefined }))}>
               <SelectTrigger className="text-sm">
                 <SelectValue placeholder="כל המודולים" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">כל המודולים</SelectItem>
+                <SelectItem value="all">כל המודולים</SelectItem>
                 {modules?.map(m => (
                   <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>
                 ))}
@@ -124,27 +124,27 @@ const ModerationPage = () => {
             </Select>
 
             <Select 
-              value={filters.lessonId || ''} 
-              onValueChange={(value) => setFilters(prev => ({ ...prev, lessonId: value || undefined }))}
+              value={filters.lessonId || 'all'} 
+              onValueChange={(value) => setFilters(prev => ({ ...prev, lessonId: value === 'all' ? undefined : value }))}
               disabled={!filters.moduleId}
             >
               <SelectTrigger className="text-sm">
                 <SelectValue placeholder="כל השיעורים" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">כל השיעורים</SelectItem>
+                <SelectItem value="all">כל השיעורים</SelectItem>
                 {lessons?.map(l => (
                   <SelectItem key={l.id} value={l.id}>{l.title}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
-            <Select value={filters.status || ''} onValueChange={(value) => setFilters(prev => ({ ...prev, status: (value || undefined) as any }))}>
+            <Select value={filters.status || 'all'} onValueChange={(value) => setFilters(prev => ({ ...prev, status: (value === 'all' ? undefined : value) as any }))}>
               <SelectTrigger className="text-sm">
                 <SelectValue placeholder="כל הסטטוסים" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">כל הסטטוסים</SelectItem>
+                <SelectItem value="all">כל הסטטוסים</SelectItem>
                 <SelectItem value="pending">ממתין לאישור</SelectItem>
                 <SelectItem value="approved">מאושר</SelectItem>
                 <SelectItem value="hidden">מוסתר</SelectItem>
