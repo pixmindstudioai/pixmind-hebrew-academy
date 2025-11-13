@@ -2,6 +2,20 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+export interface CommentReply {
+  id: string;
+  content: string;
+  status: 'pending' | 'approved' | 'hidden' | 'flagged';
+  upvotes: number;
+  created_at: string;
+  user: {
+    id: string;
+    full_name: string;
+    email: string;
+    profile_picture_url?: string;
+  };
+}
+
 export interface CommentWithDetails {
   id: string;
   content: string;
@@ -33,7 +47,7 @@ export interface CommentWithDetails {
       };
     };
   };
-  replies?: CommentWithDetails[];
+  replies?: CommentReply[];
 }
 
 export interface CommentFilters {

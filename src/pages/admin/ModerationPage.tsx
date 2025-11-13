@@ -1,83 +1,26 @@
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import ModerationTable from '@/components/admin/ModerationTable';
 import CommentDrawer from '@/components/admin/CommentDrawer';
-import { ModerationComment, ModerationAction } from '@/types/admin';
-import { useToast } from '@/hooks/use-toast';
-
-// Mock data - would come from API in real implementation
-const mockComments: ModerationComment[] = [
-  {
-    id: '1',
-    lessonId: 'lesson-1',
-    userId: 'user-1',
-    username: 'יוסי כהן',
-    content: 'השיעור היה מעולה! למדתי הרבה דברים חדשים וחשובים.',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    status: 'pending',
-    reportCount: 0,
-    upvotes: 5,
-    replies: [],
-    moderationHistory: []
-  },
-  {
-    id: '2',
-    lessonId: 'lesson-2',
-    userId: 'user-2',
-    username: 'שרה לוי',
-    content: 'יש בעיה עם הסרטון, הוא לא נטען אצלי. מישהו יכול לעזור?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
-    status: 'approved',
-    reportCount: 0,
-    upvotes: 2,
-    replies: [
-      {
-        id: '2-1',
-        lessonId: 'lesson-2',
-        userId: 'user-3',
-        username: 'מיכל גרין',
-        content: 'גם אצלי הייתה אותה בעיה, נסי לרענן את הדף',
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 4),
-        status: 'approved',
-        reportCount: 0,
-        upvotes: 1,
-        replies: [],
-        moderationHistory: []
-      }
-    ],
-    moderationHistory: [
-      {
-        id: 'action-1',
-        commentId: '2',
-        moderatorId: 'admin-1',
-        action: 'approve',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4),
-      }
-    ]
-  },
-  {
-    id: '3',
-    lessonId: 'lesson-1',
-    userId: 'user-4',
-    username: 'דן אברמס',
-    content: 'זה לא נכון מה שאמרת בשיעור! יש לי הוכחות אחרות!',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8),
-    status: 'flagged',
-    reportCount: 3,
-    upvotes: 0,
-    replies: [],
-    moderationHistory: [
-      {
-        id: 'action-2',
-        commentId: '3',
-        moderatorId: 'admin-1',
-        action: 'flag',
-        reason: 'תוכן מעורר מחלוקת',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 6),
-      }
-    ]
-  }
-];
+import AuthenticationGuard from '@/components/admin/AuthenticationGuard';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon, Download, RefreshCw, Search } from 'lucide-react';
+import { format } from 'date-fns';
+import { toast } from 'sonner';
+import { 
+  useComments, 
+  useUpdateCommentStatus, 
+  useDeleteComment, 
+  useUpdateComment,
+  CommentWithDetails,
+  CommentFilters 
+} from '@/hooks/useCommentsData';
+import { useModules } from '@/hooks/useContentData';
+import { useLessons } from '@/hooks/useAdminData';
+import { cn } from '@/lib/utils';
 
 const ModerationPage = () => {
   const [selectedComment, setSelectedComment] = useState<CommentWithDetails | null>(null);
@@ -93,106 +36,194 @@ const ModerationPage = () => {
   const updateStatus = useUpdateCommentStatus();
   const deleteComment = useDeleteComment();
   const updateComment = useUpdateComment();
-  const { toast } = useToast();
-
-  const addModerationAction = (commentId: string, action: ModerationAction['action'], reason?: string) => {
-    const newAction: ModerationAction = {
-      id: `action-${Date.now()}`,
-      commentId,
-      moderatorId: 'current-admin',
-      action,
-      reason,
-      timestamp: new Date(),
-    };
-
-    setComments(prev => prev.map(comment => {
-      if (comment.id === commentId) {
-        return {
-          ...comment,
-          moderationHistory: [...comment.moderationHistory, newAction]
-        };
-      }
-      return comment;
-    }));
-  };
 
   const handleApprove = (commentId: string) => {
-    setComments(prev => prev.map(comment => 
-      comment.id === commentId 
-        ? { ...comment, status: 'approved' as const }
-        : comment
-    ));
-    addModerationAction(commentId, 'approve');
-    toast({
-      title: "התגובה אושרה",
-      description: "התגובה זמינה כעת לציבור",
-    });
+    updateStatus.mutate({ commentId, status: 'approved' });
   };
 
   const handleHide = (commentId: string) => {
-    setComments(prev => prev.map(comment => 
-      comment.id === commentId 
-        ? { ...comment, status: 'hidden' as const }
-        : comment
-    ));
-    addModerationAction(commentId, 'hide');
-    toast({
-      title: "התגובה הוסתרה",
-      description: "התגובה אינה זמינה לציבור",
-    });
+    updateStatus.mutate({ commentId, status: 'hidden' });
   };
 
   const handleFlag = (commentId: string) => {
-    setComments(prev => prev.map(comment => 
-      comment.id === commentId 
-        ? { ...comment, status: 'flagged' as const }
-        : comment
-    ));
-    addModerationAction(commentId, 'flag');
-    toast({
-      title: "התגובה דווחה",
-      description: "התגובה סומנה לבדיקה נוספת",
-    });
+    updateStatus.mutate({ commentId, status: 'flagged' });
   };
 
-  const handleRestore = (commentId: string) => {
-    setComments(prev => prev.map(comment => 
-      comment.id === commentId 
-        ? { ...comment, status: 'approved' as const }
-        : comment
-    ));
-    addModerationAction(commentId, 'restore');
-    toast({
-      title: "התגובה שוחזרה",
-      description: "התגובה זמינה שוב לציבור",
-    });
+  const handleDelete = (commentId: string) => {
+    if (window.confirm('האם אתה בטוח שברצונך למחוק תגובה זו לצמיתות?')) {
+      deleteComment.mutate(commentId);
+    }
   };
 
-  const handleView = (comment: ModerationComment) => {
+  const handleEdit = (commentId: string, content: string) => {
+    updateComment.mutate({ commentId, content });
+  };
+
+  const handleView = (comment: CommentWithDetails) => {
     setSelectedComment(comment);
     setDrawerOpen(true);
   };
 
+  const handleSearch = () => {
+    setFilters(prev => ({
+      ...prev,
+      dateFrom: dateFrom?.toISOString(),
+      dateTo: dateTo?.toISOString(),
+    }));
+  };
+
+  const handleExportCSV = () => {
+    if (!comments || comments.length === 0) {
+      toast.error('אין תגובות לייצוא');
+      return;
+    }
+
+    const csvHeaders = ['תאריך', 'משתמש', 'אימייל', 'שיעור', 'מודול', 'תוכן', 'סטטוס', 'דירוגים'];
+    const csvRows = comments.map(c => [
+      format(new Date(c.created_at), 'dd/MM/yyyy HH:mm'),
+      c.user.full_name,
+      c.user.email,
+      c.lesson.title,
+      c.lesson.chapter.module.title,
+      `"${c.content.replace(/"/g, '""')}"`,
+      c.status,
+      c.upvotes
+    ]);
+
+    const csv = [csvHeaders, ...csvRows].map(row => row.join(',')).join('\n');
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `comments_${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    link.click();
+    toast.success('הקובץ יוצא בהצלחה');
+  };
+
   return (
-    <>
-      <ModerationTable
-        comments={comments}
-        onApprove={handleApprove}
-        onHide={handleHide}
-        onFlag={handleFlag}
-        onView={handleView}
-      />
-      
-      <CommentDrawer
-        comment={selectedComment}
-        isOpen={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        onApprove={handleApprove}
-        onHide={handleHide}
-        onFlag={handleFlag}
-        onRestore={handleRestore}
-      />
-    </>
+    <AuthenticationGuard>
+      <div className="space-y-4 md:space-y-6">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold">ניהול תגובות</h1>
+          <p className="text-muted-foreground mt-1 md:mt-2 text-sm md:text-base">
+            צפייה וניהול של תגובות משתמשים בפלטפורמה
+          </p>
+        </div>
+
+        <div className="bg-card border border-border rounded-lg p-3 md:p-4 space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <Select value={filters.moduleId || ''} onValueChange={(value) => setFilters(prev => ({ ...prev, moduleId: value || undefined, lessonId: undefined }))}>
+              <SelectTrigger className="text-sm">
+                <SelectValue placeholder="כל המודולים" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">כל המודולים</SelectItem>
+                {modules?.map(m => (
+                  <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select 
+              value={filters.lessonId || ''} 
+              onValueChange={(value) => setFilters(prev => ({ ...prev, lessonId: value || undefined }))}
+              disabled={!filters.moduleId}
+            >
+              <SelectTrigger className="text-sm">
+                <SelectValue placeholder="כל השיעורים" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">כל השיעורים</SelectItem>
+                {lessons?.map(l => (
+                  <SelectItem key={l.id} value={l.id}>{l.title}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={filters.status || ''} onValueChange={(value) => setFilters(prev => ({ ...prev, status: (value || undefined) as any }))}>
+              <SelectTrigger className="text-sm">
+                <SelectValue placeholder="כל הסטטוסים" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">כל הסטטוסים</SelectItem>
+                <SelectItem value="pending">ממתין לאישור</SelectItem>
+                <SelectItem value="approved">מאושר</SelectItem>
+                <SelectItem value="hidden">מוסתר</SelectItem>
+                <SelectItem value="flagged">מסומן</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn("justify-start text-right font-normal text-sm", !dateFrom && !dateTo && "text-muted-foreground")}>
+                  <CalendarIcon className="ml-2 h-4 w-4" />
+                  {dateFrom && dateTo ? `${format(dateFrom, 'dd/MM')} - ${format(dateTo, 'dd/MM')}` : 'טווח תאריכים'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <div className="p-3 space-y-2">
+                  <div className="text-sm font-medium">מתאריך:</div>
+                  <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus />
+                  <div className="text-sm font-medium mt-3">עד תאריך:</div>
+                  <Calendar mode="single" selected={dateTo} onSelect={setDateTo} />
+                  <Button size="sm" onClick={() => { setDateFrom(undefined); setDateTo(undefined); }} variant="outline" className="w-full">נקה</Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="flex gap-2">
+            <Input
+              placeholder="חיפוש בתוכן התגובה, שם משתמש, או כותרת שיעור..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              className="text-sm"
+            />
+            <Button onClick={handleSearch} size="sm" className="shrink-0">
+              <Search className="h-4 w-4 ml-1" />
+              <span className="hidden sm:inline">חפש</span>
+            </Button>
+            <Button onClick={() => refetch()} variant="outline" size="sm" className="shrink-0">
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+            <Button onClick={handleExportCSV} variant="outline" size="sm" className="shrink-0">
+              <Download className="h-4 w-4 ml-1" />
+              <span className="hidden sm:inline">ייצוא</span>
+            </Button>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="text-center py-8 text-muted-foreground">טוען תגובות...</div>
+        ) : (
+          <ModerationTable
+            comments={comments || []}
+            onApprove={handleApprove}
+            onHide={handleHide}
+            onFlag={handleFlag}
+            onDelete={handleDelete}
+            onEdit={handleEdit}
+            onView={handleView}
+          />
+        )}
+
+        {selectedComment && (
+          <CommentDrawer
+            comment={selectedComment}
+            isOpen={drawerOpen}
+            onClose={() => {
+              setDrawerOpen(false);
+              setSelectedComment(null);
+            }}
+            onApprove={handleApprove}
+            onHide={handleHide}
+            onFlag={handleFlag}
+            onDelete={handleDelete}
+            onEdit={handleEdit}
+          />
+        )}
+      </div>
+    </AuthenticationGuard>
   );
 };
 
