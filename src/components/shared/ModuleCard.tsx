@@ -14,6 +14,8 @@ import { Module } from "@/hooks/useContentData";
 import { useModuleAccess } from "@/hooks/useUserModuleAccess";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { SaleBadge } from "@/components/SaleBadge";
+import { PriceDisplay } from "@/components/PriceDisplay";
 
 interface ModuleCardProps {
   module: Module;
@@ -202,6 +204,14 @@ const ModuleCard = ({
         <p className="text-muted-foreground text-sm leading-relaxed mb-4 line-clamp-3">
           {module.description}
         </p>
+
+        {/* Sale badge and pricing */}
+        {!isAdminView && module.is_paid && (
+          <div className="mb-4 space-y-2">
+            <SaleBadge module={module} size="sm" />
+            <PriceDisplay module={module} size="sm" />
+          </div>
+        )}
 
         {/* Course stats */}
         <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
