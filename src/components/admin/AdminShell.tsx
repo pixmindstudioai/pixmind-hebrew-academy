@@ -36,9 +36,15 @@ const AdminShell = () => {
       description: 'יצירה ועריכה של מודולים, פרקים ושיעורים'
     },
     {
-      href: '/admin/users',
-      label: 'ניהול משתמשים',
+      href: '/admin/students',
+      label: 'ניהול תלמידים',
       icon: Users,
+      description: 'צפייה וניהול של כל התלמידים והרשמות'
+    },
+    {
+      href: '/admin/users',
+      label: 'הרשאות גישה',
+      icon: Shield,
       description: 'מנהל הרשאות גישה למודולים עבור משתמשים'
     },
     {

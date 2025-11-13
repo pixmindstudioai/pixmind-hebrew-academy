@@ -28,6 +28,7 @@ import AttachmentManager from './AttachmentManager';
 import EmbedManager from './EmbedManager';
 import LinksManager from './LinksManager';
 import ThumbnailUploader from './ThumbnailUploader';
+import LessonCommentsButton from './LessonCommentsButton';
 import { AdminLesson, AdminChapter, LessonVideo, LessonEmbed, LessonAttachment } from '@/types/admin';
 
 const lessonSchema = z.object({
@@ -383,13 +384,16 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
             )}
           />
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-4 flex-wrap">
             <Button type="submit" disabled={isLoading}>
               {isLoading ? 'שומר...' : lesson ? 'עדכון שיעור' : 'יצירת שיעור'}
             </Button>
             <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
               ביטול
             </Button>
+            {lesson && (
+              <LessonCommentsButton lessonId={lesson.id} lessonTitle={lesson.title} />
+            )}
           </div>
         </form>
       </Form>
