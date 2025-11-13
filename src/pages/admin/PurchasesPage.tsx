@@ -197,34 +197,36 @@ const PurchasesPage = () => {
 
       {/* Filters */}
       <Card className="glass-card">
-        <CardHeader>
-          <CardTitle>סינון רכישות</CardTitle>
-          <CardDescription>חפש וסנן רכישות לפי תאריך, קורס או משתמש</CardDescription>
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="text-lg md:text-xl">סינון רכישות</CardTitle>
+          <CardDescription className="text-sm">חפש וסנן רכישות לפי תאריך, קורס או משתמש</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <CardContent className="p-4 md:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">מתאריך</label>
+              <label className="text-xs md:text-sm font-medium mb-1 md:mb-2 block">מתאריך</label>
               <Input
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
+                className="h-9 md:h-10 text-sm md:text-base"
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">עד תאריך</label>
+              <label className="text-xs md:text-sm font-medium mb-1 md:mb-2 block">עד תאריך</label>
               <Input
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
+                className="h-9 md:h-10 text-sm md:text-base"
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">קורס</label>
+              <label className="text-xs md:text-sm font-medium mb-1 md:mb-2 block">קורס</label>
               <Select value={selectedModule} onValueChange={setSelectedModule}>
-                <SelectTrigger>
+                <SelectTrigger className="h-9 md:h-10 text-sm md:text-base">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -256,107 +258,111 @@ const PurchasesPage = () => {
 
       {/* Purchases Table */}
       <Card className="glass-card">
-        <CardHeader>
-          <CardTitle>רשימת רכישות</CardTitle>
-          <CardDescription>
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="text-lg md:text-xl">רשימת רכישות</CardTitle>
+          <CardDescription className="text-sm">
             {purchases.length} רכישות נמצאו
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 md:p-6">
           {purchasesLoading ? (
-            <div className="space-y-4">
+            <div className="space-y-4 p-4 md:p-0">
               {[...Array(5)].map((_, i) => (
                 <Skeleton key={i} className="h-16 w-full" />
               ))}
             </div>
           ) : purchases.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="text-center py-12 px-4">
               <AlertCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">לא נמצאו רכישות</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-base md:text-lg font-semibold mb-2">לא נמצאו רכישות</h3>
+              <p className="text-sm md:text-base text-muted-foreground">
                 לא נמצאו רכישות בהתאם לסינונים שנבחרו
               </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>אימייל</TableHead>
-                    <TableHead>שם מלא</TableHead>
-                    <TableHead>קורס</TableHead>
-                    <TableHead>סכום</TableHead>
-                    <TableHead>קוד עסקה</TableHead>
-                    <TableHead>תאריך</TableHead>
-                    <TableHead>סטטוס</TableHead>
-                    <TableHead className="text-left">פעולות</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {purchases.map((purchase) => (
-                    <TableRow key={purchase.id}>
-                      <TableCell className="font-medium">
-                        {purchase.user_email}
-                      </TableCell>
-                      <TableCell>{purchase.full_name || '-'}</TableCell>
-                      <TableCell>
-                        {purchase.module_id ? (
-                          <span>{purchase.module_title}</span>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">
-                            לא משוייך לקורס
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {formatCurrency(purchase.amount, purchase.currency)}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm">
-                        {purchase.transaction_id}
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          {new Date(purchase.payment_date).toLocaleDateString('he-IL')}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(purchase.payment_date), {
-                            addSuffix: true,
-                            locale: he,
-                          })}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={purchase.status === 'completed' ? 'default' : 'secondary'}>
-                          {purchase.status === 'completed' ? 'הושלם' : purchase.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2 justify-end">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSelectedPurchase(purchase)}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          {purchase.module_id && (
+              <div className="inline-block min-w-full align-middle">
+                <Table className="min-w-[768px]">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-sm">אימייל</TableHead>
+                      <TableHead className="text-sm">שם מלא</TableHead>
+                      <TableHead className="text-sm">קורס</TableHead>
+                      <TableHead className="text-sm">סכום</TableHead>
+                      <TableHead className="text-sm">קוד עסקה</TableHead>
+                      <TableHead className="text-sm">תאריך</TableHead>
+                      <TableHead className="text-sm">סטטוס</TableHead>
+                      <TableHead className="text-left text-sm">פעולות</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {purchases.map((purchase) => (
+                      <TableRow key={purchase.id}>
+                        <TableCell className="font-medium text-sm">
+                          {purchase.user_email}
+                        </TableCell>
+                        <TableCell className="text-sm">{purchase.full_name || '-'}</TableCell>
+                        <TableCell className="text-sm">
+                          {purchase.module_id ? (
+                            <span>{purchase.module_title}</span>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">
+                              לא משוייך לקורס
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-sm whitespace-nowrap">
+                          {formatCurrency(purchase.amount, purchase.currency)}
+                        </TableCell>
+                        <TableCell className="font-mono text-xs">
+                          {purchase.transaction_id}
+                        </TableCell>
+                        <TableCell className="text-sm whitespace-nowrap">
+                          <div className="text-sm">
+                            {new Date(purchase.payment_date).toLocaleDateString('he-IL')}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {formatDistanceToNow(new Date(purchase.payment_date), {
+                              addSuffix: true,
+                              locale: he,
+                            })}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={purchase.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
+                            {purchase.status === 'completed' ? 'הושלם' : purchase.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1 md:gap-2 justify-end">
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => {
-                                setPurchaseToRevoke(purchase);
-                                setRevokeDialogOpen(true);
-                              }}
+                              onClick={() => setSelectedPurchase(purchase)}
+                              className="h-8 w-8 p-0 md:h-9 md:w-auto md:px-3"
                             >
-                              <XCircle className="w-4 h-4 text-destructive" />
+                              <Eye className="w-3 h-3 md:w-4 md:h-4" />
                             </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                            {purchase.module_id && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setPurchaseToRevoke(purchase);
+                                  setRevokeDialogOpen(true);
+                                }}
+                                className="h-8 w-8 p-0 md:h-9 md:w-auto md:px-3"
+                              >
+                                <XCircle className="w-3 h-3 md:w-4 md:h-4 text-destructive" />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           )}
         </CardContent>

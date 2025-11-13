@@ -149,16 +149,16 @@ const UserManagementPage = () => {
   }, {} as Record<string, typeof userAccess[0]>);
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">ניהול משתמשים</h1>
-        <p className="text-muted-foreground">
+    <div className="w-full max-w-6xl mx-auto space-y-4 md:space-y-8">
+      <div className="mb-4 md:mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold mb-1 md:mb-2">ניהול משתמשים</h1>
+        <p className="text-sm md:text-base text-muted-foreground">
           מנהל הרשאות גישה למודולים עבור משתמשים לפי כתובת אימייל
         </p>
         
-        <Alert className="mt-4">
+        <Alert className="mt-3 md:mt-4">
           <Shield className="h-4 w-4" />
-          <AlertDescription>
+          <AlertDescription className="text-sm">
             ברוך הבא, {adminCheck.profile?.full_name || adminCheck.profile?.email}! 
             יש לך הרשאות מנהל מערכת.
           </AlertDescription>
@@ -166,39 +166,44 @@ const UserManagementPage = () => {
       </div>
 
       {/* Search Section */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
+      <Card className="mb-4 md:mb-6">
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+            <Search className="h-4 w-4 md:h-5 md:w-5" />
             חיפוש משתמש
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-sm">
             הזן כתובת אימייל לחיפוש או יצירת הרשאות חדשות
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex gap-2">
+        <CardContent className="p-4 md:p-6">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Input
               type="email"
               placeholder="example@email.com"
               value={searchEmail}
               onChange={(e) => setSearchEmail(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              className="flex-1"
+              className="flex-1 h-9 md:h-10 text-sm md:text-base"
             />
-            <Button 
-              onClick={handleSearch}
-              disabled={!isEmailValid(searchEmail)}
-            >
-              חיפוש
-            </Button>
-            <Button 
-              variant="outline"
-              onClick={() => setShowBulkGrant(!showBulkGrant)}
-            >
-              <UserPlus className="h-4 w-4 mr-2" />
-              מתן הרשאות מרובות
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleSearch}
+                disabled={!isEmailValid(searchEmail)}
+                className="flex-1 sm:flex-none h-9 md:h-10 text-sm md:text-base"
+              >
+                חיפוש
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => setShowBulkGrant(!showBulkGrant)}
+                className="flex-1 sm:flex-none h-9 md:h-10 text-sm md:text-base"
+              >
+                <UserPlus className="h-4 w-4 ml-2" />
+                <span className="hidden sm:inline">מתן הרשאות מרובות</span>
+                <span className="sm:hidden">מרובות</span>
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -73,10 +73,10 @@ const SettingsPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6 max-w-4xl">
       <div>
-        <h2 className="text-2xl font-bold">הגדרות מערכת</h2>
-        <p className="text-muted-foreground">
+        <h2 className="text-xl md:text-2xl font-bold">הגדרות מערכת</h2>
+        <p className="text-sm md:text-base text-muted-foreground">
           ניהול הגדרות כלליות של האתר ולוח הבקרה
         </p>
       </div>
