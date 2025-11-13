@@ -42,6 +42,12 @@ const AdminShell = () => {
       description: 'צפייה וניהול של כל התלמידים והרשמות'
     },
     {
+      href: '/admin/crm',
+      label: 'CRM',
+      icon: MessageSquare,
+      description: 'תיבת דואר וניהול פניות מתלמידים'
+    },
+    {
       href: '/admin/users',
       label: 'הרשאות גישה',
       icon: Shield,
