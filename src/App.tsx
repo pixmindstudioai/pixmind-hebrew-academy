@@ -20,6 +20,8 @@ import UserManagementPage from "./pages/admin/UserManagementPage";
 import ModerationPage from "./pages/admin/ModerationPage";
 import StudentsPage from "./pages/admin/StudentsPage";
 import StudentProfilePage from "./pages/admin/StudentProfilePage";
+import CRMInboxPage from "./pages/admin/CRMInboxPage";
+import CRMAnalyticsPage from "./pages/admin/CRMAnalyticsPage";
 import SettingsPage from "./pages/admin/SettingsPage";
 import PaymentsPage from "./pages/admin/PaymentsPage";
 import PurchasesPage from "./pages/admin/PurchasesPage";
@@ -59,6 +61,10 @@ const App = () => (
                 <Route path="students" element={<AdminShell />}>
                   <Route index element={<StudentsPage />} />
                   <Route path=":studentId" element={<StudentProfilePage />} />
+                </Route>
+                <Route path="crm" element={<AdminShell />}>
+                  <Route index element={<CRMInboxPage />} />
+                  <Route path="analytics" element={<CRMAnalyticsPage />} />
                 </Route>
                 <Route path="users" element={<AdminShell />}>
                   <Route index element={<UserManagementPage />} />
