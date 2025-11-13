@@ -135,9 +135,12 @@ export const useComments = (filters?: CommentFilters) => {
             .eq('parent_comment_id', comment.id)
             .order('created_at', { ascending: true });
 
+          // Filter out replies where user is null (deleted users)
+          const validReplies = (replies || []).filter(reply => reply.user !== null);
+
           return {
             ...comment,
-            replies: replies || []
+            replies: validReplies
           };
         })
       );

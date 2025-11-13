@@ -58,11 +58,11 @@ const CommentDrawer = ({ comment, isOpen, onClose, onApprove, onHide, onFlag, on
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 text-xs md:text-sm">
               <div>
                 <h4 className="text-sm font-medium mb-1">שם משתמש</h4>
-                <p className="text-muted-foreground">{comment.user.full_name}</p>
+                <p className="text-muted-foreground">{comment.user?.full_name || 'משתמש לא ידוע'}</p>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-1">אימייל</h4>
-                <p className="text-muted-foreground break-all">{comment.user.email}</p>
+                <p className="text-muted-foreground break-all">{comment.user?.email || 'לא זמין'}</p>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-1">שיעור</h4>
@@ -96,14 +96,14 @@ const CommentDrawer = ({ comment, isOpen, onClose, onApprove, onHide, onFlag, on
               <div>
                 <h3 className="font-semibold mb-3 text-sm md:text-base">תגובות ({comment.replies.length})</h3>
                 <div className="space-y-3">
-                  {comment.replies.map((reply: any) => (
+                  {comment.replies.filter(r => r.user).map((reply: any) => (
                     <div key={reply.id} className="bg-muted/50 p-3 rounded-lg space-y-2">
                       <div className="flex items-center gap-2">
                         <Avatar className="w-6 h-6">
-                          <AvatarImage src={reply.user.profile_picture_url} />
-                          <AvatarFallback>{reply.user.full_name[0]}</AvatarFallback>
+                          <AvatarImage src={reply.user?.profile_picture_url} />
+                          <AvatarFallback>{reply.user?.full_name?.[0] || '?'}</AvatarFallback>
                         </Avatar>
-                        <span className="text-xs md:text-sm font-medium">{reply.user.full_name}</span>
+                        <span className="text-xs md:text-sm font-medium">{reply.user?.full_name || 'משתמש לא ידוע'}</span>
                         <span className="text-xs text-muted-foreground">
                           {format(new Date(reply.created_at), 'dd/MM/yyyy HH:mm')}
                         </span>

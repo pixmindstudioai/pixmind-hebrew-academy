@@ -74,8 +74,8 @@ const ModerationTable = ({ comments, onApprove, onHide, onFlag, onDelete, onEdit
                 <TableRow key={comment.id}>
                   <TableCell>
                     <Avatar className="h-8 w-8 md:h-10 md:w-10">
-                      <AvatarImage src={comment.user.profile_picture_url} />
-                      <AvatarFallback>{comment.user.full_name.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={comment.user?.profile_picture_url} />
+                      <AvatarFallback>{comment.user?.full_name?.charAt(0) || '?'}</AvatarFallback>
                     </Avatar>
                   </TableCell>
                   <TableCell className="max-w-[150px] md:max-w-xs">
@@ -88,14 +88,14 @@ const ModerationTable = ({ comments, onApprove, onHide, onFlag, onDelete, onEdit
                         </div>
                       )}
                       <div className="md:hidden text-xs text-muted-foreground">
-                        {comment.user.full_name}
+                        {comment.user?.full_name || 'משתמש לא ידוע'}
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     <div className="text-xs md:text-sm">
-                      <div className="font-medium">{comment.user.full_name}</div>
-                      <div className="text-xs text-muted-foreground truncate max-w-[150px]">{comment.user.email}</div>
+                      <div className="font-medium">{comment.user?.full_name || 'משתמש לא ידוע'}</div>
+                      <div className="text-xs text-muted-foreground truncate max-w-[150px]">{comment.user?.email || 'לא זמין'}</div>
                     </div>
                   </TableCell>
                   <TableCell className="hidden lg:table-cell">
