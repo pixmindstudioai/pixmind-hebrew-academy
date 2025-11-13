@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Settings, BookOpen, MessageCircle, LogOut, Edit, Camera } from 'lucide-react';
+import { User, Settings, BookOpen, MessageCircle, LogOut, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,12 +9,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
-import { useModules, useUserProgress, useUpdateProgress } from '@/hooks/useContentData';
+import { useModules, useUserProgress } from '@/hooks/useContentData';
 import Navigation from '@/components/Navigation';
+import { ProfileImageUpload } from '@/components/ProfileImageUpload';
 
 const Profile = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -42,6 +44,15 @@ const Profile = () => {
         email: session.user.email || ''
       });
 
+      // Fetch user profile from users table
+      const { data: profile } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+      
+      setUserProfile(profile);
+
       // Fetch user comments
       if (session.user) {
         const { data: userComments } = await supabase
@@ -66,8 +77,28 @@ const Profile = () => {
       }
     );
 
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    // Realtime subscription for profile updates
+    const profileChannel = supabase
+      .channel('profile-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'users',
+          filter: `id=eq.${user?.id}`
+        },
+        (payload) => {
+          setUserProfile(payload.new);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+      supabase.removeChannel(profileChannel);
+    };
+  }, [navigate, user?.id]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -81,21 +112,32 @@ const Profile = () => {
     setError('');
 
     try {
-      const { error } = await supabase.auth.updateUser({
+      // Update auth metadata
+      const { error: authError } = await supabase.auth.updateUser({
         data: { full_name: formData.fullName }
       });
 
-      if (error) {
-        setError('שגיאה בעדכון הפרופיל');
-      } else {
-        toast.success("פרופיל עודכן בהצלחה! הפרטים שלך נשמרו");
-        setIsEditing(false);
-      }
+      if (authError) throw authError;
+
+      // Update users table
+      const { error: dbError } = await supabase
+        .from('users')
+        .update({ full_name: formData.fullName })
+        .eq('id', user.id);
+
+      if (dbError) throw dbError;
+
+      toast.success("פרופיל עודכן בהצלחה! הפרטים שלך נשמרו");
+      setIsEditing(false);
     } catch (err) {
-      setError('שגיאה לא צפויה. אנא נסה שוב');
+      setError('שגיאה בעדכון הפרופיל');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleImageUpdate = (url: string | null) => {
+    setUserProfile((prev: any) => ({ ...prev, profile_picture_url: url }));
   };
 
   const handleLogout = async () => {
@@ -154,20 +196,17 @@ const Profile = () => {
             </Button>
           </div>
 
-          <div className="flex items-center space-x-6 space-x-reverse">
-            <div className="relative">
-              <Avatar className="w-20 h-20">
-                <AvatarImage src="" />
-                <AvatarFallback className="text-xl">
-                  {getInitials(formData.fullName || 'משתמש')}
-                </AvatarFallback>
-              </Avatar>
-              <button className="absolute -bottom-1 -left-1 bg-primary text-primary-foreground rounded-full p-1.5 hover:bg-primary/90 transition-colors">
-                <Camera className="w-3 h-3" />
-              </button>
-            </div>
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+            {user && (
+              <ProfileImageUpload
+                userId={user.id}
+                currentImageUrl={userProfile?.profile_picture_url}
+                userName={formData.fullName || formData.email}
+                onImageUpdate={handleImageUpdate}
+              />
+            )}
 
-            <div className="flex-1">
+            <div className="flex-1 w-full">
               {isEditing ? (
                 <form onSubmit={handleUpdateProfile} className="space-y-4">
                   {error && (
