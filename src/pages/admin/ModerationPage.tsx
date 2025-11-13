@@ -80,9 +80,19 @@ const mockComments: ModerationComment[] = [
 ];
 
 const ModerationPage = () => {
-  const [comments, setComments] = useState<ModerationComment[]>(mockComments);
-  const [selectedComment, setSelectedComment] = useState<ModerationComment | null>(null);
+  const [selectedComment, setSelectedComment] = useState<CommentWithDetails | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [filters, setFilters] = useState<CommentFilters>({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateFrom, setDateFrom] = useState<Date>();
+  const [dateTo, setDateTo] = useState<Date>();
+
+  const { data: modules } = useModules('all');
+  const { data: lessons } = useLessons(filters.moduleId);
+  const { data: comments, isLoading, refetch } = useComments({ ...filters, searchTerm });
+  const updateStatus = useUpdateCommentStatus();
+  const deleteComment = useDeleteComment();
+  const updateComment = useUpdateComment();
   const { toast } = useToast();
 
   const addModerationAction = (commentId: string, action: ModerationAction['action'], reason?: string) => {
