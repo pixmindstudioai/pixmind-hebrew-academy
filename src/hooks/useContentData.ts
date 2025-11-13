@@ -17,6 +17,11 @@ export interface Module {
   is_hidden: boolean;
   payment_url?: string;
   is_verified: boolean;
+  regular_price?: number | null;
+  sale_price?: number | null;
+  sale_active?: boolean;
+  sale_start_date?: string | null;
+  sale_end_date?: string | null;
   created_at: string;
   updated_at: string;
   published_at?: string;

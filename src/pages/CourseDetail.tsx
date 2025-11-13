@@ -10,6 +10,8 @@ import { useModules, useChapters, useLessons, useUserProgress, useUpdateProgress
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import AccessGuard from "@/components/AccessGuard";
+import { SaleBadge } from "@/components/SaleBadge";
+import { PriceDisplay } from "@/components/PriceDisplay";
 
 // Wrapper component to fetch lessons for each chapter
 const ChapterLessonsWrapper = ({ 
@@ -141,10 +143,14 @@ const CourseDetail = () => {
                     <Star className="w-5 h-5 text-yellow-400" />
                     <span>4.8 (156 ביקורות)</span>
                   </div>
-                  {module.is_paid && (
-                    <Badge variant="default">בתשלום</Badge>
-                  )}
                 </div>
+
+                {module.is_paid && (
+                  <div className="mb-6 space-y-2">
+                    <SaleBadge module={module} size="lg" />
+                    <PriceDisplay module={module} size="lg" />
+                  </div>
+                )}
 
                 {progressPercentage > 0 && (
                   <div className="mb-8">

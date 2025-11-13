@@ -31,6 +31,11 @@ const moduleSchema = z.object({
   is_hidden: z.boolean().default(false),
   payment_url: z.string().url('יש להזין כתובת URL תקינה').optional().or(z.literal('')),
   thumbnail_url: z.string().url('יש להזין כתובת URL תקינה לתמונה').optional().or(z.literal('')),
+  regular_price: z.number().min(0, 'המחיר חייב להיות 0 או יותר').optional().nullable(),
+  sale_price: z.number().min(0, 'מחיר המבצע חייב להיות 0 או יותר').optional().nullable(),
+  sale_active: z.boolean().default(false),
+  sale_start_date: z.string().optional().nullable(),
+  sale_end_date: z.string().optional().nullable(),
 }).refine((data) => {
   // If is_paid is true, payment_url must be provided and not empty
   if (data.is_paid && (!data.payment_url || data.payment_url.trim() === '')) {
@@ -40,6 +45,15 @@ const moduleSchema = z.object({
 }, {
   message: 'עבור מודול בתשלום חובה להזין קישור לעמוד תשלום',
   path: ['payment_url'],
+}).refine((data) => {
+  // If sale_active is true and prices exist, sale_price must be less than regular_price
+  if (data.sale_active && data.regular_price && data.sale_price) {
+    return data.sale_price < data.regular_price;
+  }
+  return true;
+}, {
+  message: 'מחיר המבצע חייב להיות נמוך ממחיר רגיל',
+  path: ['sale_price'],
 });
 
 type ModuleFormData = z.infer<typeof moduleSchema>;
@@ -54,6 +68,11 @@ interface Module {
   is_hidden: boolean;
   payment_url?: string;
   thumbnail_url?: string;
+  regular_price?: number | null;
+  sale_price?: number | null;
+  sale_active?: boolean;
+  sale_start_date?: string | null;
+  sale_end_date?: string | null;
   created_at: string;
   updated_at: string;
   published_at?: string;
@@ -79,6 +98,11 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading, showActions = true 
       is_hidden: module?.is_hidden || false,
       payment_url: module?.payment_url || '',
       thumbnail_url: module?.thumbnail_url || '',
+      regular_price: module?.regular_price || null,
+      sale_price: module?.sale_price || null,
+      sale_active: module?.sale_active || false,
+      sale_start_date: module?.sale_start_date || null,
+      sale_end_date: module?.sale_end_date || null,
     },
   });
 
@@ -219,26 +243,176 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading, showActions = true 
           />
 
           {form.watch('is_paid') && (
-            <FormField
-              control={form.control}
-              name="payment_url"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>קישור לעמוד תשלום *</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="https://checkout.mysite.com/module123" 
-                      {...field} 
-                      disabled={isLoading}
+            <>
+              <FormField
+                control={form.control}
+                name="payment_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>קישור לעמוד תשלום *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="https://checkout.mysite.com/module123" 
+                        {...field} 
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      הקישור שאליו יועברו המשתמשים כדי לרכוש את המודול
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
+                <h3 className="text-lg font-semibold">מחירון ומבצעים</h3>
+                
+                <FormField
+                  control={form.control}
+                  name="regular_price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>מחיר רגיל (₪)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="299.00"
+                          {...field}
+                          value={field.value || ''}
+                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
+                          disabled={isLoading}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        המחיר הרגיל של הקורס בשקלים
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch('regular_price') && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="sale_active"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-background">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">הפעל מבצע</FormLabel>
+                            <FormDescription>
+                              {field.value ? '🔥 מבצע פעיל - מחיר מבצע יוצג למשתמשים' : 'מבצע מושבת'}
+                            </FormDescription>
+                          </div>
+                          <Select 
+                            onValueChange={(value) => field.onChange(value === 'active')} 
+                            value={field.value ? 'active' : 'inactive'}
+                            disabled={isLoading}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="inactive">לא פעיל</SelectItem>
+                              <SelectItem value="active">פעיל</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
                     />
-                  </FormControl>
-                  <FormDescription>
-                    הקישור שאליו יועברו המשתמשים כדי לרכוש את המודול
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+
+                    {form.watch('sale_active') && (
+                      <>
+                        <FormField
+                          control={form.control}
+                          name="sale_price"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>מחיר מבצע (₪) *</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  placeholder="199.00"
+                                  {...field}
+                                  value={field.value || ''}
+                                  onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
+                                  disabled={isLoading}
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                {field.value && form.watch('regular_price') && (
+                                  <span className="text-primary font-bold">
+                                    חיסכון: ₪{(form.watch('regular_price')! - field.value).toFixed(2)} 
+                                    ({Math.round(((form.watch('regular_price')! - field.value) / form.watch('regular_price')!) * 100)}% הנחה)
+                                  </span>
+                                )}
+                                {(!field.value || !form.watch('regular_price')) && 'המחיר שיוצג במהלך המבצע'}
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="sale_start_date"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>תאריך התחלה (אופציונלי)</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    type="datetime-local"
+                                    {...field}
+                                    value={field.value ? new Date(field.value).toISOString().slice(0, 16) : ''}
+                                    onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value).toISOString() : null)}
+                                    disabled={isLoading}
+                                  />
+                                </FormControl>
+                                <FormDescription>
+                                  המבצע יתחיל בתאריך זה
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="sale_end_date"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>תאריך סיום (אופציונלי)</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    type="datetime-local"
+                                    {...field}
+                                    value={field.value ? new Date(field.value).toISOString().slice(0, 16) : ''}
+                                    onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value).toISOString() : null)}
+                                    disabled={isLoading}
+                                  />
+                                </FormControl>
+                                <FormDescription>
+                                  המבצע יסתיים בתאריך זה
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
+            </>
           )}
 
           <FormField
