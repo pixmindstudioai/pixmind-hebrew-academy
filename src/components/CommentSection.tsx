@@ -16,9 +16,7 @@ interface CommentData {
   created_at: string;
   upvotes: number;
   parent_comment_id: string | null;
-  user_id: string;
   users: {
-    id: string;
     full_name: string;
   };
 }
