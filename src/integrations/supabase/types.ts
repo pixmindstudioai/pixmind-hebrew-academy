@@ -196,6 +196,85 @@ export type Database = {
           },
         ]
       }
+      crm_messages: {
+        Row: {
+          admin_notes: string | null
+          assigned_to: string | null
+          closed_at: string | null
+          created_at: string
+          id: string
+          message_text: string
+          message_type: Database["public"]["Enums"]["message_type"]
+          related_lesson_id: string | null
+          related_module_id: string | null
+          status: Database["public"]["Enums"]["message_status"]
+          tags: string[] | null
+          updated_at: string
+          user_email: string
+          user_id: string | null
+          user_name: string | null
+          viewed_at: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          assigned_to?: string | null
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          message_text: string
+          message_type?: Database["public"]["Enums"]["message_type"]
+          related_lesson_id?: string | null
+          related_module_id?: string | null
+          status?: Database["public"]["Enums"]["message_status"]
+          tags?: string[] | null
+          updated_at?: string
+          user_email: string
+          user_id?: string | null
+          user_name?: string | null
+          viewed_at?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          assigned_to?: string | null
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          message_text?: string
+          message_type?: Database["public"]["Enums"]["message_type"]
+          related_lesson_id?: string | null
+          related_module_id?: string | null
+          status?: Database["public"]["Enums"]["message_status"]
+          tags?: string[] | null
+          updated_at?: string
+          user_email?: string
+          user_id?: string | null
+          user_name?: string | null
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_messages_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_messages_related_lesson_id_fkey"
+            columns: ["related_lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_messages_related_module_id_fkey"
+            columns: ["related_module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_attachments: {
         Row: {
           id: string
@@ -483,6 +562,11 @@ export type Database = {
           order_index: number
           payment_url: string | null
           published_at: string | null
+          regular_price: number | null
+          sale_active: boolean | null
+          sale_end_date: string | null
+          sale_price: number | null
+          sale_start_date: string | null
           status: Database["public"]["Enums"]["content_status"]
           thumbnail_url: string | null
           title: string
@@ -500,6 +584,11 @@ export type Database = {
           order_index?: number
           payment_url?: string | null
           published_at?: string | null
+          regular_price?: number | null
+          sale_active?: boolean | null
+          sale_end_date?: string | null
+          sale_price?: number | null
+          sale_start_date?: string | null
           status?: Database["public"]["Enums"]["content_status"]
           thumbnail_url?: string | null
           title: string
@@ -517,6 +606,11 @@ export type Database = {
           order_index?: number
           payment_url?: string | null
           published_at?: string | null
+          regular_price?: number | null
+          sale_active?: boolean | null
+          sale_end_date?: string | null
+          sale_price?: number | null
+          sale_start_date?: string | null
           status?: Database["public"]["Enums"]["content_status"]
           thumbnail_url?: string | null
           title?: string
@@ -628,6 +722,38 @@ export type Database = {
           },
         ]
       }
+      user_activity_log: {
+        Row: {
+          action_details: Json | null
+          action_type: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          action_details?: Json | null
+          action_type: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          action_details?: Json | null
+          action_type?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_activity_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_module_access: {
         Row: {
           expires_at: string | null
@@ -720,35 +846,44 @@ export type Database = {
       users: {
         Row: {
           created_at: string
+          device_count: number | null
           email: string
           full_name: string
           id: string
+          last_login_at: string | null
           password_hash: string | null
           preferences: Json | null
           profile_picture_url: string | null
           role: Database["public"]["Enums"]["user_role"]
+          status: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
+          device_count?: number | null
           email: string
           full_name: string
           id?: string
+          last_login_at?: string | null
           password_hash?: string | null
           preferences?: Json | null
           profile_picture_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          status?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
+          device_count?: number | null
           email?: string
           full_name?: string
           id?: string
+          last_login_at?: string | null
           password_hash?: string | null
           preferences?: Json | null
           profile_picture_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          status?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -788,11 +923,38 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_message: {
+        Args: { p_assigned_to: string; p_message_id: string }
+        Returns: undefined
+      }
       is_admin: { Args: never; Returns: boolean }
       is_admin_user: { Args: { user_id: string }; Returns: boolean }
+      log_user_activity: {
+        Args: {
+          p_action_details?: Json
+          p_action_type: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      reset_user_module_progress: {
+        Args: { p_module_id: string; p_user_id: string }
+        Returns: undefined
+      }
       set_current_user_admin: {
         Args: { secret_code: string }
         Returns: boolean
+      }
+      update_message_status: {
+        Args: {
+          p_message_id: string
+          p_status: Database["public"]["Enums"]["message_status"]
+        }
+        Returns: undefined
+      }
+      update_user_status: {
+        Args: { p_status: string; p_user_id: string }
+        Returns: undefined
       }
       upsert_user_access: {
         Args: {
@@ -816,6 +978,8 @@ export type Database = {
       comment_status: "pending" | "approved" | "hidden" | "flagged"
       content_status: "draft" | "active" | "archived"
       embed_type: "link" | "iframe"
+      message_status: "new" | "viewed" | "closed"
+      message_type: "support" | "question" | "feedback" | "purchase" | "general"
       moderation_action: "approve" | "hide" | "flag" | "restore"
       moderation_action_type: "approve" | "hide" | "flag" | "restore"
       user_role: "student" | "admin" | "moderator"
@@ -951,6 +1115,8 @@ export const Constants = {
       comment_status: ["pending", "approved", "hidden", "flagged"],
       content_status: ["draft", "active", "archived"],
       embed_type: ["link", "iframe"],
+      message_status: ["new", "viewed", "closed"],
+      message_type: ["support", "question", "feedback", "purchase", "general"],
       moderation_action: ["approve", "hide", "flag", "restore"],
       moderation_action_type: ["approve", "hide", "flag", "restore"],
       user_role: ["student", "admin", "moderator"],
