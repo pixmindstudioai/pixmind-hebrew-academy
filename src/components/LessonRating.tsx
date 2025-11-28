@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { useLessonRatings, useCreateOrUpdateRating } from "@/hooks/useContentData";
+import { useLessonRatingStats, useUserLessonRating, useCreateOrUpdateRating } from "@/hooks/useContentData";
 import { toast } from "sonner";
 
 interface LessonRatingProps {
@@ -14,33 +14,24 @@ interface LessonRatingProps {
 }
 
 const LessonRating = ({ lessonId, className }: LessonRatingProps) => {
-  const { user, isAuthenticated } = useAuth();
-  const { data: ratingsData, isLoading } = useLessonRatings(lessonId);
+  const { isAuthenticated } = useAuth();
+  const { data: ratingStats, isLoading: statsLoading } = useLessonRatingStats(lessonId);
+  const { data: userRatingValue, isLoading: userRatingLoading } = useUserLessonRating(lessonId);
   const createOrUpdateRating = useCreateOrUpdateRating();
   
   const [userRating, setUserRating] = useState<number>(0);
   const [hoveredStar, setHoveredStar] = useState<number>(0);
-  const [averageRating, setAverageRating] = useState<number>(0);
-  const [totalRatings, setTotalRatings] = useState<number>(0);
 
-  // Calculate statistics from ratings data
+  // Update user rating when data loads
   useEffect(() => {
-    if (ratingsData) {
-      const total = ratingsData.length;
-      const average = total > 0 
-        ? ratingsData.reduce((sum, rating) => sum + rating.rating, 0) / total 
-        : 0;
-      
-      setAverageRating(average);
-      setTotalRatings(total);
-      
-      // Find user's existing rating
-      if (user) {
-        const existingRating = ratingsData.find(rating => rating.user_id === user.id);
-        setUserRating(existingRating?.rating || 0);
-      }
+    if (userRatingValue !== undefined) {
+      setUserRating(userRatingValue);
     }
-  }, [ratingsData, user]);
+  }, [userRatingValue]);
+
+  const isLoading = statsLoading || userRatingLoading;
+  const averageRating = ratingStats?.average_rating || 0;
+  const totalRatings = ratingStats?.total_ratings || 0;
 
   const handleRatingClick = (rating: number) => {
     if (!isAuthenticated) {
