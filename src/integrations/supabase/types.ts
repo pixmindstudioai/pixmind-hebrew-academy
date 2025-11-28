@@ -47,6 +47,13 @@ export type Database = {
             foreignKeyName: "admin_audit_log_admin_id_fkey"
             columns: ["admin_id"]
             isOneToOne: false
+            referencedRelation: "user_profiles_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_audit_log_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -130,6 +137,13 @@ export type Database = {
             foreignKeyName: "comment_reports_reported_by_fkey"
             columns: ["reported_by"]
             isOneToOne: false
+            referencedRelation: "user_profiles_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comment_reports_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -185,6 +199,13 @@ export type Database = {
             columns: ["parent_comment_id"]
             isOneToOne: false
             referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_safe"
             referencedColumns: ["id"]
           },
           {
@@ -252,6 +273,13 @@ export type Database = {
           viewed_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "crm_messages_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_safe"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "crm_messages_assigned_to_fkey"
             columns: ["assigned_to"]
@@ -544,6 +572,13 @@ export type Database = {
             foreignKeyName: "moderation_actions_moderator_id_fkey"
             columns: ["moderator_id"]
             isOneToOne: false
+            referencedRelation: "user_profiles_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moderation_actions_moderator_id_fkey"
+            columns: ["moderator_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -749,6 +784,13 @@ export type Database = {
             foreignKeyName: "user_activity_log_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "user_profiles_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_activity_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -838,6 +880,13 @@ export type Database = {
             foreignKeyName: "user_progress_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "user_profiles_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -875,7 +924,6 @@ export type Database = {
           full_name: string
           id: string
           last_login_at: string | null
-          password_hash: string | null
           preferences: Json | null
           profile_picture_url: string | null
           role: Database["public"]["Enums"]["user_role"]
@@ -889,7 +937,6 @@ export type Database = {
           full_name: string
           id?: string
           last_login_at?: string | null
-          password_hash?: string | null
           preferences?: Json | null
           profile_picture_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
@@ -903,7 +950,6 @@ export type Database = {
           full_name?: string
           id?: string
           last_login_at?: string | null
-          password_hash?: string | null
           preferences?: Json | null
           profile_picture_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
@@ -944,7 +990,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      user_profiles_safe: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string | null
+          last_login_at: string | null
+          profile_picture_url: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string | null
+          last_login_at?: string | null
+          profile_picture_url?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string | null
+          last_login_at?: string | null
+          profile_picture_url?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       assign_message: {
