@@ -127,6 +127,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "comment_reports_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "lesson_comments_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "comment_reports_reported_by_fkey"
             columns: ["reported_by"]
             isOneToOne: false
@@ -185,6 +192,13 @@ export type Database = {
             columns: ["parent_comment_id"]
             isOneToOne: false
             referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "lesson_comments_public"
             referencedColumns: ["id"]
           },
           {
@@ -538,6 +552,13 @@ export type Database = {
             columns: ["comment_id"]
             isOneToOne: false
             referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moderation_actions_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "lesson_comments_public"
             referencedColumns: ["id"]
           },
           {
@@ -941,6 +962,40 @@ export type Database = {
       }
     }
     Views: {
+      lesson_comments_public: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          id: string | null
+          lesson_id: string | null
+          parent_comment_id: string | null
+          upvotes: number | null
+          user_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "lesson_comments_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_rating_stats: {
         Row: {
           average_rating: number | null

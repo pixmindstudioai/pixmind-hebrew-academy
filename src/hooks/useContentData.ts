@@ -396,7 +396,7 @@ export const useLessonEmbeds = (lessonId: string) => {
   });
 };
 
-// Hook for fetching lesson comments with user info
+// Hook for fetching lesson comments (secure - no user_id exposure)
 export const useLessonComments = (lessonId: string) => {
   const queryClient = useQueryClient();
 
@@ -404,25 +404,20 @@ export const useLessonComments = (lessonId: string) => {
     queryKey: ['lesson-comments', lessonId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('comments')
-        .select(`
-          id,
-          content,
-          created_at,
-          upvotes,
-          parent_comment_id,
-          user_id,
-          users!inner (
-            id,
-            full_name
-          )
-        `)
+        .from('lesson_comments_public')
+        .select('*')
         .eq('lesson_id', lessonId)
-        .eq('status', 'approved')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      
+      // Transform data to match expected interface
+      return (data || []).map(comment => ({
+        ...comment,
+        users: {
+          full_name: comment.user_name
+        }
+      }));
     },
     enabled: !!lessonId,
   });
