@@ -941,7 +941,27 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      lesson_rating_stats: {
+        Row: {
+          average_rating: number | null
+          five_star_count: number | null
+          four_star_count: number | null
+          lesson_id: string | null
+          one_star_count: number | null
+          three_star_count: number | null
+          total_ratings: number | null
+          two_star_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_ratings_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       assign_message: {
