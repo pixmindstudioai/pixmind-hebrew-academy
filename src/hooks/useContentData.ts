@@ -494,50 +494,44 @@ export const useCreateComment = () => {
   });
 };
 
-// Hook for fetching lesson ratings
-export const useLessonRatings = (lessonId: string) => {
-  const queryClient = useQueryClient();
-
-  const query = useQuery({
-    queryKey: ['lesson-ratings', lessonId],
+// Hook for fetching lesson rating statistics (aggregated, no user IDs exposed)
+export const useLessonRatingStats = (lessonId: string) => {
+  return useQuery({
+    queryKey: ['lesson-rating-stats', lessonId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('lesson_ratings')
+        .from('lesson_rating_stats')
         .select('*')
-        .eq('lesson_id', lessonId);
+        .eq('lesson_id', lessonId)
+        .single();
 
-      if (error) throw error;
-      return data || [];
+      if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows
+      return data || null;
     },
     enabled: !!lessonId,
   });
+};
 
-  // Real-time subscription disabled in mock environment
-  // useEffect(() => {
-  //   if (!lessonId) return;
+// Hook for fetching current user's rating for a lesson (secure - only their own)
+export const useUserLessonRating = (lessonId: string) => {
+  return useQuery({
+    queryKey: ['user-lesson-rating', lessonId],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
 
-  //   const channel = supabase
-  //     .channel(`ratings-${lessonId}`)
-  //     .on(
-  //       'postgres_changes',
-  //       {
-  //         event: '*',
-  //         schema: 'public',
-  //         table: 'lesson_ratings',
-  //         filter: `lesson_id=eq.${lessonId}`
-  //       },
-  //       () => {
-  //         queryClient.invalidateQueries({ queryKey: ['lesson-ratings', lessonId] });
-  //       }
-  //     )
-  //     .subscribe();
+      const { data, error } = await supabase
+        .from('lesson_ratings')
+        .select('rating')
+        .eq('lesson_id', lessonId)
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-  //   return () => {
-  //     supabase.removeChannel(channel);
-  //   };
-  // }, [lessonId, queryClient]);
-
-  return query;
+      if (error) throw error;
+      return data?.rating || 0;
+    },
+    enabled: !!lessonId,
+  });
 };
 
 // Hook for creating or updating a lesson rating
@@ -567,7 +561,9 @@ export const useCreateOrUpdateRating = () => {
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['lesson-ratings', data.lesson_id] });
+      // Invalidate both the aggregated stats and user rating
+      queryClient.invalidateQueries({ queryKey: ['lesson-rating-stats', data.lesson_id] });
+      queryClient.invalidateQueries({ queryKey: ['user-lesson-rating', data.lesson_id] });
     },
     onError: (error) => {
       console.error('Error saving rating:', error);
