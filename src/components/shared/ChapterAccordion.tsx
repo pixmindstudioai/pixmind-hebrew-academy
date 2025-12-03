@@ -59,7 +59,7 @@ const ChapterAccordion = ({
     return <Badge variant={config.variant} className="text-xs">{config.label}</Badge>;
   };
 
-  const getVisibilityBadge = (visibilityMode?: string, cohort?: Cohort | null) => {
+  const getVisibilityBadge = (visibilityMode?: string, cohort?: Cohort | null, cohortId?: string | null) => {
     if (!visibilityMode || visibilityMode === 'all') {
       return (
         <Badge variant="outline" className="text-xs gap-1 bg-green-500/10 text-green-600 border-green-500/30">
@@ -70,7 +70,7 @@ const ChapterAccordion = ({
     }
     
     if (visibilityMode === 'cohort') {
-      if (cohort) {
+      if (cohort?.name) {
         return (
           <Badge variant="outline" className="text-xs gap-1 bg-blue-500/10 text-blue-600 border-blue-500/30">
             <Eye className="w-3 h-3" />
@@ -78,6 +78,17 @@ const ChapterAccordion = ({
           </Badge>
         );
       }
+      // cohort_id is set but cohort wasn't found (might have been deleted)
+      if (cohortId) {
+        console.warn(`Cohort with ID ${cohortId} not found`);
+        return (
+          <Badge variant="outline" className="text-xs gap-1 bg-orange-500/10 text-orange-600 border-orange-500/30">
+            <Eye className="w-3 h-3" />
+            רק למחזור (לא נמצא)
+          </Badge>
+        );
+      }
+      // cohort_id is null - misconfigured
       return (
         <Badge variant="outline" className="text-xs gap-1 bg-orange-500/10 text-orange-600 border-orange-500/30">
           <Eye className="w-3 h-3" />
@@ -110,7 +121,7 @@ const ChapterAccordion = ({
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <h3 className="font-semibold text-lg">{chapter.title}</h3>
                   {isAdminView && getStatusBadge(chapter.status)}
-                  {isAdminView && getVisibilityBadge(chapter.visibility_mode, chapter.cohort)}
+                  {isAdminView && getVisibilityBadge(chapter.visibility_mode, chapter.cohort, chapter.cohort_id)}
                 </div>
                 
                 {chapter.description && (
@@ -210,7 +221,7 @@ const ChapterAccordion = ({
                               {index + 1}. {lesson.title}
                             </h4>
                             {isAdminView && getStatusBadge(lesson.status)}
-                            {isAdminView && getVisibilityBadge(lesson.visibility_mode, lesson.cohort)}
+                            {isAdminView && getVisibilityBadge(lesson.visibility_mode, lesson.cohort, lesson.cohort_id)}
                           </div>
                           <p className="text-sm text-muted-foreground line-clamp-2">
                             {lesson.description}
