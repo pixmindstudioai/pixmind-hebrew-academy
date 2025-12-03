@@ -1,5 +1,5 @@
 
-import { ChevronDown, Play, CheckCircle, Edit, Trash2, Plus } from "lucide-react";
+import { ChevronDown, Play, CheckCircle, Edit, Trash2, Plus, Users, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -11,9 +11,14 @@ import { Progress } from "@/components/ui/progress";
 import { Chapter, Lesson } from "@/hooks/useContentData";
 import { useState } from "react";
 
+interface Cohort {
+  id: string;
+  name: string;
+}
+
 interface ChapterAccordionProps {
-  chapter: Chapter;
-  lessons: Lesson[];
+  chapter: Chapter & { cohort?: Cohort | null };
+  lessons: (Lesson & { cohort?: Cohort | null })[];
   completedLessons?: string[];
   isAdminView?: boolean;
   onLessonClick?: (lesson: Lesson) => void;
@@ -54,6 +59,44 @@ const ChapterAccordion = ({
     return <Badge variant={config.variant} className="text-xs">{config.label}</Badge>;
   };
 
+  const getVisibilityBadge = (visibilityMode?: string, cohort?: Cohort | null) => {
+    if (!visibilityMode || visibilityMode === 'all') {
+      return (
+        <Badge variant="outline" className="text-xs gap-1 bg-green-500/10 text-green-600 border-green-500/30">
+          <Users className="w-3 h-3" />
+          לכל התלמידים במודול
+        </Badge>
+      );
+    }
+    
+    if (visibilityMode === 'cohort') {
+      if (cohort) {
+        return (
+          <Badge variant="outline" className="text-xs gap-1 bg-blue-500/10 text-blue-600 border-blue-500/30">
+            <Eye className="w-3 h-3" />
+            רק למחזור: {cohort.name}
+          </Badge>
+        );
+      }
+      return (
+        <Badge variant="outline" className="text-xs gap-1 bg-orange-500/10 text-orange-600 border-orange-500/30">
+          <Eye className="w-3 h-3" />
+          רק למחזור (לא הוגדר)
+        </Badge>
+      );
+    }
+    
+    if (visibilityMode === 'inherit') {
+      return (
+        <Badge variant="outline" className="text-xs gap-1 bg-muted text-muted-foreground">
+          לפי הגדרת הפרק
+        </Badge>
+      );
+    }
+    
+    return null;
+  };
+
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div className="border rounded-lg glass-card overflow-hidden">
@@ -64,9 +107,10 @@ const ChapterAccordion = ({
                 className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
               />
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <h3 className="font-semibold text-lg">{chapter.title}</h3>
                   {isAdminView && getStatusBadge(chapter.status)}
+                  {isAdminView && getVisibilityBadge(chapter.visibility_mode, chapter.cohort)}
                 </div>
                 
                 {chapter.description && (
@@ -161,11 +205,12 @@ const ChapterAccordion = ({
                         </div>
                         
                         <div className="flex-1">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <h4 className="font-medium group-hover:text-primary transition-colors">
                               {index + 1}. {lesson.title}
                             </h4>
                             {isAdminView && getStatusBadge(lesson.status)}
+                            {isAdminView && getVisibilityBadge(lesson.visibility_mode, lesson.cohort)}
                           </div>
                           <p className="text-sm text-muted-foreground line-clamp-2">
                             {lesson.description}

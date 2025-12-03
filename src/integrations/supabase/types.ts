@@ -54,6 +54,7 @@ export type Database = {
       }
       chapters: {
         Row: {
+          cohort_id: string | null
           created_at: string
           description: string | null
           id: string
@@ -63,8 +64,10 @@ export type Database = {
           status: Database["public"]["Enums"]["content_status"]
           title: string
           updated_at: string
+          visibility_mode: string
         }
         Insert: {
+          cohort_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -74,8 +77,10 @@ export type Database = {
           status?: Database["public"]["Enums"]["content_status"]
           title: string
           updated_at?: string
+          visibility_mode?: string
         }
         Update: {
+          cohort_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -85,8 +90,16 @@ export type Database = {
           status?: Database["public"]["Enums"]["content_status"]
           title?: string
           updated_at?: string
+          visibility_mode?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "chapters_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "chapters_module_id_fkey"
             columns: ["module_id"]
@@ -531,6 +544,7 @@ export type Database = {
         Row: {
           attachments: Json | null
           chapter_id: string
+          cohort_id: string | null
           created_at: string
           description: string
           duration_sec: number | null
@@ -549,10 +563,12 @@ export type Database = {
           video_start_time: number | null
           video_thumbnail: string | null
           video_url: string | null
+          visibility_mode: string
         }
         Insert: {
           attachments?: Json | null
           chapter_id: string
+          cohort_id?: string | null
           created_at?: string
           description: string
           duration_sec?: number | null
@@ -571,10 +587,12 @@ export type Database = {
           video_start_time?: number | null
           video_thumbnail?: string | null
           video_url?: string | null
+          visibility_mode?: string
         }
         Update: {
           attachments?: Json | null
           chapter_id?: string
+          cohort_id?: string | null
           created_at?: string
           description?: string
           duration_sec?: number | null
@@ -593,6 +611,7 @@ export type Database = {
           video_start_time?: number | null
           video_thumbnail?: string | null
           video_url?: string | null
+          visibility_mode?: string
         }
         Relationships: [
           {
@@ -600,6 +619,13 @@ export type Database = {
             columns: ["chapter_id"]
             isOneToOne: false
             referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lessons_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
             referencedColumns: ["id"]
           },
         ]

@@ -56,6 +56,8 @@ const transformToAdminChapter = (chapter: Chapter): AdminChapter => ({
   createdAt: new Date(chapter.created_at),
   updatedAt: new Date(chapter.updated_at),
   publishedAt: chapter.published_at ? new Date(chapter.published_at) : undefined,
+  visibility_mode: chapter.visibility_mode,
+  cohort_id: chapter.cohort_id,
 });
 
 const transformToAdminLesson = (lesson: Lesson): AdminLesson => ({
@@ -92,6 +94,8 @@ const transformToAdminLesson = (lesson: Lesson): AdminLesson => ({
   createdAt: new Date(lesson.created_at),
   updatedAt: new Date(lesson.updated_at),
   publishedAt: lesson.published_at ? new Date(lesson.published_at) : undefined,
+  visibility_mode: lesson.visibility_mode,
+  cohort_id: lesson.cohort_id,
 });
 
 const ContentPage = () => {
@@ -166,7 +170,12 @@ const ContentPage = () => {
 
   // Chapter handlers
   const handleCreateChapter = (data: any) => {
-    createChapter.mutate({ ...data, module_id: selectedModule }, {
+    createChapter.mutate({ 
+      ...data, 
+      module_id: selectedModule,
+      visibility_mode: data.visibility_mode || 'all',
+      cohort_id: data.cohort_id || null,
+    }, {
       onSuccess: () => {
         setChapterDialogOpen(false);
         setEditingChapter(null);
@@ -176,7 +185,12 @@ const ContentPage = () => {
 
   const handleUpdateChapter = (data: any) => {
     if (editingChapter) {
-      updateChapter.mutate({ id: editingChapter.id, ...data }, {
+      updateChapter.mutate({ 
+        id: editingChapter.id, 
+        ...data,
+        visibility_mode: data.visibility_mode || 'all',
+        cohort_id: data.cohort_id || null,
+      }, {
         onSuccess: () => {
           setChapterDialogOpen(false);
           setEditingChapter(null);
@@ -205,10 +219,12 @@ const ContentPage = () => {
     console.log('Raw lesson form data:', data);
     
     // Transform form data to match database schema
-    const { video, embeds, attachments, order, ...restData } = data;
+    const { video, embeds, attachments, order, visibility_mode, cohort_id, ...restData } = data;
     
     const lessonData: any = {
       ...restData,
+      visibility_mode: visibility_mode || 'inherit',
+      cohort_id: cohort_id || null,
       // Don't send order_index - let the backend calculate it automatically
     };
     
@@ -248,7 +264,7 @@ const ContentPage = () => {
   const handleUpdateLesson = (data: any) => {
     if (!editingLesson) return;
     
-    const { video, embeds, attachments, links, ...formData } = data;
+    const { video, embeds, attachments, links, visibility_mode, cohort_id, ...formData } = data;
     
     // Validate required fields
     if (!formData.title?.trim()) {
@@ -277,6 +293,8 @@ const ContentPage = () => {
       duration_sec: formData.duration_sec,
       rich_text: formData.rich_text,
       thumbnail_url: formData.thumbnail_url,
+      visibility_mode: visibility_mode || 'inherit',
+      cohort_id: cohort_id || null,
     };
     
     // Handle video data

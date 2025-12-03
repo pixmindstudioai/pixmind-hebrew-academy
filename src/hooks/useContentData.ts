@@ -35,6 +35,8 @@ export interface Chapter {
   description?: string;
   order_index: number;
   status: 'draft' | 'active' | 'archived';
+  visibility_mode?: string;
+  cohort_id?: string | null;
   created_at: string;
   updated_at: string;
   published_at?: string;
@@ -47,6 +49,8 @@ export interface Lesson {
   description: string;
   order_index: number;
   status: 'draft' | 'active' | 'archived';
+  visibility_mode?: string;
+  cohort_id?: string | null;
   video_provider?: 'youtube' | 'vimeo' | 'file';
   video_url?: string;
   video_id?: string;

@@ -21,6 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { useCohorts } from '@/hooks/useCohortsData';
 
 const chapterSchema = z.object({
   title: z.string().min(2, 'כותרת הפרק חייבת להכיל לפחות 2 תווים').max(120, 'כותרת הפרק לא יכולה להכיל יותר מ-120 תווים'),
@@ -28,7 +29,15 @@ const chapterSchema = z.object({
   module_id: z.string().min(1, 'יש לבחור מודול'),
   order_index: z.number().min(0, 'מספר הסדר חייב להיות 0 או יותר'),
   status: z.enum(['draft', 'active', 'archived']).default('draft'),
-});
+  visibility_mode: z.enum(['all', 'cohort']).default('all'),
+  cohort_id: z.string().nullable().optional(),
+}).refine(
+  (data) => data.visibility_mode !== 'cohort' || (data.cohort_id && data.cohort_id.length > 0),
+  {
+    message: 'יש לבחור מחזור לפרק זה',
+    path: ['cohort_id'],
+  }
+);
 
 type ChapterFormData = z.infer<typeof chapterSchema>;
 
@@ -45,6 +54,8 @@ interface Chapter {
   description?: string;
   order_index: number;
   status: 'draft' | 'active' | 'archived';
+  visibility_mode?: string;
+  cohort_id?: string | null;
   created_at: string;
   updated_at: string;
   published_at?: string;
@@ -67,14 +78,27 @@ const ChapterForm = ({ chapter, modules, onSubmit, onCancel, isLoading }: Chapte
       module_id: chapter?.module_id || '',
       order_index: chapter?.order_index || 0,
       status: chapter?.status || 'draft',
+      visibility_mode: (chapter?.visibility_mode as 'all' | 'cohort') || 'all',
+      cohort_id: chapter?.cohort_id || null,
     },
   });
 
+  const selectedModuleId = form.watch('module_id');
+  const visibilityMode = form.watch('visibility_mode');
+
+  // Fetch cohorts for the selected module
+  const { data: cohorts = [] } = useCohorts(selectedModuleId);
+  const activeCohorts = cohorts.filter(c => c.is_active);
+
   const handleSubmit = (data: ChapterFormData) => {
+    // Clear cohort_id if visibility is not cohort-specific
+    if (data.visibility_mode !== 'cohort') {
+      data.cohort_id = null;
+    }
     onSubmit(data);
   };
 
-  const selectedModuleStatus = modules.find(m => m.id === form.watch('module_id'))?.status;
+  const selectedModuleStatus = modules.find(m => m.id === selectedModuleId)?.status;
   const canPublish = selectedModuleStatus === 'active';
 
   return (
@@ -184,6 +208,87 @@ const ChapterForm = ({ chapter, modules, onSubmit, onCancel, isLoading }: Chapte
               </FormItem>
             )}
           />
+
+          {/* Visibility Section */}
+          <div className="border rounded-lg p-4 space-y-4">
+            <h3 className="font-semibold">נגישות הפרק</h3>
+            
+            <FormField
+              control={form.control}
+              name="visibility_mode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>מי יכול לראות את הפרק</FormLabel>
+                  <Select 
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      // Clear cohort_id when switching away from cohort mode
+                      if (value !== 'cohort') {
+                        form.setValue('cohort_id', null);
+                      }
+                    }} 
+                    defaultValue={field.value}
+                    disabled={isLoading}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="all">פתוח לכל מי שיש לו גישה למודול</SelectItem>
+                      <SelectItem value="cohort">זמין רק למחזור מסוים</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    {field.value === 'all' && 'הפרק יהיה גלוי לכל התלמידים שיש להם גישה למודול'}
+                    {field.value === 'cohort' && 'הפרק יהיה גלוי רק לתלמידים במחזור הנבחר'}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {visibilityMode === 'cohort' && (
+              <FormField
+                control={form.control}
+                name="cohort_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>בחר מחזור *</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value || ''} 
+                      disabled={isLoading || !selectedModuleId}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="בחר מחזור..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {activeCohorts.length === 0 ? (
+                          <SelectItem value="" disabled>
+                            אין מחזורים פעילים למודול זה
+                          </SelectItem>
+                        ) : (
+                          activeCohorts.map((cohort) => (
+                            <SelectItem key={cohort.id} value={cohort.id}>
+                              {cohort.name}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      רק תלמידים במחזור זה יוכלו לצפות בפרק
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+          </div>
 
           <FormField
             control={form.control}
