@@ -20,9 +20,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Gift, AlertCircle } from 'lucide-react';
+import { Gift } from 'lucide-react';
 import ThumbnailUploader from './ThumbnailUploader';
 
 const moduleSchema = z.object({
@@ -113,8 +112,7 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading, showActions = true 
     },
   });
 
-  // Check if was_free_before is already set (cannot be disabled)
-  const wasFreeLocked = module?.was_free_before === true;
+  // was_free_before can now be toggled on and off
 
   const handleSubmit = (data: ModuleFormData) => {
     onSubmit(data);
@@ -455,13 +453,14 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading, showActions = true 
             )}
           />
 
-          {/* Was Previously Free Toggle - Only show for paid modules */}
-          {form.watch('is_paid') && (
+          {/* Was Previously Free Toggle - Visible for ALL modules */}
+          <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
+            <h3 className="text-lg font-semibold">היסטוריית תמחור</h3>
             <FormField
               control={form.control}
               name="was_free_before"
               render={({ field }) => (
-                <FormItem className="rounded-lg border p-4 space-y-3">
+                <FormItem className="rounded-lg border p-4 space-y-3 bg-background">
                   <div className="flex flex-row items-center justify-between">
                     <div className="space-y-0.5">
                       <FormLabel className="text-base flex items-center gap-2">
@@ -470,14 +469,14 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading, showActions = true 
                       </FormLabel>
                       <FormDescription>
                         {field.value 
-                          ? '✓ כן – משתמשים ותיקים יקבלו גישה חינמית' 
+                          ? '✓ כן – משתמשים ותיקים עשויים לקבל גישה חינמית' 
                           : 'לא – מעולם לא היה חינמי'}
                       </FormDescription>
                     </div>
                     <Select 
                       onValueChange={(value) => field.onChange(value === 'yes')} 
                       value={field.value ? 'yes' : 'no'}
-                      disabled={isLoading || wasFreeLocked}
+                      disabled={isLoading}
                     >
                       <FormControl>
                         <SelectTrigger className="w-32">
@@ -491,14 +490,13 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading, showActions = true 
                     </Select>
                   </div>
                   
-                  {wasFreeLocked && (
-                    <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
-                      <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                      <AlertDescription className="text-amber-800 dark:text-amber-200 text-sm">
-                        לא ניתן לבטל אפשרות זו לאחר הפעלתה, כדי לא לפגוע בגישה של משתמשים ותיקים.
-                      </AlertDescription>
-                    </Alert>
-                  )}
+                  <p className="text-sm text-muted-foreground">
+                    אם תסמנו אפשרות זו, משתמשים שנרשמו לפלטפורמה לפני שהמודול הפך בתשלום עשויים לקבל גישה חינמית.
+                  </p>
+                  
+                  <p className="text-xs text-muted-foreground/80">
+                    ניתן לכבות אפשרות זו בכל רגע. כיבוי האפשרות יפסיק את הגישה החינמית האוטומטית למשתמשים ותיקים שלא נקלטו ברשימת הגישה למודול.
+                  </p>
                   
                   {field.value && (
                     <Badge variant="secondary" className="bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30">
@@ -509,7 +507,7 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading, showActions = true 
                 </FormItem>
               )}
             />
-          )}
+          </div>
 
           <FormField
             control={form.control}
