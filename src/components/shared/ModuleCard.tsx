@@ -1,5 +1,5 @@
 
-import { Play, Clock, BookOpen, CheckCircle, Edit, Trash2, Eye, DollarSign, Shield, EyeOff } from "lucide-react";
+import { Play, Clock, BookOpen, CheckCircle, Edit, Trash2, Eye, DollarSign, Shield, EyeOff, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { SaleBadge } from "@/components/SaleBadge";
 import { PriceDisplay } from "@/components/PriceDisplay";
+import { useNavigate } from "react-router-dom";
 
 interface ModuleCardProps {
   module: Module;
@@ -44,6 +45,7 @@ const ModuleCard = ({
 }: ModuleCardProps) => {
   const { canAccessModule, hasAccess } = useModuleAccess();
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   
   const progressPercentage = lessonsCount > 0 ? (completedLessons / lessonsCount) * 100 : 0;
   const isCompleted = completedLessons === lessonsCount && lessonsCount > 0;
@@ -181,6 +183,10 @@ const ModuleCard = ({
                       עריכה
                     </DropdownMenuItem>
                   )}
+                  <DropdownMenuItem onClick={() => navigate(`/admin/modules/${module.id}/cohorts`)}>
+                    <Users className="w-4 h-4 ml-2" />
+                    מחזורים
+                  </DropdownMenuItem>
                   {onDelete && (
                     <DropdownMenuItem 
                       onClick={() => onDelete(module)}
