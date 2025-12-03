@@ -16,6 +16,7 @@ import AdminLoginPage from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminShell from "./components/admin/AdminShell";
 import ContentPage from "./pages/admin/ContentPage";
+import CohortsPage from "./pages/admin/CohortsPage";
 import UserManagementPage from "./pages/admin/UserManagementPage";
 import ModerationPage from "./pages/admin/ModerationPage";
 import StudentsPage from "./pages/admin/StudentsPage";
@@ -57,6 +58,9 @@ const App = () => (
                 </Route>
                 <Route path="content" element={<AdminShell />}>
                   <Route index element={<ContentPage />} />
+                </Route>
+                <Route path="modules/:moduleId/cohorts" element={<AdminShell />}>
+                  <Route index element={<CohortsPage />} />
                 </Route>
                 <Route path="students" element={<AdminShell />}>
                   <Route index element={<StudentsPage />} />

@@ -96,6 +96,89 @@ export type Database = {
           },
         ]
       }
+      cohort_students: {
+        Row: {
+          cohort_id: string
+          created_at: string
+          email: string
+          id: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          cohort_id: string
+          created_at?: string
+          email: string
+          id?: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          cohort_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cohort_students_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cohort_students_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cohorts: {
+        Row: {
+          created_at: string
+          description: string | null
+          end_date: string | null
+          id: string
+          is_active: boolean
+          module_id: string
+          name: string
+          start_date: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          module_id: string
+          name: string
+          start_date?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          module_id?: string
+          name?: string
+          start_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cohorts_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comment_reports: {
         Row: {
           comment_id: string
