@@ -6,24 +6,35 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import ChapterAccordion from "@/components/shared/ChapterAccordion";
 import ChapterProgressTracker from "@/components/ChapterProgressTracker";
-import { useModules, useChapters, useLessons, useUserProgress, useUpdateProgress, Chapter } from "@/hooks/useContentData";
+import { useModules, useChapters, useLessons, useUserProgress, useUpdateProgress, Chapter, Lesson } from "@/hooks/useContentData";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import AccessGuard from "@/components/AccessGuard";
 import { SaleBadge } from "@/components/SaleBadge";
 import { PriceDisplay } from "@/components/PriceDisplay";
+import { useUserCohortsForModule, filterVisibleChapters, filterVisibleLessons } from "@/hooks/useUserCohorts";
 
-// Wrapper component to fetch lessons for each chapter
+// Wrapper component to fetch lessons for each chapter with visibility filtering
 const ChapterLessonsWrapper = ({ 
   chapter, 
   userProgress, 
-  onLessonClick 
+  onLessonClick,
+  allowedCohortIds,
 }: {
   chapter: Chapter;
   userProgress: any[];
   onLessonClick: (lesson: any) => void;
+  allowedCohortIds: string[];
 }) => {
   const { data: lessons = [] } = useLessons(chapter.id, 'active');
+  
+  // Filter lessons based on visibility rules
+  const visibleLessons = filterVisibleLessons(lessons, chapter, allowedCohortIds);
+  
+  if (visibleLessons.length === 0 && lessons.length > 0) {
+    // Chapter has lessons but none visible to this user
+    return null;
+  }
   
   return (
     <div className="space-y-4">
@@ -36,7 +47,7 @@ const ChapterLessonsWrapper = ({
       {/* Chapter Accordion */}
       <ChapterAccordion
         chapter={chapter}
-        lessons={lessons}
+        lessons={visibleLessons}
         completedLessons={userProgress.filter(p => p.completed).map(p => p.lesson_id)}
         onLessonClick={onLessonClick}
       />
@@ -52,18 +63,22 @@ const CourseDetail = () => {
   const { data: chapters = [] } = useChapters(moduleId || '', 'active');
   const { data: userProgress = [] } = useUserProgress("current-user-id");
   const updateProgress = useUpdateProgress();
+  
+  // Get user's cohort memberships for this module
+  const { data: userCohorts = [] } = useUserCohortsForModule(moduleId || '');
+  const allowedCohortIds = userCohorts.map(c => c.cohort_id);
 
   const module = modules.find(m => m.id === moduleId);
+  
+  // Filter chapters based on visibility
+  const visibleChapters = filterVisibleChapters(chapters, allowedCohortIds);
 
   const handleLessonClick = (lesson: any) => {
     navigate(`/lesson/${lesson.id}`);
   };
 
   const handleStartCourse = () => {
-    if (chapters.length > 0 && chapters[0]) {
-      // Get first lesson of first chapter
-      const firstChapter = chapters[0];
-      // This would need to fetch lessons for the first chapter
+    if (visibleChapters.length > 0 && visibleChapters[0]) {
       navigate(`/lesson/first-lesson-id`);
     }
   };
@@ -87,8 +102,7 @@ const CourseDetail = () => {
   }
 
   // Calculate progress
-  const totalLessons = chapters.reduce((acc, chapter) => {
-    // This would need to be calculated with actual lesson data
+  const totalLessons = visibleChapters.reduce((acc, chapter) => {
     return acc + 5; // Placeholder
   }, 0);
   
@@ -133,7 +147,7 @@ const CourseDetail = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <BookOpen className="w-5 h-5" />
-                    <span>{chapters.length} פרקים</span>
+                    <span>{visibleChapters.length} פרקים</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Users className="w-5 h-5" />
@@ -197,20 +211,18 @@ const CourseDetail = () => {
               <h2 className="text-3xl font-bold mb-8">תוכן הקורס</h2>
               
               <div className="space-y-4">
-                {chapters.map((chapter) => {
-                  // Fetch lessons for each chapter using the hook
-                  return (
-                    <ChapterLessonsWrapper
-                      key={chapter.id}
-                      chapter={chapter}
-                      userProgress={userProgress}
-                      onLessonClick={handleLessonClick}
-                    />
-                  );
-                })}
+                {visibleChapters.map((chapter) => (
+                  <ChapterLessonsWrapper
+                    key={chapter.id}
+                    chapter={chapter}
+                    userProgress={userProgress}
+                    onLessonClick={handleLessonClick}
+                    allowedCohortIds={allowedCohortIds}
+                  />
+                ))}
               </div>
 
-              {chapters.length === 0 && (
+              {visibleChapters.length === 0 && (
                 <div className="text-center py-12 text-muted-foreground">
                   <BookOpen className="w-16 h-16 mx-auto mb-4" />
                   <p>תוכן הקורס יתווסף בקרוב</p>
@@ -226,7 +238,7 @@ const CourseDetail = () => {
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">פרקים</span>
-                    <span className="font-medium">{chapters.length}</span>
+                    <span className="font-medium">{visibleChapters.length}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">שיעורים</span>

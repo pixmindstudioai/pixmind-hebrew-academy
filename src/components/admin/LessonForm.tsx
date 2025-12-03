@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -30,6 +30,8 @@ import LinksManager from './LinksManager';
 import ThumbnailUploader from './ThumbnailUploader';
 import LessonCommentsButton from './LessonCommentsButton';
 import { AdminLesson, AdminChapter, LessonVideo, LessonEmbed, LessonAttachment } from '@/types/admin';
+import { useCohorts } from '@/hooks/useCohortsData';
+import { supabase } from '@/integrations/supabase/client';
 
 const lessonSchema = z.object({
   title: z.string().min(2, 'כותרת השיעור חייבת להכיל לפחות 2 תווים').max(120, 'כותרת השיעור לא יכולה להכיל יותר מ-120 תווים'),
@@ -40,7 +42,15 @@ const lessonSchema = z.object({
   duration_sec: z.number().optional(),
   rich_text: z.string().optional(),
   thumbnail_url: z.string().url('יש להזין כתובת URL תקינה לתמונה').optional().or(z.literal('')),
-});
+  visibility_mode: z.enum(['inherit', 'all', 'cohort']).default('inherit'),
+  cohort_id: z.string().nullable().optional(),
+}).refine(
+  (data) => data.visibility_mode !== 'cohort' || (data.cohort_id && data.cohort_id.length > 0),
+  {
+    message: 'יש לבחור מחזור לשיעור זה',
+    path: ['cohort_id'],
+  }
+);
 
 type LessonFormData = z.infer<typeof lessonSchema>;
 
@@ -62,6 +72,7 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
   const [embeds, setEmbeds] = useState<LessonEmbed[]>(lesson?.embeds || []);
   const [attachments, setAttachments] = useState<LessonAttachment[]>(lesson?.attachments || []);
   const [links, setLinks] = useState<Array<{ label: string; url: string; }>>(lesson?.links || []);
+  const [moduleId, setModuleId] = useState<string>('');
 
   const form = useForm<LessonFormData>({
     resolver: zodResolver(lessonSchema),
@@ -74,10 +85,31 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
       duration_sec: lesson?.durationSec || undefined,
       rich_text: lesson?.richText || '',
       thumbnail_url: lesson?.thumbnailUrl || '',
+      visibility_mode: ((lesson as any)?.visibility_mode as 'inherit' | 'all' | 'cohort') || 'inherit',
+      cohort_id: (lesson as any)?.cohort_id || null,
     },
   });
 
+  const selectedChapterId = form.watch('chapter_id');
+  const visibilityMode = form.watch('visibility_mode');
+
+  // Get module ID from the selected chapter
+  useEffect(() => {
+    const chapter = chapters.find(c => c.id === selectedChapterId);
+    if (chapter) {
+      setModuleId(chapter.moduleId);
+    }
+  }, [selectedChapterId, chapters]);
+
+  // Fetch cohorts for the module
+  const { data: cohorts = [] } = useCohorts(moduleId);
+  const activeCohorts = cohorts.filter(c => c.is_active);
+
   const handleSubmit = (data: LessonFormData) => {
+    // Clear cohort_id if visibility is not cohort-specific
+    if (data.visibility_mode !== 'cohort') {
+      data.cohort_id = null;
+    }
     onSubmit({
       ...data,
       video,
@@ -343,6 +375,89 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
               />
             </TabsContent>
           </Tabs>
+
+          {/* Visibility Section */}
+          <div className="border rounded-lg p-4 space-y-4">
+            <h3 className="font-semibold">נגישות השיעור</h3>
+            
+            <FormField
+              control={form.control}
+              name="visibility_mode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>מי יכול לראות את השיעור</FormLabel>
+                  <Select 
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      // Clear cohort_id when switching away from cohort mode
+                      if (value !== 'cohort') {
+                        form.setValue('cohort_id', null);
+                      }
+                    }} 
+                    defaultValue={field.value}
+                    disabled={isLoading}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="inherit">לפי הגדרת הפרק</SelectItem>
+                      <SelectItem value="all">פתוח לכל מי שיש לו גישה למודול</SelectItem>
+                      <SelectItem value="cohort">זמין רק למחזור מסוים</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    {field.value === 'inherit' && 'השיעור יהיה גלוי לפי הגדרת הפרק שאליו הוא שייך'}
+                    {field.value === 'all' && 'השיעור יהיה גלוי לכל התלמידים שיש להם גישה למודול'}
+                    {field.value === 'cohort' && 'השיעור יהיה גלוי רק לתלמידים במחזור הנבחר'}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {visibilityMode === 'cohort' && (
+              <FormField
+                control={form.control}
+                name="cohort_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>בחר מחזור *</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value || ''} 
+                      disabled={isLoading || !moduleId}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="בחר מחזור..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {activeCohorts.length === 0 ? (
+                          <SelectItem value="" disabled>
+                            אין מחזורים פעילים למודול זה
+                          </SelectItem>
+                        ) : (
+                          activeCohorts.map((cohort) => (
+                            <SelectItem key={cohort.id} value={cohort.id}>
+                              {cohort.name}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      רק תלמידים במחזור זה יוכלו לצפות בשיעור
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+          </div>
 
           <FormField
             control={form.control}

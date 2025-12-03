@@ -49,6 +49,8 @@ export interface AdminChapter {
   description?: string;
   order: number;
   status: 'draft' | 'active' | 'archived';
+  visibility_mode?: string;
+  cohort_id?: string | null;
   lessons: AdminLesson[];
   createdAt: Date;
   updatedAt: Date;
@@ -62,6 +64,8 @@ export interface AdminLesson {
   description: string;
   order: number;
   status: 'draft' | 'active' | 'archived';
+  visibility_mode?: string;
+  cohort_id?: string | null;
   video?: LessonVideo;
   embeds: LessonEmbed[];
   attachments: LessonAttachment[];
