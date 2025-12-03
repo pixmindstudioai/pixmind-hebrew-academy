@@ -11,6 +11,7 @@ import CommentSection from "@/components/CommentSection";
 import ProgressBadge from "@/components/ProgressBadge";
 import LessonRating from "@/components/LessonRating";
 import AccessGuard from "@/components/AccessGuard";
+import AuthGuard from "@/components/AuthGuard";
 import ProgressToggle from "@/components/ProgressToggle";
 import { 
   useLesson, 
@@ -118,6 +119,7 @@ const LessonView = () => {
   }
 
   return (
+    <AuthGuard>
     <AccessGuard 
       moduleId={lesson.chapters?.module_id!} 
       moduleTitle={lesson.chapters?.title}
@@ -447,6 +449,7 @@ const LessonView = () => {
         </div>
       </div>
     </AccessGuard>
+    </AuthGuard>
   );
 };
 

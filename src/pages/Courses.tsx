@@ -18,6 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { useUserModuleAccessRealtime } from "@/hooks/useUserModuleAccessRealtime";
 import type { Module } from "@/hooks/useContentData";
+import AuthGuard from "@/components/AuthGuard";
 
 const Courses = () => {
   const navigate = useNavigate();
@@ -102,6 +103,7 @@ const Courses = () => {
   }
 
   return (
+    <AuthGuard>
     <div className="min-h-screen bg-background" dir="rtl">
       <div className="container mx-auto px-4 py-8">
         {/* Hero Section */}
@@ -194,6 +196,7 @@ const Courses = () => {
         )}
       </div>
     </div>
+    </AuthGuard>
   );
 };
 
