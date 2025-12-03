@@ -1,6 +1,6 @@
 
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowRight, Clock, BookOpen, Users, Star, Play } from "lucide-react";
+import { ArrowRight, Clock, BookOpen, Users, Star, Play, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -14,6 +14,7 @@ import AuthGuard from "@/components/AuthGuard";
 import { SaleBadge } from "@/components/SaleBadge";
 import { PriceDisplay } from "@/components/PriceDisplay";
 import { useUserCohortsForModule, filterVisibleChapters, filterVisibleLessons } from "@/hooks/useUserCohorts";
+import { useModuleAccess } from "@/hooks/useUserModuleAccess";
 
 // Wrapper component to fetch lessons for each chapter with visibility filtering
 const ChapterLessonsWrapper = ({ 
@@ -64,12 +65,16 @@ const CourseDetail = () => {
   const { data: chapters = [] } = useChapters(moduleId || '', 'active');
   const { data: userProgress = [] } = useUserProgress("current-user-id");
   const updateProgress = useUpdateProgress();
+  const { isLegacyFreeUser } = useModuleAccess();
   
   // Get user's cohort memberships for this module
   const { data: userCohorts = [] } = useUserCohortsForModule(moduleId || '');
   const allowedCohortIds = userCohorts.map(c => c.cohort_id);
 
   const module = modules.find(m => m.id === moduleId);
+  
+  // Check if current user is a legacy free user for this module
+  const isLegacyFree = module ? isLegacyFreeUser(module) : false;
   
   // Filter chapters based on visibility
   const visibleChapters = filterVisibleChapters(chapters, allowedCohortIds);
@@ -117,6 +122,8 @@ const CourseDetail = () => {
       moduleTitle={module?.title}
       paymentUrl={module?.payment_url}
       isPaid={module?.is_paid}
+      wasFreeBefore={module?.was_free_before}
+      becamePaidAt={module?.became_paid_at}
     >
       <div className="min-h-screen bg-background" dir="rtl">
         {/* Hero Section */}
@@ -163,8 +170,17 @@ const CourseDetail = () => {
 
                 {module.is_paid && (
                   <div className="mb-6 space-y-2">
-                    <SaleBadge module={module} size="lg" />
-                    <PriceDisplay module={module} size="lg" />
+                    {isLegacyFree ? (
+                      <Badge variant="secondary" className="bg-green-500/30 text-green-100 border-green-500/50">
+                        <Gift className="w-4 h-4 ml-1" />
+                        גישה חינמית עבור משתמש ותיק
+                      </Badge>
+                    ) : (
+                      <>
+                        <SaleBadge module={module} size="lg" />
+                        <PriceDisplay module={module} size="lg" />
+                      </>
+                    )}
                   </div>
                 )}
 

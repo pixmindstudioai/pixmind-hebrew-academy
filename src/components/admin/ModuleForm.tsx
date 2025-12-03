@@ -20,6 +20,9 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Gift, AlertCircle } from 'lucide-react';
 import ThumbnailUploader from './ThumbnailUploader';
 
 const moduleSchema = z.object({
@@ -29,6 +32,7 @@ const moduleSchema = z.object({
   order_index: z.number().min(0, 'מספר הסדר חייב להיות 0 או יותר').optional(),
   is_paid: z.boolean().default(false),
   is_hidden: z.boolean().default(false),
+  was_free_before: z.boolean().default(false),
   payment_url: z.string().url('יש להזין כתובת URL תקינה').optional().or(z.literal('')),
   thumbnail_url: z.string().url('יש להזין כתובת URL תקינה לתמונה').optional().or(z.literal('')),
   regular_price: z.number().min(0, 'המחיר חייב להיות 0 או יותר').optional().nullable(),
@@ -73,6 +77,8 @@ interface Module {
   sale_active?: boolean;
   sale_start_date?: string | null;
   sale_end_date?: string | null;
+  was_free_before?: boolean;
+  became_paid_at?: string | null;
   created_at: string;
   updated_at: string;
   published_at?: string;
@@ -96,6 +102,7 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading, showActions = true 
       order_index: module?.order_index || 0,
       is_paid: module?.is_paid || false,
       is_hidden: module?.is_hidden || false,
+      was_free_before: module?.was_free_before || false,
       payment_url: module?.payment_url || '',
       thumbnail_url: module?.thumbnail_url || '',
       regular_price: module?.regular_price || null,
@@ -105,6 +112,9 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading, showActions = true 
       sale_end_date: module?.sale_end_date || null,
     },
   });
+
+  // Check if was_free_before is already set (cannot be disabled)
+  const wasFreeLocked = module?.was_free_before === true;
 
   const handleSubmit = (data: ModuleFormData) => {
     onSubmit(data);
@@ -444,6 +454,62 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading, showActions = true 
               </FormItem>
             )}
           />
+
+          {/* Was Previously Free Toggle - Only show for paid modules */}
+          {form.watch('is_paid') && (
+            <FormField
+              control={form.control}
+              name="was_free_before"
+              render={({ field }) => (
+                <FormItem className="rounded-lg border p-4 space-y-3">
+                  <div className="flex flex-row items-center justify-between">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base flex items-center gap-2">
+                        <Gift className="w-4 h-4 text-green-500" />
+                        האם המודול היה חינמי בעבר?
+                      </FormLabel>
+                      <FormDescription>
+                        {field.value 
+                          ? '✓ כן – משתמשים ותיקים יקבלו גישה חינמית' 
+                          : 'לא – מעולם לא היה חינמי'}
+                      </FormDescription>
+                    </div>
+                    <Select 
+                      onValueChange={(value) => field.onChange(value === 'yes')} 
+                      value={field.value ? 'yes' : 'no'}
+                      disabled={isLoading || wasFreeLocked}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="no">לא</SelectItem>
+                        <SelectItem value="yes">כן</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {wasFreeLocked && (
+                    <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
+                      <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                      <AlertDescription className="text-amber-800 dark:text-amber-200 text-sm">
+                        לא ניתן לבטל אפשרות זו לאחר הפעלתה, כדי לא לפגוע בגישה של משתמשים ותיקים.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  
+                  {field.value && (
+                    <Badge variant="secondary" className="bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30">
+                      <Gift className="w-3 h-3 ml-1" />
+                      המודול היה חינמי בעבר – משתמשים ותיקים יקבלו אותו בחינם
+                    </Badge>
+                  )}
+                </FormItem>
+              )}
+            />
+          )}
 
           <FormField
             control={form.control}

@@ -1,5 +1,5 @@
 
-import { Play, Clock, BookOpen, CheckCircle, Edit, Trash2, Eye, DollarSign, Shield, EyeOff, Users } from "lucide-react";
+import { Play, Clock, BookOpen, CheckCircle, Edit, Trash2, Eye, DollarSign, Shield, EyeOff, Users, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -43,7 +43,7 @@ const ModuleCard = ({
   onView,
   onClick,
 }: ModuleCardProps) => {
-  const { canAccessModule, hasAccess } = useModuleAccess();
+  const { canAccessModule, hasAccess, isLegacyFreeUser } = useModuleAccess();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   
@@ -52,6 +52,7 @@ const ModuleCard = ({
   
   const moduleAccess = canAccessModule(module);
   const isPaidWithAccess = module.is_paid && hasAccess(module.id);
+  const isLegacyFree = isLegacyFreeUser(module);
 
   const getStatusBadge = () => {
     const variants = {
@@ -129,7 +130,12 @@ const ModuleCard = ({
           {/* Payment/Access badge for user view */}
           {!isAdminView && module.is_paid && (
             <div className="absolute top-4 right-4">
-              {isPaidWithAccess ? (
+              {isLegacyFree ? (
+                <Badge variant="default" className="bg-green-500/90 text-white">
+                  <Gift className="w-3 h-3 ml-1" />
+                  גישה חינמית
+                </Badge>
+              ) : isPaidWithAccess ? (
                 <Badge variant="default" className="bg-success/90 text-success-foreground">
                   <Shield className="w-3 h-3 ml-1" />
                   יש לך גישה
@@ -214,8 +220,8 @@ const ModuleCard = ({
         {/* Sale badge and pricing */}
         {!isAdminView && module.is_paid && (
           <div className="mb-4 space-y-2">
-            <SaleBadge module={module} size="sm" />
-            <PriceDisplay module={module} size="sm" />
+            {!isLegacyFree && <SaleBadge module={module} size="sm" />}
+            <PriceDisplay module={module} size="sm" isLegacyFreeUser={isLegacyFree} />
           </div>
         )}
 
@@ -258,6 +264,12 @@ const ModuleCard = ({
                 <span>הקורס לא מופיע בדף הבית</span>
               </div>
             )}
+            {module.was_free_before && (
+              <div className="flex items-center gap-1 text-green-600 dark:text-green-400 mt-2">
+                <Gift className="w-3 h-3" />
+                <span>היה חינמי בעבר</span>
+              </div>
+            )}
           </div>
         )}
       </CardContent>
@@ -272,17 +284,23 @@ const ModuleCard = ({
             ? "ניהול מודול"
             : !moduleAccess
               ? "רכישה"
-              : isPaidWithAccess
-                ? isCompleted 
+              : isLegacyFree
+                ? isCompleted
                   ? "צפה שוב"
-                  : isStarted 
+                  : isStarted
                     ? "המשך לימוד"
                     : "התחל ללמוד"
-                : isCompleted 
-                  ? "צפה שוב" 
-                  : isStarted 
-                    ? "המשך לימוד" 
-                    : "התחל ללמוד"
+                : isPaidWithAccess
+                  ? isCompleted 
+                    ? "צפה שוב"
+                    : isStarted 
+                      ? "המשך לימוד"
+                      : "התחל ללמוד"
+                  : isCompleted 
+                    ? "צפה שוב" 
+                    : isStarted 
+                      ? "המשך לימוד" 
+                      : "התחל ללמוד"
           }
         </Button>
       </CardFooter>

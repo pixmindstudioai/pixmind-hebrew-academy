@@ -134,7 +134,15 @@ const ContentPage = () => {
 
   // Module handlers
   const handleCreateModule = (data: any) => {
-    createModule.mutate(data, {
+    // If creating a paid module with was_free_before, set became_paid_at
+    const moduleData = {
+      ...data,
+      ...(data.is_paid && data.was_free_before && !data.became_paid_at && {
+        became_paid_at: new Date().toISOString()
+      })
+    };
+    
+    createModule.mutate(moduleData, {
       onSuccess: () => {
         setModuleDialogOpen(false);
         setEditingModule(null);
@@ -144,7 +152,21 @@ const ContentPage = () => {
 
   const handleUpdateModule = (data: any) => {
     if (editingModule) {
-      updateModule.mutate({ id: editingModule.id, ...data }, {
+      // If enabling was_free_before on a paid module that doesn't have became_paid_at yet
+      const shouldSetBecamePaidAt = 
+        data.is_paid && 
+        data.was_free_before && 
+        !editingModule.became_paid_at;
+      
+      const moduleData = {
+        id: editingModule.id,
+        ...data,
+        ...(shouldSetBecamePaidAt && {
+          became_paid_at: new Date().toISOString()
+        })
+      };
+      
+      updateModule.mutate(moduleData, {
         onSuccess: () => {
           setModuleDialogOpen(false);
           setEditingModule(null);

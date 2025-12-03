@@ -1,5 +1,7 @@
 import { calculateSaleInfo, formatPrice } from '@/lib/saleUtils';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { Gift } from 'lucide-react';
 
 interface PriceDisplayProps {
   module: {
@@ -8,12 +10,15 @@ interface PriceDisplayProps {
     regular_price?: number | null;
     sale_start_date?: string | null;
     sale_end_date?: string | null;
+    was_free_before?: boolean;
+    became_paid_at?: string | null;
   };
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  isLegacyFreeUser?: boolean;
 }
 
-export const PriceDisplay = ({ module, size = 'md', className }: PriceDisplayProps) => {
+export const PriceDisplay = ({ module, size = 'md', className, isLegacyFreeUser = false }: PriceDisplayProps) => {
   const saleInfo = calculateSaleInfo(module);
 
   const sizeClasses = {
@@ -33,6 +38,18 @@ export const PriceDisplay = ({ module, size = 'md', className }: PriceDisplayPro
       strikethrough: 'text-lg',
     },
   };
+
+  // Show legacy free access badge for legacy users
+  if (isLegacyFreeUser) {
+    return (
+      <div className={cn('flex flex-col gap-2', className)}>
+        <Badge variant="secondary" className="bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30 w-fit">
+          <Gift className="w-4 h-4 ml-1" />
+          גישה חינמית עבור משתמש ותיק
+        </Badge>
+      </div>
+    );
+  }
 
   if (!module.regular_price) {
     return null;
