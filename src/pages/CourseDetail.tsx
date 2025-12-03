@@ -10,6 +10,7 @@ import { useModules, useChapters, useLessons, useUserProgress, useUpdateProgress
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import AccessGuard from "@/components/AccessGuard";
+import AuthGuard from "@/components/AuthGuard";
 import { SaleBadge } from "@/components/SaleBadge";
 import { PriceDisplay } from "@/components/PriceDisplay";
 import { useUserCohortsForModule, filterVisibleChapters, filterVisibleLessons } from "@/hooks/useUserCohorts";
@@ -110,6 +111,7 @@ const CourseDetail = () => {
   const progressPercentage = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
 
   return (
+    <AuthGuard>
     <AccessGuard 
       moduleId={moduleId!} 
       moduleTitle={module?.title}
@@ -292,6 +294,7 @@ const CourseDetail = () => {
         </div>
       </div>
     </AccessGuard>
+    </AuthGuard>
   );
 };
 
