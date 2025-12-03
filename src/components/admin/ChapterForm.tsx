@@ -62,21 +62,22 @@ interface Chapter {
 }
 
 interface ChapterFormProps {
-  chapter?: Chapter;
+  chapter?: Chapter | null;
   modules: Module[];
   onSubmit: (data: ChapterFormData) => void;
   onCancel: () => void;
   isLoading?: boolean;
+  showActions?: boolean;
 }
 
-const ChapterForm = ({ chapter, modules, onSubmit, onCancel, isLoading }: ChapterFormProps) => {
+const ChapterForm = ({ chapter, modules, onSubmit, onCancel, isLoading, showActions = true }: ChapterFormProps) => {
   const form = useForm<ChapterFormData>({
     resolver: zodResolver(chapterSchema),
     defaultValues: {
       title: chapter?.title || '',
       description: chapter?.description || '',
       module_id: chapter?.module_id || '',
-      order_index: chapter?.order_index || 0,
+      order_index: chapter?.order_index ?? 0,
       status: chapter?.status || 'draft',
       visibility_mode: (chapter?.visibility_mode as 'all' | 'cohort') || 'all',
       cohort_id: chapter?.cohort_id || null,
@@ -87,8 +88,8 @@ const ChapterForm = ({ chapter, modules, onSubmit, onCancel, isLoading }: Chapte
   const visibilityMode = form.watch('visibility_mode');
 
   // Fetch cohorts for the selected module
-  const { data: cohorts = [] } = useCohorts(selectedModuleId);
-  const activeCohorts = cohorts.filter(c => c.is_active);
+  const { data: cohorts = [], isLoading: cohortsLoading } = useCohorts(selectedModuleId);
+  const activeCohorts = (cohorts || []).filter(c => c?.is_active);
 
   const handleSubmit = (data: ChapterFormData) => {
     // Clear cohort_id if visibility is not cohort-specific
@@ -113,7 +114,7 @@ const ChapterForm = ({ chapter, modules, onSubmit, onCancel, isLoading }: Chapte
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <form id="chapter-form" onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           <FormField
             control={form.control}
             name="module_id"
@@ -330,14 +331,19 @@ const ChapterForm = ({ chapter, modules, onSubmit, onCancel, isLoading }: Chapte
             )}
           />
 
-          <div className="flex gap-3 pt-4">
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'שומר...' : chapter ? 'עדכון פרק' : 'יצירת פרק'}
-            </Button>
-            <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
-              ביטול
-            </Button>
-          </div>
+          {showActions && (
+            <div className="flex gap-3 pt-4">
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? 'שומר...' : chapter ? 'עדכון פרק' : 'יצירת פרק'}
+              </Button>
+              <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+                ביטול
+              </Button>
+            </div>
+          )}
+          
+          {/* Add bottom padding when actions are not shown */}
+          {!showActions && <div className="pb-4" />}
         </form>
       </Form>
     </div>

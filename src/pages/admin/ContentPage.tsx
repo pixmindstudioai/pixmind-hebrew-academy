@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Plus, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,6 +43,7 @@ import {
 import { Module, Chapter, Lesson } from '@/hooks/useContentData';
 import { AdminModule, AdminChapter, AdminLesson } from '@/types/admin';
 import AuthenticationGuard from '@/components/admin/AuthenticationGuard';
+import { useCohorts } from '@/hooks/useCohortsData';
 
 // Transform database types to admin types
 const transformToAdminChapter = (chapter: Chapter): AdminChapter => ({
@@ -120,6 +121,20 @@ const ContentPage = () => {
   const { data: modules = [], isLoading: modulesLoading } = useModules();
   const { data: chapters = [], isLoading: chaptersLoading } = useChapters(selectedModule);
   const { data: lessons = [], isLoading: lessonsLoading } = useLessons(selectedChapter);
+  
+  // Fetch cohorts for the selected module to resolve cohort names
+  const { data: moduleCohorts = [] } = useCohorts(selectedModule);
+  
+  // Build a cohort map for quick lookup
+  const cohortMap = useMemo(() => {
+    const map: Record<string, { id: string; name: string }> = {};
+    (moduleCohorts || []).forEach(cohort => {
+      if (cohort?.id) {
+        map[cohort.id] = { id: cohort.id, name: cohort.name };
+      }
+    });
+    return map;
+  }, [moduleCohorts]);
 
   // Mutations
   const createModule = useCreateModule();
@@ -547,30 +562,42 @@ const ContentPage = () => {
 
           {selectedModule ? (
             <div className="space-y-4">
-              {filteredChapters.map((chapter) => (
-                <ChapterAccordion
-                  key={chapter.id}
-                  chapter={chapter}
-                  lessons={lessons.filter(lesson => lesson.chapter_id === chapter.id).map(lesson => ({
-                    ...lesson,
-                    links: lesson.links && Array.isArray(lesson.links) 
-                      ? lesson.links as Array<{label: string; url: string}> 
-                      : null,
-                    attachments: lesson.attachments && Array.isArray(lesson.attachments) 
-                      ? lesson.attachments as Array<{name: string; url: string; type: string; size: number}>
-                      : null,
-                  })) as any[]}
-                  isAdminView
-                  onEditChapter={handleEditChapter}
-                  onDeleteChapter={handleDeleteChapter}
-                  onAddLesson={() => {
-                    setSelectedChapter(chapter.id);
-                    setLessonDialogOpen(true);
-                  }}
-                  onEditLesson={handleEditLesson}
-                  onDeleteLesson={handleDeleteLesson}
-                />
-              ))}
+              {filteredChapters.map((chapter) => {
+                // Enrich chapter with cohort object
+                const chapterWithCohort = {
+                  ...chapter,
+                  cohort: chapter.cohort_id ? cohortMap[chapter.cohort_id] || null : null,
+                };
+                
+                // Enrich lessons with cohort objects
+                const enrichedLessons = lessons.filter(lesson => lesson.chapter_id === chapter.id).map(lesson => ({
+                  ...lesson,
+                  links: lesson.links && Array.isArray(lesson.links) 
+                    ? lesson.links as Array<{label: string; url: string}> 
+                    : null,
+                  attachments: lesson.attachments && Array.isArray(lesson.attachments) 
+                    ? lesson.attachments as Array<{name: string; url: string; type: string; size: number}>
+                    : null,
+                  cohort: lesson.cohort_id ? cohortMap[lesson.cohort_id] || null : null,
+                }));
+                
+                return (
+                  <ChapterAccordion
+                    key={chapter.id}
+                    chapter={chapterWithCohort}
+                    lessons={enrichedLessons as any[]}
+                    isAdminView
+                    onEditChapter={handleEditChapter}
+                    onDeleteChapter={handleDeleteChapter}
+                    onAddLesson={() => {
+                      setSelectedChapter(chapter.id);
+                      setLessonDialogOpen(true);
+                    }}
+                    onEditLesson={handleEditLesson}
+                    onDeleteLesson={handleDeleteLesson}
+                  />
+                );
+              })}
 
               {filteredChapters.length === 0 && (
                 <div className="text-center py-12 text-muted-foreground">
@@ -706,19 +733,42 @@ const ContentPage = () => {
 
       {/* Chapter Dialog */}
       <Dialog open={chapterDialogOpen} onOpenChange={setChapterDialogOpen}>
-        <DialogContent className="max-w-2xl" dir="rtl">
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-0 flex flex-col" dir="rtl">
+          <DialogHeader className="px-6 py-4 border-b border-border flex-shrink-0">
+            <DialogTitle className="text-xl font-bold">
               {editingChapter ? 'עריכת פרק' : 'יצירת פרק חדש'}
             </DialogTitle>
           </DialogHeader>
-          <ChapterForm
-            chapter={editingChapter}
-            modules={modules}
-            onSubmit={editingChapter ? handleUpdateChapter : handleCreateChapter}
-            onCancel={() => setChapterDialogOpen(false)}
-            isLoading={createChapter.isPending || updateChapter.isPending}
-          />
+          <div className="flex-1 overflow-y-auto px-6 py-4">
+            <ChapterForm
+              chapter={editingChapter}
+              modules={modules}
+              onSubmit={editingChapter ? handleUpdateChapter : handleCreateChapter}
+              onCancel={() => setChapterDialogOpen(false)}
+              isLoading={createChapter.isPending || updateChapter.isPending}
+              showActions={false}
+            />
+          </div>
+          <div className="flex-shrink-0 bg-background/95 backdrop-blur-sm border-t border-border px-6 py-4">
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                form="chapter-form"
+                disabled={createChapter.isPending || updateChapter.isPending}
+                className="px-6 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {createChapter.isPending || updateChapter.isPending ? 'שומר...' : editingChapter ? 'עדכון פרק' : 'יצירת פרק'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setChapterDialogOpen(false)}
+                disabled={createChapter.isPending || updateChapter.isPending}
+                className="px-6 py-2 border border-border hover:bg-accent text-foreground rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                ביטול
+              </button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
