@@ -22,6 +22,8 @@ export interface Module {
   sale_active?: boolean;
   sale_start_date?: string | null;
   sale_end_date?: string | null;
+  was_free_before?: boolean;
+  became_paid_at?: string | null;
   created_at: string;
   updated_at: string;
   published_at?: string;

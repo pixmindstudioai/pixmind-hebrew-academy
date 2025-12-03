@@ -10,6 +10,8 @@ interface AccessGuardProps {
   moduleTitle?: string;
   paymentUrl?: string | null;
   isPaid?: boolean | null;
+  wasFreeBefore?: boolean;
+  becamePaidAt?: string | null;
   children: React.ReactNode;
 }
 
@@ -17,11 +19,16 @@ const AccessGuard: React.FC<AccessGuardProps> = ({
   moduleId, 
   moduleTitle, 
   paymentUrl, 
-  isPaid = false, 
+  isPaid = false,
+  wasFreeBefore = false,
+  becamePaidAt = null,
   children 
 }) => {
   const { isAuthenticated } = useAuth();
-  const { hasAccess, isLoading } = useModuleAccess();
+  const { hasAccess, isLoading, isLegacyFreeUser } = useModuleAccess();
+
+  // Check if current user is a legacy free user for this module
+  const isLegacyFree = isLegacyFreeUser({ was_free_before: wasFreeBefore, became_paid_at: becamePaidAt });
 
   // Show loading state
   if (isLoading) {
@@ -62,8 +69,8 @@ const AccessGuard: React.FC<AccessGuardProps> = ({
     );
   }
 
-  // If user has access, show content
-  if (hasAccess(moduleId)) {
+  // If user has explicit access OR is a legacy free user, show content
+  if (hasAccess(moduleId) || isLegacyFree) {
     return <>{children}</>;
   }
 

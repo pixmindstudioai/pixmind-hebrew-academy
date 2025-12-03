@@ -681,6 +681,7 @@ export type Database = {
       }
       modules: {
         Row: {
+          became_paid_at: string | null
           created_at: string
           created_by: string
           description: string
@@ -701,8 +702,10 @@ export type Database = {
           thumbnail_url: string | null
           title: string
           updated_at: string
+          was_free_before: boolean
         }
         Insert: {
+          became_paid_at?: string | null
           created_at?: string
           created_by: string
           description: string
@@ -723,8 +726,10 @@ export type Database = {
           thumbnail_url?: string | null
           title: string
           updated_at?: string
+          was_free_before?: boolean
         }
         Update: {
+          became_paid_at?: string | null
           created_at?: string
           created_by?: string
           description?: string
@@ -745,6 +750,7 @@ export type Database = {
           thumbnail_url?: string | null
           title?: string
           updated_at?: string
+          was_free_before?: boolean
         }
         Relationships: []
       }

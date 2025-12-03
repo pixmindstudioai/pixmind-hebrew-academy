@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 export interface UserModuleAccess {
   id: string;
@@ -70,20 +70,77 @@ export const useUserModuleAccess = () => {
   return query;
 };
 
+// Hook to get user's created_at date for legacy free access check
+export const useUserCreatedAt = () => {
+  const { user } = useAuth();
+  
+  return useQuery({
+    queryKey: ['user-created-at', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('users')
+        .select('created_at')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching user created_at:', error);
+        return null;
+      }
+      
+      return data?.created_at || null;
+    },
+    enabled: !!user?.id,
+    staleTime: Infinity, // User's created_at never changes
+  });
+};
+
 export const useModuleAccess = () => {
   const { data: userAccess = [], isLoading } = useUserModuleAccess();
+  const { data: userCreatedAt } = useUserCreatedAt();
   
   // Create a Set of accessible module IDs for O(1) lookup
-  const accessibleModuleIds = new Set(
+  const accessibleModuleIds = useMemo(() => new Set(
     userAccess.map((access) => access.module_id)
-  );
+  ), [userAccess]);
   
   const hasAccess = (moduleId: string) => {
     return accessibleModuleIds.has(moduleId);
   };
   
-  const canAccessModule = (module: { id: string; is_paid: boolean }) => {
-    return !module.is_paid || hasAccess(module.id);
+  // Check if user is a legacy free user for a specific module
+  const isLegacyFreeUser = (module: { 
+    was_free_before?: boolean; 
+    became_paid_at?: string | null;
+  }) => {
+    if (!module.was_free_before || !module.became_paid_at || !userCreatedAt) {
+      return false;
+    }
+    
+    const userDate = new Date(userCreatedAt);
+    const becamePaidDate = new Date(module.became_paid_at);
+    
+    return userDate < becamePaidDate;
+  };
+  
+  const canAccessModule = (module: { 
+    id: string; 
+    is_paid: boolean;
+    was_free_before?: boolean;
+    became_paid_at?: string | null;
+  }) => {
+    // Free modules are accessible to all
+    if (!module.is_paid) return true;
+    
+    // User has explicit access record
+    if (hasAccess(module.id)) return true;
+    
+    // User is a legacy free user
+    if (isLegacyFreeUser(module)) return true;
+    
+    return false;
   };
   
   return {
@@ -91,5 +148,6 @@ export const useModuleAccess = () => {
     isLoading,
     hasAccess,
     canAccessModule,
+    isLegacyFreeUser,
   };
 };
