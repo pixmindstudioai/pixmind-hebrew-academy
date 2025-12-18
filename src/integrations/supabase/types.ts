@@ -630,6 +630,45 @@ export type Database = {
           },
         ]
       }
+      mcp_tool_settings: {
+        Row: {
+          allowed_roles: string[]
+          category: string
+          description_en: string | null
+          description_he: string | null
+          id: string
+          is_enabled: boolean
+          rate_limit_per_minute: number | null
+          tool_name: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          allowed_roles?: string[]
+          category?: string
+          description_en?: string | null
+          description_he?: string | null
+          id?: string
+          is_enabled?: boolean
+          rate_limit_per_minute?: number | null
+          tool_name: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          allowed_roles?: string[]
+          category?: string
+          description_en?: string | null
+          description_he?: string | null
+          id?: string
+          is_enabled?: boolean
+          rate_limit_per_minute?: number | null
+          tool_name?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       moderation_actions: {
         Row: {
           action: Database["public"]["Enums"]["moderation_action"]
@@ -851,6 +890,66 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "purchases_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tool_usage_logs: {
+        Row: {
+          actor_email: string
+          actor_role: string
+          created_at: string
+          error_message: string | null
+          execution_time_ms: number | null
+          id: string
+          input_params: Json | null
+          lesson_id: string | null
+          module_id: string | null
+          response_preview: string | null
+          status: string
+          tool_name: string
+        }
+        Insert: {
+          actor_email: string
+          actor_role: string
+          created_at?: string
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_params?: Json | null
+          lesson_id?: string | null
+          module_id?: string | null
+          response_preview?: string | null
+          status?: string
+          tool_name: string
+        }
+        Update: {
+          actor_email?: string
+          actor_role?: string
+          created_at?: string
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_params?: Json | null
+          lesson_id?: string | null
+          module_id?: string | null
+          response_preview?: string | null
+          status?: string
+          tool_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tool_usage_logs_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tool_usage_logs_module_id_fkey"
             columns: ["module_id"]
             isOneToOne: false
             referencedRelation: "modules"
