@@ -793,6 +793,145 @@ export type Database = {
         }
         Relationships: []
       }
+      oauth_auth_codes: {
+        Row: {
+          client_id: string
+          code: string
+          code_challenge: string
+          code_challenge_method: string
+          created_at: string
+          expires_at: string
+          id: string
+          redirect_uri: string
+          scope: string
+          used_at: string | null
+          user_email: string
+          user_id: string
+          user_role: string
+        }
+        Insert: {
+          client_id: string
+          code: string
+          code_challenge: string
+          code_challenge_method?: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          redirect_uri: string
+          scope?: string
+          used_at?: string | null
+          user_email: string
+          user_id: string
+          user_role?: string
+        }
+        Update: {
+          client_id?: string
+          code?: string
+          code_challenge?: string
+          code_challenge_method?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          redirect_uri?: string
+          scope?: string
+          used_at?: string | null
+          user_email?: string
+          user_id?: string
+          user_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oauth_auth_codes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "oauth_clients"
+            referencedColumns: ["client_id"]
+          },
+        ]
+      }
+      oauth_clients: {
+        Row: {
+          active: boolean
+          allowed_scopes: string[]
+          client_id: string
+          client_name: string
+          client_secret_hash: string | null
+          created_at: string
+          id: string
+          redirect_uris: string[]
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          allowed_scopes?: string[]
+          client_id: string
+          client_name: string
+          client_secret_hash?: string | null
+          created_at?: string
+          id?: string
+          redirect_uris?: string[]
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          allowed_scopes?: string[]
+          client_id?: string
+          client_name?: string
+          client_secret_hash?: string | null
+          created_at?: string
+          id?: string
+          redirect_uris?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      oauth_tokens: {
+        Row: {
+          client_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          revoked_at: string | null
+          scope: string
+          token_hash: string
+          user_email: string
+          user_id: string
+          user_role: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          revoked_at?: string | null
+          scope?: string
+          token_hash: string
+          user_email: string
+          user_id: string
+          user_role?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          revoked_at?: string | null
+          scope?: string
+          token_hash?: string
+          user_email?: string
+          user_id?: string
+          user_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oauth_tokens_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "oauth_clients"
+            referencedColumns: ["client_id"]
+          },
+        ]
+      }
       payment_product_map: {
         Row: {
           module_id: string | null

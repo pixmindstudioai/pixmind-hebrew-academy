@@ -11,7 +11,8 @@ import {
   Shield,
   Users,
   CreditCard,
-  ShoppingCart
+  ShoppingCart,
+  Bot
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -70,6 +71,12 @@ const AdminShell = () => {
       label: 'הגדרות',
       icon: SettingsIcon,
       description: 'הגדרות כלליות של המערכת'
+    },
+    {
+      href: '/admin/mcp-tools',
+      label: 'כלי MCP',
+      icon: Bot,
+      description: 'ניהול כלי AI לתלמידים ומנהלים'
     }
   ];
 

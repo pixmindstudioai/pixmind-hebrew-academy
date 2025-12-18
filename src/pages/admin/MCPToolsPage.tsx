@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import AdminShell from '@/components/admin/AdminShell';
+
 import { useToolSettings, useUpdateToolSetting, useToolUsageLogs, TOOL_CATEGORIES, TOOL_ICONS, useMCPTool } from '@/hooks/useMCPTools';
 import { useAdminRole } from '@/hooks/useAdminRole';
 import { toast } from 'sonner';
@@ -22,7 +22,8 @@ import { he } from 'date-fns/locale';
 
 export default function MCPToolsPage() {
   const navigate = useNavigate();
-  const { isAdmin, isLoading: authLoading } = useAdminRole();
+  const { data: adminData, isLoading: authLoading } = useAdminRole();
+  const isAdmin = adminData?.isAdmin ?? false;
   const { data: toolSettings, isLoading: settingsLoading, refetch: refetchSettings } = useToolSettings();
   const { data: usageLogs, isLoading: logsLoading, refetch: refetchLogs } = useToolUsageLogs({ limit: 200 });
   const updateTool = useUpdateToolSetting();
@@ -101,8 +102,7 @@ export default function MCPToolsPage() {
   }, {} as Record<string, typeof filteredTools>);
 
   return (
-    <AdminShell>
-      <div className="space-y-6" dir="rtl">
+    <div className="space-y-6" dir="rtl">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -448,6 +448,5 @@ export default function MCPToolsPage() {
           </DialogContent>
         </Dialog>
       </div>
-    </AdminShell>
   );
 }

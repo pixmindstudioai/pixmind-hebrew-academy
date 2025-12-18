@@ -26,6 +26,7 @@ import CRMAnalyticsPage from "./pages/admin/CRMAnalyticsPage";
 import SettingsPage from "./pages/admin/SettingsPage";
 import PaymentsPage from "./pages/admin/PaymentsPage";
 import PurchasesPage from "./pages/admin/PurchasesPage";
+import MCPToolsPage from "./pages/admin/MCPToolsPage";
 
 const queryClient = new QueryClient();
 
@@ -81,6 +82,9 @@ const App = () => (
                 </Route>
                 <Route path="settings" element={<AdminShell />}>
                   <Route index element={<SettingsPage />} />
+                </Route>
+                <Route path="mcp-tools" element={<AdminShell />}>
+                  <Route index element={<MCPToolsPage />} />
                 </Route>
               </Routes>
             } />
