@@ -14,7 +14,8 @@ import {
   Bot,
   ChevronLeft,
   Package,
-  FolderOpen
+  FolderOpen,
+  Users2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -49,6 +50,12 @@ const AdminShell = () => {
       label: 'חומרי לימוד',
       icon: FolderOpen,
       description: 'ניהול תיקיות וקבצים לקורסים'
+    },
+    {
+      href: '/admin/discussions',
+      label: 'קבוצות ודיונים',
+      icon: Users2,
+      description: 'ניהול קבוצות דיון ופורומים'
     },
     {
       href: '/admin/students',

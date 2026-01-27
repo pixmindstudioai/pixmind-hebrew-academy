@@ -478,6 +478,191 @@ export type Database = {
           },
         ]
       }
+      discussion_groups: {
+        Row: {
+          access_type: string
+          allow_posting: boolean
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          access_type?: string
+          allow_posting?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          access_type?: string
+          allow_posting?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      group_access: {
+        Row: {
+          bundle_id: string | null
+          created_at: string
+          group_id: string
+          id: string
+          module_id: string | null
+        }
+        Insert: {
+          bundle_id?: string | null
+          created_at?: string
+          group_id: string
+          id?: string
+          module_id?: string | null
+        }
+        Update: {
+          bundle_id?: string | null
+          created_at?: string
+          group_id?: string
+          id?: string
+          module_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_access_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_access_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "discussion_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_access_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          parent_comment_id: string | null
+          post_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          parent_comment_id?: string | null
+          post_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          parent_comment_id?: string | null
+          post_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "group_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "group_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_posts: {
+        Row: {
+          content: string
+          created_at: string
+          group_id: string
+          id: string
+          is_locked: boolean
+          is_pinned: boolean
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          group_id: string
+          id?: string
+          is_locked?: boolean
+          is_pinned?: boolean
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          group_id?: string
+          id?: string
+          is_locked?: boolean
+          is_pinned?: boolean
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_posts_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "discussion_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_attachments: {
         Row: {
           id: string
@@ -1780,6 +1965,10 @@ export type Database = {
           p_notes?: string
         }
         Returns: undefined
+      }
+      user_has_group_access: {
+        Args: { p_group_id: string; p_user_email: string }
+        Returns: boolean
       }
     }
     Enums: {
