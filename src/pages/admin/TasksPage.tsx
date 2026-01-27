@@ -1,4 +1,6 @@
 import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Search, 
   ChevronDown, 
@@ -15,7 +17,8 @@ import {
   Filter,
   MoreVertical,
   Check,
-  X
+  X,
+  Plus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -92,6 +95,9 @@ const TasksPage = () => {
   // Edit dialog state
   const [editingTask, setEditingTask] = useState<TaskWithLesson | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  
+  // Add dialog state
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
   
   // Submissions dialog state
   const [viewingSubmissionsTask, setViewingSubmissionsTask] = useState<TaskWithLesson | null>(null);
@@ -215,9 +221,15 @@ const TasksPage = () => {
     <AuthenticationGuard>
       <div className="space-y-6" dir="rtl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">ניהול משימות</h1>
-            <p className="text-muted-foreground">ניהול כל המשימות והגשות בקורסים</p>
+          <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold">ניהול משימות</h1>
+              <p className="text-muted-foreground">ניהול כל המשימות והגשות בקורסים</p>
+            </div>
+            <Button onClick={() => setAddDialogOpen(true)} className="gap-2">
+              <Plus className="w-4 h-4" />
+              הוספת משימה
+            </Button>
           </div>
           
           <div className="flex gap-4">
@@ -367,6 +379,12 @@ const TasksPage = () => {
             ))}
           </div>
         )}
+        
+        {/* Add Task Dialog */}
+        <AddTaskDialog
+          open={addDialogOpen}
+          onOpenChange={setAddDialogOpen}
+        />
         
         {/* Edit Task Dialog */}
         <EditTaskDialog
@@ -622,6 +640,242 @@ const EditTaskDialog = ({ task, open, onOpenChange }: EditTaskDialogProps) => {
           </Button>
           <Button onClick={handleSave} disabled={updateTask.isPending}>
             שמור שינויים
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+interface AddTaskDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+const AddTaskDialog = ({ open, onOpenChange }: AddTaskDialogProps) => {
+  const [selectedLesson, setSelectedLesson] = useState<string>('');
+  const [instructions, setInstructions] = useState('');
+  const [allowedTypes, setAllowedTypes] = useState<string[]>(['text']);
+  const [isMandatory, setIsMandatory] = useState(false);
+  const [isActive, setIsActive] = useState(true);
+  const [lessonsSearch, setLessonsSearch] = useState('');
+  
+  const createTask = useUpsertLessonTask();
+  
+  // Fetch lessons that don't have tasks yet
+  const { data: lessons = [], isLoading: lessonsLoading } = useQuery({
+    queryKey: ['lessons-without-tasks'],
+    queryFn: async () => {
+      // Get all lessons
+      const { data: allLessons, error: lessonsError } = await supabase
+        .from('lessons')
+        .select(`
+          id,
+          title,
+          chapter_id,
+          chapters!inner (
+            id,
+            title,
+            module_id,
+            modules!inner (
+              id,
+              title
+            )
+          )
+        `)
+        .order('title');
+      
+      if (lessonsError) throw lessonsError;
+      
+      // Get lesson IDs that already have tasks
+      const { data: existingTasks, error: tasksError } = await supabase
+        .from('lesson_tasks')
+        .select('lesson_id');
+      
+      if (tasksError) throw tasksError;
+      
+      const tasksLessonIds = new Set(existingTasks?.map(t => t.lesson_id) || []);
+      
+      // Filter out lessons that already have tasks
+      return (allLessons || []).filter(lesson => !tasksLessonIds.has(lesson.id));
+    },
+    enabled: open,
+  });
+  
+  const filteredLessons = useMemo(() => {
+    if (!lessonsSearch) return lessons;
+    const query = lessonsSearch.toLowerCase();
+    return lessons.filter((lesson: any) => 
+      lesson.title?.toLowerCase().includes(query) ||
+      lesson.chapters?.title?.toLowerCase().includes(query) ||
+      lesson.chapters?.modules?.title?.toLowerCase().includes(query)
+    );
+  }, [lessons, lessonsSearch]);
+  
+  const handleSave = async () => {
+    if (!selectedLesson || !instructions.trim()) {
+      toast.error('יש לבחור שיעור ולהזין הוראות');
+      return;
+    }
+    
+    if (allowedTypes.length === 0) {
+      toast.error('יש לבחור לפחות סוג הגשה אחד');
+      return;
+    }
+    
+    await createTask.mutateAsync({
+      lesson_id: selectedLesson,
+      instructions,
+      allowed_types: allowedTypes,
+      is_mandatory: isMandatory,
+      is_active: isActive,
+    });
+    
+    toast.success('המשימה נוצרה בהצלחה');
+    
+    // Reset form
+    setSelectedLesson('');
+    setInstructions('');
+    setAllowedTypes(['text']);
+    setIsMandatory(false);
+    setIsActive(true);
+    setLessonsSearch('');
+    
+    onOpenChange(false);
+  };
+  
+  const toggleType = (type: string) => {
+    setAllowedTypes(prev => 
+      prev.includes(type) 
+        ? prev.filter(t => t !== type)
+        : [...prev, type]
+    );
+  };
+  
+  const selectedLessonData = lessons.find((l: any) => l.id === selectedLesson) as any;
+  
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent dir="rtl" className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>הוספת משימה חדשה</DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-4">
+          {/* Lesson selector */}
+          <div className="space-y-2">
+            <Label>בחר שיעור</Label>
+            <div className="relative">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                value={lessonsSearch}
+                onChange={(e) => setLessonsSearch(e.target.value)}
+                placeholder="חיפוש שיעור..."
+                className="pr-10"
+              />
+            </div>
+            
+            {selectedLessonData && (
+              <div className="p-2 bg-primary/10 border border-primary/30 rounded-lg text-sm">
+                <span className="font-medium">{selectedLessonData.title}</span>
+                <span className="text-muted-foreground"> • </span>
+                <span className="text-muted-foreground">
+                  {selectedLessonData.chapters?.modules?.title} / {selectedLessonData.chapters?.title}
+                </span>
+              </div>
+            )}
+            
+            <ScrollArea className="h-48 border rounded-lg">
+              {lessonsLoading ? (
+                <div className="p-4 text-center text-muted-foreground">טוען שיעורים...</div>
+              ) : filteredLessons.length === 0 ? (
+                <div className="p-4 text-center text-muted-foreground">
+                  {lessonsSearch ? 'לא נמצאו שיעורים' : 'כל השיעורים כבר כוללים משימות'}
+                </div>
+              ) : (
+                <div className="p-2 space-y-1">
+                  {filteredLessons.map((lesson: any) => (
+                    <div
+                      key={lesson.id}
+                      onClick={() => setSelectedLesson(lesson.id)}
+                      className={`p-2 rounded cursor-pointer transition-colors ${
+                        selectedLesson === lesson.id 
+                          ? 'bg-primary/20 border border-primary/40' 
+                          : 'hover:bg-muted'
+                      }`}
+                    >
+                      <div className="font-medium text-sm">{lesson.title}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {lesson.chapters?.modules?.title} / {lesson.chapters?.title}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </div>
+          
+          <div className="space-y-2">
+            <Label>הוראות המשימה</Label>
+            <Textarea
+              value={instructions}
+              onChange={(e) => setInstructions(e.target.value)}
+              rows={4}
+              placeholder="הוראות המשימה..."
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label>סוגי הגשה מותרים</Label>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2">
+                <Checkbox
+                  checked={allowedTypes.includes('text')}
+                  onCheckedChange={() => toggleType('text')}
+                />
+                <span>טקסט</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <Checkbox
+                  checked={allowedTypes.includes('file')}
+                  onCheckedChange={() => toggleType('file')}
+                />
+                <span>קובץ</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <Checkbox
+                  checked={allowedTypes.includes('image')}
+                  onCheckedChange={() => toggleType('image')}
+                />
+                <span>תמונה</span>
+              </label>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <Label>משימת חובה (חוסמת התקדמות)</Label>
+            <Switch checked={isMandatory} onCheckedChange={setIsMandatory} />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <Label>משימה פעילה</Label>
+            <Switch checked={isActive} onCheckedChange={setIsActive} />
+          </div>
+          
+          {isMandatory && (
+            <div className="p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg text-sm">
+              <AlertCircle className="w-4 h-4 inline ml-2 text-orange-500" />
+              שיעור זה כולל משימה חובה שחוסמת התקדמות. התלמידים לא יוכלו להמשיך לשיעור הבא עד שהמשימה תאושר.
+            </div>
+          )}
+        </div>
+        
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            ביטול
+          </Button>
+          <Button onClick={handleSave} disabled={createTask.isPending || !selectedLesson}>
+            {createTask.isPending ? 'יוצר...' : 'צור משימה'}
           </Button>
         </DialogFooter>
       </DialogContent>
