@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import EnhancedVideoPlayer from "@/components/EnhancedVideoPlayer";
+import { LessonContent, LessonType } from "@/components/lesson";
 import CommentSection from "@/components/CommentSection";
 import ProgressBadge from "@/components/ProgressBadge";
 import LessonRating from "@/components/LessonRating";
@@ -151,8 +151,8 @@ const LessonView = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Lesson Thumbnail */}
-              {lesson.thumbnail_url && (
+              {/* Lesson Thumbnail - only show for text lessons without video */}
+              {lesson.thumbnail_url && !lesson.video_url && lesson.lesson_type !== 'video' && (
                 <div className="aspect-video w-full rounded-lg overflow-hidden bg-muted">
                   <img
                     src={lesson.thumbnail_url}
@@ -163,35 +163,32 @@ const LessonView = () => {
                 </div>
               )}
 
-              {/* Enhanced Video Player */}
-              {lesson.video_url && (
-                <div className="w-full">
-                  <EnhancedVideoPlayer
-                    videoUrl={lesson.video_url}
-                    title={lesson.title}
-                    lessonId={lesson.id!}
-                    className="w-full"
-                    onNextLesson={nextLesson ? handleNextLesson : undefined}
-                    nextLessonTitle={nextLesson?.title}
-                  />
-                </div>
-              )}
+              {/* Dynamic Lesson Content based on type */}
+              <LessonContent
+                lessonType={(lesson.lesson_type as LessonType) || 'text'}
+                title={lesson.title}
+                lessonId={lesson.id!}
+                description={lesson.description}
+                richText={lesson.rich_text}
+                videoUrl={lesson.video_url}
+                images={lesson.images || []}
+                onNextLesson={nextLesson ? handleNextLesson : undefined}
+                nextLessonTitle={nextLesson?.title}
+              />
 
-              {/* Lesson Info */}
+              {/* Lesson Info Card */}
               <Card className="glass-card">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-2xl mb-2">{lesson.title}</CardTitle>
-                      <p className="text-muted-foreground leading-relaxed">
-                        {lesson.description}
-                      </p>
-                      {lesson.rich_text && (
-                        <div 
-                          className="prose prose-sm max-w-none mt-4"
-                          dangerouslySetInnerHTML={{ __html: lesson.rich_text }}
-                        />
-                      )}
+                      <div className="flex items-center gap-2 mb-2">
+                        <CardTitle className="text-2xl">{lesson.title}</CardTitle>
+                        <Badge variant="outline" className="text-xs">
+                          {lesson.lesson_type === 'video' && 'וידאו'}
+                          {lesson.lesson_type === 'text_with_images' && 'טקסט + תמונות'}
+                          {(lesson.lesson_type === 'text' || !lesson.lesson_type) && 'טקסט'}
+                        </Badge>
+                      </div>
                     </div>
                     <ProgressBadge percentage={progressPercentage} />
                   </div>

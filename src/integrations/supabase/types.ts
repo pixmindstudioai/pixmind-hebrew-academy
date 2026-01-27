@@ -643,6 +643,8 @@ export type Database = {
           duration_sec: number | null
           embeds: Json | null
           id: string
+          images: Json | null
+          lesson_type: string
           links: Json | null
           order_index: number
           published_at: string | null
@@ -667,6 +669,8 @@ export type Database = {
           duration_sec?: number | null
           embeds?: Json | null
           id?: string
+          images?: Json | null
+          lesson_type?: string
           links?: Json | null
           order_index?: number
           published_at?: string | null
@@ -691,6 +695,8 @@ export type Database = {
           duration_sec?: number | null
           embeds?: Json | null
           id?: string
+          images?: Json | null
+          lesson_type?: string
           links?: Json | null
           order_index?: number
           published_at?: string | null
