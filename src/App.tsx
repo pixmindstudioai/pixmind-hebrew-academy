@@ -30,6 +30,8 @@ import PurchasesPage from "./pages/admin/PurchasesPage";
 import MCPToolsPage from "./pages/admin/MCPToolsPage";
 import BundlesPage from "./pages/admin/BundlesPage";
 import MaterialsPage from "./pages/admin/MaterialsPage";
+import DiscussionsPage from "./pages/admin/DiscussionsPage";
+import Community from "./pages/Community";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +49,7 @@ const App = () => (
             <Route path="/courses/:moduleId" element={<><Navigation /><CourseDetail /></>} />
             <Route path="/lesson/:lessonId" element={<><Navigation /><LessonView /></>} />
             <Route path="/tasks" element={<><Navigation /><Tasks /></>} />
+            <Route path="/community" element={<><Navigation /><Community /></>} />
             
             {/* Authentication Routes */}
             <Route path="/login" element={<Login />} />
@@ -69,6 +72,9 @@ const App = () => (
                 </Route>
                 <Route path="materials" element={<AdminShell />}>
                   <Route index element={<MaterialsPage />} />
+                </Route>
+                <Route path="discussions" element={<AdminShell />}>
+                  <Route index element={<DiscussionsPage />} />
                 </Route>
                 <Route path="modules/:moduleId/cohorts" element={<AdminShell />}>
                   <Route index element={<CohortsPage />} />
