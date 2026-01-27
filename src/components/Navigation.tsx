@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, Home, BookOpen, User, LogOut } from "lucide-react";
+import { Menu, X, Home, BookOpen, User, LogOut, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -35,6 +35,7 @@ const Navigation = () => {
   ];
 
   const userNavItems = [
+    { href: "/tasks", label: "משימות", icon: ClipboardCheck },
     { href: "/profile", label: "פרופיל", icon: User },
   ];
 

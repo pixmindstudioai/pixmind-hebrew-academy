@@ -32,6 +32,7 @@ import LinksManager from './LinksManager';
 import ThumbnailUploader from './ThumbnailUploader';
 import LessonCommentsButton from './LessonCommentsButton';
 import LessonImageManager, { LessonImage } from './LessonImageManager';
+import LessonTaskManager from './LessonTaskManager';
 import { AdminLesson, AdminChapter, LessonVideo, LessonEmbed, LessonAttachment } from '@/types/admin';
 import { useCohorts } from '@/hooks/useCohortsData';
 import { supabase } from '@/integrations/supabase/client';
@@ -604,6 +605,14 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
               </FormItem>
             )}
           />
+
+          {/* Task Manager - only show for existing lessons */}
+          {lesson && (
+            <LessonTaskManager 
+              lessonId={lesson.id} 
+              disabled={isLoading} 
+            />
+          )}
 
           <div className="flex gap-3 pt-4 flex-wrap">
             <Button type="submit" disabled={isLoading}>
