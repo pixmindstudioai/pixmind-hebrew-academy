@@ -73,6 +73,11 @@ const LessonTaskManager = ({ lessonId, disabled }: LessonTaskManagerProps) => {
   const [isMandatory, setIsMandatory] = useState(true);
   const [showSubmissions, setShowSubmissions] = useState(false);
 
+  // Guard against infinite update loops with Radix UI Switch
+  const handleEnabledChange = (checked: boolean) => {
+    setIsEnabled((prev) => (prev === checked ? prev : checked));
+  };
+
   // Load existing task data
   useEffect(() => {
     if (existingTask) {
@@ -204,7 +209,7 @@ const LessonTaskManager = ({ lessonId, disabled }: LessonTaskManagerProps) => {
             <Switch
               id="task-enabled"
               checked={isEnabled}
-              onCheckedChange={setIsEnabled}
+              onCheckedChange={handleEnabledChange}
               disabled={disabled}
             />
           </div>
