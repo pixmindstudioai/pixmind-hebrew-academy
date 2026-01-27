@@ -38,6 +38,7 @@ import TasksAdminPage from "./pages/admin/TasksPage";
 import Community from "./pages/Community";
 import Announcements from "./pages/Announcements";
 import Calendar from "./pages/Calendar";
+import Materials from "./pages/Materials";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="/community" element={<><Navigation /><Community /></>} />
             <Route path="/announcements" element={<><Navigation /><Announcements /></>} />
             <Route path="/calendar" element={<><Navigation /><Calendar /></>} />
+            <Route path="/materials" element={<><Navigation /><Materials /></>} />
             
             {/* Authentication Routes */}
             <Route path="/login" element={<Login />} />
