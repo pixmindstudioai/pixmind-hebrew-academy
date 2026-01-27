@@ -770,6 +770,123 @@ export type Database = {
           },
         ]
       }
+      materials_files: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size: number | null
+          file_type: string
+          file_url: string
+          folder_id: string
+          id: string
+          order_index: number
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          file_type: string
+          file_url: string
+          folder_id: string
+          id?: string
+          order_index?: number
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
+          folder_id?: string
+          id?: string
+          order_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "materials_files_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "materials_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      materials_folder_access: {
+        Row: {
+          bundle_id: string | null
+          created_at: string
+          folder_id: string
+          id: string
+          module_id: string | null
+        }
+        Insert: {
+          bundle_id?: string | null
+          created_at?: string
+          folder_id: string
+          id?: string
+          module_id?: string | null
+        }
+        Update: {
+          bundle_id?: string | null
+          created_at?: string
+          folder_id?: string
+          id?: string
+          module_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "materials_folder_access_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "materials_folder_access_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "materials_folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "materials_folder_access_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      materials_folders: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          order_index: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          order_index?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          order_index?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mcp_tool_settings: {
         Row: {
           allowed_roles: string[]

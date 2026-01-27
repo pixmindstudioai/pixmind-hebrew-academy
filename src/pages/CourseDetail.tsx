@@ -1,9 +1,10 @@
 
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowRight, Clock, BookOpen, Users, Star, Play, Gift } from "lucide-react";
+import { ArrowRight, Clock, BookOpen, Users, Star, Play, Gift, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ChapterAccordion from "@/components/shared/ChapterAccordion";
 import ChapterProgressTracker from "@/components/ChapterProgressTracker";
 import { useModules, useChapters, useLessons, useUserProgress, useUpdateProgress, Chapter, Lesson } from "@/hooks/useContentData";
@@ -15,6 +16,7 @@ import { SaleBadge } from "@/components/SaleBadge";
 import { PriceDisplay } from "@/components/PriceDisplay";
 import { useUserCohortsForModule, filterVisibleChapters, filterVisibleLessons } from "@/hooks/useUserCohorts";
 import { useModuleAccess } from "@/hooks/useUserModuleAccess";
+import CourseMaterialsSection from "@/components/materials/CourseMaterialsSection";
 
 // Wrapper component to fetch lessons for each chapter with visibility filtering
 const ChapterLessonsWrapper = ({ 
@@ -226,26 +228,43 @@ const CourseDetail = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             {/* Main Content */}
             <div className="lg:col-span-2">
-              <h2 className="text-3xl font-bold mb-8">תוכן הקורס</h2>
-              
-              <div className="space-y-4">
-                {visibleChapters.map((chapter) => (
-                  <ChapterLessonsWrapper
-                    key={chapter.id}
-                    chapter={chapter}
-                    userProgress={userProgress}
-                    onLessonClick={handleLessonClick}
-                    allowedCohortIds={allowedCohortIds}
-                  />
-                ))}
-              </div>
+              <Tabs defaultValue="content" dir="rtl">
+                <TabsList className="mb-6">
+                  <TabsTrigger value="content">
+                    <BookOpen className="w-4 h-4 ml-2" />
+                    תוכן הקורס
+                  </TabsTrigger>
+                  <TabsTrigger value="materials">
+                    <FileText className="w-4 h-4 ml-2" />
+                    חומרי לימוד
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="content">
+                  <div className="space-y-4">
+                    {visibleChapters.map((chapter) => (
+                      <ChapterLessonsWrapper
+                        key={chapter.id}
+                        chapter={chapter}
+                        userProgress={userProgress}
+                        onLessonClick={handleLessonClick}
+                        allowedCohortIds={allowedCohortIds}
+                      />
+                    ))}
+                  </div>
 
-              {visibleChapters.length === 0 && (
-                <div className="text-center py-12 text-muted-foreground">
-                  <BookOpen className="w-16 h-16 mx-auto mb-4" />
-                  <p>תוכן הקורס יתווסף בקרוב</p>
-                </div>
-              )}
+                  {visibleChapters.length === 0 && (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <BookOpen className="w-16 h-16 mx-auto mb-4" />
+                      <p>תוכן הקורס יתווסף בקרוב</p>
+                    </div>
+                  )}
+                </TabsContent>
+                
+                <TabsContent value="materials">
+                  <CourseMaterialsSection moduleId={moduleId!} />
+                </TabsContent>
+              </Tabs>
             </div>
 
             {/* Sidebar */}

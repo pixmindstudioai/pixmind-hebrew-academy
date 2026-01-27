@@ -13,7 +13,8 @@ import {
   ShoppingCart,
   Bot,
   ChevronLeft,
-  Package
+  Package,
+  FolderOpen
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -42,6 +43,12 @@ const AdminShell = () => {
       label: 'חבילות קורסים',
       icon: Package,
       description: 'יצירה וניהול חבילות קורסים משולבות'
+    },
+    {
+      href: '/admin/materials',
+      label: 'חומרי לימוד',
+      icon: FolderOpen,
+      description: 'ניהול תיקיות וקבצים לקורסים'
     },
     {
       href: '/admin/students',

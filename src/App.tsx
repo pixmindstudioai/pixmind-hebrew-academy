@@ -29,6 +29,7 @@ import PaymentsPage from "./pages/admin/PaymentsPage";
 import PurchasesPage from "./pages/admin/PurchasesPage";
 import MCPToolsPage from "./pages/admin/MCPToolsPage";
 import BundlesPage from "./pages/admin/BundlesPage";
+import MaterialsPage from "./pages/admin/MaterialsPage";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +66,9 @@ const App = () => (
                 </Route>
                 <Route path="bundles" element={<AdminShell />}>
                   <Route index element={<BundlesPage />} />
+                </Route>
+                <Route path="materials" element={<AdminShell />}>
+                  <Route index element={<MaterialsPage />} />
                 </Route>
                 <Route path="modules/:moduleId/cohorts" element={<AdminShell />}>
                   <Route index element={<CohortsPage />} />
