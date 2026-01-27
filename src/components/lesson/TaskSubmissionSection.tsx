@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -55,13 +55,11 @@ const TaskSubmissionSection = ({ lessonId }: TaskSubmissionSectionProps) => {
   const effectiveStatus = getEffectiveStatus(submission);
   
   // Auto-show rejection dialog when status changes to rejected
-  const [prevStatus, setPrevStatus] = useState<string | null>(null);
-  if (effectiveStatus === 'rejected' && prevStatus !== 'rejected' && submission) {
-    setPrevStatus('rejected');
-    setShowRejectedDialog(true);
-  } else if (effectiveStatus !== 'rejected' && prevStatus === 'rejected') {
-    setPrevStatus(effectiveStatus);
-  }
+  useEffect(() => {
+    if (effectiveStatus === 'rejected' && submission) {
+      setShowRejectedDialog(true);
+    }
+  }, [effectiveStatus, submission]);
   
   if (taskLoading || submissionLoading) {
     return null; // Don't show loading state, just hide until ready
