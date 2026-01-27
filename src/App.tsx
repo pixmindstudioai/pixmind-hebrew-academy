@@ -34,6 +34,7 @@ import MaterialsPage from "./pages/admin/MaterialsPage";
 import DiscussionsPage from "./pages/admin/DiscussionsPage";
 import AnnouncementsPage from "./pages/admin/AnnouncementsPage";
 import CalendarPage from "./pages/admin/CalendarPage";
+import TasksAdminPage from "./pages/admin/TasksPage";
 import Community from "./pages/Community";
 import Announcements from "./pages/Announcements";
 import Calendar from "./pages/Calendar";
@@ -89,6 +90,9 @@ const App = () => (
                 </Route>
                 <Route path="calendar" element={<AdminShell />}>
                   <Route index element={<CalendarPage />} />
+                </Route>
+                <Route path="tasks" element={<AdminShell />}>
+                  <Route index element={<TasksAdminPage />} />
                 </Route>
                 <Route path="modules/:moduleId/cohorts" element={<AdminShell />}>
                   <Route index element={<CohortsPage />} />

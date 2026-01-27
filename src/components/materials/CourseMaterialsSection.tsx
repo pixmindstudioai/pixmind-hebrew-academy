@@ -133,7 +133,24 @@ const CourseMaterialsSection = ({ moduleId }: CourseMaterialsSectionProps) => {
   }
 
   if (folders.length === 0) {
-    return null;
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="w-5 h-5" />
+            חומרי לימוד
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <Folder className="w-12 h-12 text-muted-foreground/30 mb-4" />
+            <p className="text-muted-foreground">
+              אין חומרי לימוד זמינים עדיין לקורס זה
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
