@@ -54,6 +54,15 @@ const TaskSubmissionSection = ({ lessonId }: TaskSubmissionSectionProps) => {
   // Check if status is rejected and show dialog
   const effectiveStatus = getEffectiveStatus(submission);
   
+  // Auto-show rejection dialog when status changes to rejected
+  const [prevStatus, setPrevStatus] = useState<string | null>(null);
+  if (effectiveStatus === 'rejected' && prevStatus !== 'rejected' && submission) {
+    setPrevStatus('rejected');
+    setShowRejectedDialog(true);
+  } else if (effectiveStatus !== 'rejected' && prevStatus === 'rejected') {
+    setPrevStatus(effectiveStatus);
+  }
+  
   if (taskLoading || submissionLoading) {
     return null; // Don't show loading state, just hide until ready
   }
