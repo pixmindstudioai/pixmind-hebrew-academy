@@ -2,3 +2,9 @@ project_id = "agodijuyujiliengmail"
 
 [functions.meshulam-webhook]
 verify_jwt = false
+
+[functions.validate-task]
+verify_jwt = false
+
+[functions.mcp-tools]
+verify_jwt = false

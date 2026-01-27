@@ -598,6 +598,47 @@ export type Database = {
           },
         ]
       }
+      lesson_tasks: {
+        Row: {
+          allowed_types: string[]
+          created_at: string
+          id: string
+          instructions: string
+          is_active: boolean
+          is_mandatory: boolean
+          lesson_id: string
+          updated_at: string
+        }
+        Insert: {
+          allowed_types?: string[]
+          created_at?: string
+          id?: string
+          instructions: string
+          is_active?: boolean
+          is_mandatory?: boolean
+          lesson_id: string
+          updated_at?: string
+        }
+        Update: {
+          allowed_types?: string[]
+          created_at?: string
+          id?: string
+          instructions?: string
+          is_active?: boolean
+          is_mandatory?: boolean
+          lesson_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_tasks_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: true
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_transcripts: {
         Row: {
           content: Json
@@ -1131,6 +1172,68 @@ export type Database = {
             columns: ["module_id"]
             isOneToOne: false
             referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_submissions: {
+        Row: {
+          ai_confidence: number | null
+          ai_explanation: string | null
+          ai_status: string
+          content_text: string | null
+          content_url: string | null
+          created_at: string
+          id: string
+          manual_by: string | null
+          manual_override: boolean | null
+          manual_status: string | null
+          submission_type: string
+          task_id: string
+          updated_at: string
+          user_email: string
+          user_id: string | null
+        }
+        Insert: {
+          ai_confidence?: number | null
+          ai_explanation?: string | null
+          ai_status?: string
+          content_text?: string | null
+          content_url?: string | null
+          created_at?: string
+          id?: string
+          manual_by?: string | null
+          manual_override?: boolean | null
+          manual_status?: string | null
+          submission_type: string
+          task_id: string
+          updated_at?: string
+          user_email: string
+          user_id?: string | null
+        }
+        Update: {
+          ai_confidence?: number | null
+          ai_explanation?: string | null
+          ai_status?: string
+          content_text?: string | null
+          content_url?: string | null
+          created_at?: string
+          id?: string
+          manual_by?: string | null
+          manual_override?: boolean | null
+          manual_status?: string | null
+          submission_type?: string
+          task_id?: string
+          updated_at?: string
+          user_email?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_submissions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "lesson_tasks"
             referencedColumns: ["id"]
           },
         ]

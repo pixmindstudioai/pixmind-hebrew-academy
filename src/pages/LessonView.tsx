@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Download, FileText, ArrowRight, ArrowLeft, CheckCircle, Loader2, AlertCircle, ExternalLink, Paperclip } from "lucide-react";
+import { Download, FileText, ArrowRight, ArrowLeft, CheckCircle, Loader2, AlertCircle, ExternalLink, Paperclip, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { LessonContent, LessonType } from "@/components/lesson";
 import CommentSection from "@/components/CommentSection";
@@ -13,6 +13,7 @@ import LessonRating from "@/components/LessonRating";
 import AccessGuard from "@/components/AccessGuard";
 import AuthGuard from "@/components/AuthGuard";
 import ProgressToggle from "@/components/ProgressToggle";
+import TaskSubmissionSection from "@/components/lesson/TaskSubmissionSection";
 import { 
   useLesson, 
   useLessonAttachments, 
@@ -22,6 +23,7 @@ import {
   useLessonProgress
 } from "@/hooks/useContentData";
 import { useAuth } from "@/hooks/useAuth";
+import { useCanProceedToLesson, useLessonTask, useUserTaskSubmission, getEffectiveStatus } from "@/hooks/useTasksData";
 import { toast } from "sonner";
 
 const LessonView = () => {
@@ -35,6 +37,11 @@ const LessonView = () => {
   const { data: embeds = [] } = useLessonEmbeds(lessonId!);
   const { data: chapterLessons = [] } = useLessons(lesson?.chapter_id || '', 'active');
   const { data: userProgress } = useLessonProgress(lessonId!, user?.id);
+  
+  // Task-related data
+  const { data: canProceedData } = useCanProceedToLesson(lessonId!);
+  const { data: currentTask } = useLessonTask(lessonId!);
+  const { data: currentSubmission } = useUserTaskSubmission(currentTask?.id || '');
   
   // Progress management - now handled by ProgressToggle component
   const [isCompleted, setIsCompleted] = useState(false);
@@ -57,11 +64,21 @@ const LessonView = () => {
 
   const handleProgressToggle = (completed: boolean) => {
     setIsCompleted(completed);
-    // Could trigger a refetch of chapter progress here if needed
   };
 
-  // Handle navigation to next lesson
+  // Check if next lesson navigation should be blocked
+  const isNextLessonBlocked = () => {
+    if (!currentTask || !currentTask.is_mandatory) return false;
+    const status = getEffectiveStatus(currentSubmission);
+    return status !== 'approved';
+  };
+
+  // Handle navigation to next lesson with blocking check
   const handleNextLesson = () => {
+    if (isNextLessonBlocked()) {
+      toast.error('יש להשלים את המשימה לפני המעבר לשיעור הבא');
+      return;
+    }
     if (nextLesson) {
       navigate(`/lesson/${nextLesson.id}`);
     }
@@ -118,6 +135,9 @@ const LessonView = () => {
     );
   }
 
+  // Check if this lesson is blocked due to previous incomplete task
+  const isCurrentLessonBlocked = canProceedData && !canProceedData.canProceed;
+
   return (
     <AuthGuard>
     <AccessGuard 
@@ -128,6 +148,23 @@ const LessonView = () => {
     >
       <div className="min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Blocked Lesson Alert */}
+          {isCurrentLessonBlocked && (
+            <Alert className="mb-6 border-red-200 bg-red-50 dark:bg-red-950/30">
+              <Lock className="w-4 h-4 text-red-600" />
+              <AlertTitle className="text-red-800 dark:text-red-300">שיעור נעול</AlertTitle>
+              <AlertDescription className="text-red-700 dark:text-red-400">
+                עליך להשלים את המשימה בשיעור הקודם לפני שתוכל לגשת לשיעור זה.
+                <Button 
+                  variant="link" 
+                  className="text-red-700 dark:text-red-400 p-0 h-auto mr-2"
+                  onClick={() => navigate(`/lesson/${canProceedData?.blockedByLessonId}`)}
+                >
+                  עבור לשיעור עם המשימה
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
           {/* Breadcrumb */}
           <div className="flex items-center space-x-2 space-x-reverse text-sm text-muted-foreground mb-8">
             <Link to="/courses" className="hover:text-foreground transition-colors">
@@ -350,6 +387,9 @@ const LessonView = () => {
 
               {/* Lesson Rating */}
               <LessonRating lessonId={lesson.id} />
+
+              {/* Task Submission Section */}
+              <TaskSubmissionSection lessonId={lessonId!} />
 
               {/* Embeds Section */}
               {embeds.length > 0 && (
