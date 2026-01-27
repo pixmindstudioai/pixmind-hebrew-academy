@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -523,23 +523,15 @@ const EditTaskDialog = ({ task, open, onOpenChange }: EditTaskDialogProps) => {
   
   const updateTask = useUpsertLessonTask();
   
-  // Reset form when task changes
-  useState(() => {
-    if (task) {
+  // Reset form when task changes or dialog opens
+  useEffect(() => {
+    if (open && task) {
       setInstructions(task.instructions);
       setAllowedTypes(task.allowed_types);
       setIsMandatory(task.is_mandatory);
       setIsActive(task.is_active);
     }
-  });
-  
-  // Update form when dialog opens
-  if (open && task && instructions !== task.instructions) {
-    setInstructions(task.instructions);
-    setAllowedTypes(task.allowed_types);
-    setIsMandatory(task.is_mandatory);
-    setIsActive(task.is_active);
-  }
+  }, [open, task]);
   
   const handleSave = async () => {
     if (!task) return;
