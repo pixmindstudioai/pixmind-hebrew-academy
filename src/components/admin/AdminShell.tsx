@@ -15,7 +15,8 @@ import {
   ChevronLeft,
   Package,
   FolderOpen,
-  Users2
+  Users2,
+  Megaphone
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -56,6 +57,12 @@ const AdminShell = () => {
       label: 'קבוצות ודיונים',
       icon: Users2,
       description: 'ניהול קבוצות דיון ופורומים'
+    },
+    {
+      href: '/admin/announcements',
+      label: 'הכרזות',
+      icon: Megaphone,
+      description: 'ניהול הכרזות והודעות למשתמשים'
     },
     {
       href: '/admin/students',

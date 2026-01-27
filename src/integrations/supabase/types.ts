@@ -52,6 +52,94 @@ export type Database = {
           },
         ]
       }
+      announcement_visibility: {
+        Row: {
+          announcement_id: string
+          bundle_id: string | null
+          created_at: string
+          id: string
+          module_id: string | null
+        }
+        Insert: {
+          announcement_id: string
+          bundle_id?: string | null
+          created_at?: string
+          id?: string
+          module_id?: string | null
+        }
+        Update: {
+          announcement_id?: string
+          bundle_id?: string | null
+          created_at?: string
+          id?: string
+          module_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcement_visibility_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "announcements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcement_visibility_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcement_visibility_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      announcements: {
+        Row: {
+          access_type: string
+          content: string
+          created_at: string
+          expire_date: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          is_pinned: boolean
+          publish_date: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          access_type?: string
+          content: string
+          created_at?: string
+          expire_date?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_pinned?: boolean
+          publish_date?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          access_type?: string
+          content?: string
+          created_at?: string
+          expire_date?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_pinned?: boolean
+          publish_date?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bundle_modules: {
         Row: {
           bundle_id: string
@@ -1965,6 +2053,10 @@ export type Database = {
           p_notes?: string
         }
         Returns: undefined
+      }
+      user_can_view_announcement: {
+        Args: { p_announcement_id: string; p_user_email: string }
+        Returns: boolean
       }
       user_has_group_access: {
         Args: { p_group_id: string; p_user_email: string }
