@@ -27,6 +27,7 @@ import SettingsPage from "./pages/admin/SettingsPage";
 import PaymentsPage from "./pages/admin/PaymentsPage";
 import PurchasesPage from "./pages/admin/PurchasesPage";
 import MCPToolsPage from "./pages/admin/MCPToolsPage";
+import BundlesPage from "./pages/admin/BundlesPage";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +60,9 @@ const App = () => (
                 </Route>
                 <Route path="content" element={<AdminShell />}>
                   <Route index element={<ContentPage />} />
+                </Route>
+                <Route path="bundles" element={<AdminShell />}>
+                  <Route index element={<BundlesPage />} />
                 </Route>
                 <Route path="modules/:moduleId/cohorts" element={<AdminShell />}>
                   <Route index element={<CohortsPage />} />
