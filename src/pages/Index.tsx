@@ -1,7 +1,7 @@
 import { ArrowLeft, BookOpen, Play, Star, Users, Trophy, LogIn, UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import ModuleCard from "@/components/shared/ModuleCard";
 import { useAuth } from "@/hooks/useAuth";
 import { useVerifiedModules } from "@/hooks/useContentData";
@@ -16,10 +16,7 @@ const Index = () => {
 
   // Filter modules to hide those with is_hidden unless user has access
   const visibleModules = modules.filter(module => {
-    // If not hidden, show it
     if (!module.is_hidden) return true;
-    
-    // If hidden, only show if user has access
     return userAccess.some(access => access.module_id === module.id);
   });
 
@@ -32,8 +29,6 @@ const Index = () => {
       }
       return;
     }
-    
-    // Navigate to module or courses page as appropriate
     window.location.href = `/courses/${module.id}`;
   };
 
@@ -48,28 +43,28 @@ const Index = () => {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section 
-        className="relative min-h-[80vh] flex items-center justify-center bg-cover bg-center bg-no-repeat"
+        className="relative min-h-[85vh] flex items-center justify-center bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${heroBackground})` }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/90" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background/70 to-background" />
         
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in">
+          <h1 className="text-5xl md:text-7xl font-bold mb-8 animate-fade-in text-balance">
             <span className="gradient-text">אקדמיית</span>
             <br />
             <span className="text-foreground">PixMind Studio</span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed animate-fade-in">
+          <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed animate-fade-in">
             {isAuthenticated ? (
               <>
                 שלום {user?.user_metadata?.full_name ? user.user_metadata.full_name.split(' ')[0] : 'חבר'}! 
                 <br />
-                המשך את המסע שלך בלימוד עברית עם המערכת המתקדמת שלנו
+                המשך את המסע שלך בלימוד עם המערכת המתקדמת שלנו
               </>
             ) : (
               <>
-                פלטפורמת הלימוד המתקדמת ביותר ללימוד עברית
+                פלטפורמת הלימוד המתקדמת ביותר
                 <br />
                 עם מערכת מודולרית, נגן וידאו מותאם אישית, ומעקב התקדמות
               </>
@@ -79,14 +74,14 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-scale-in">
             {isAuthenticated ? (
               <>
-                <Button asChild size="lg" variant="hero" className="text-lg px-8 py-4">
+                <Button asChild size="xl" variant="hero">
                   <Link to="/courses">
                     המשך ללמוד
                     <ArrowLeft className="w-5 h-5" />
                   </Link>
                 </Button>
                 
-                <Button asChild size="lg" variant="outline" className="text-lg px-8 py-4">
+                <Button asChild size="xl" variant="outline">
                   <Link to="/courses">
                     גלה קורסים נוספים
                   </Link>
@@ -94,14 +89,14 @@ const Index = () => {
               </>
             ) : (
               <>
-                <Button asChild size="lg" variant="hero" className="text-lg px-8 py-4">
+                <Button asChild size="xl" variant="hero">
                   <Link to="/signup">
                     <UserPlus className="w-5 h-5" />
                     הרשם בחינם עכשיו
                   </Link>
                 </Button>
                 
-                <Button asChild size="lg" variant="outline" className="text-lg px-8 py-4">
+                <Button asChild size="xl" variant="outline">
                   <Link to="/login">
                     <LogIn className="w-5 h-5" />
                     כבר יש לך חשבון? התחבר
@@ -114,16 +109,21 @@ const Index = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 bg-gradient-secondary border-y border-border/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+      <section className="py-20 bg-card border-y border-border/30">
+        <div className="section-container">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {stats.map((stat, index) => {
               const Icon = stat.icon;
               return (
-                <Card key={index} className="glass-card text-center hover:scale-105 transition-transform duration-300">
+                <Card 
+                  key={index} 
+                  className="text-center interactive-card border-border/40"
+                >
                   <CardContent className="p-6">
-                    <Icon className="w-8 h-8 text-primary mx-auto mb-4" />
-                    <div className="text-2xl md:text-3xl font-bold mb-2 text-foreground">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                      <Icon className="w-6 h-6 text-primary" />
+                    </div>
+                    <div className="text-2xl md:text-3xl font-bold mb-1 text-foreground">
                       {stat.value}
                     </div>
                     <div className="text-sm text-muted-foreground">
@@ -138,20 +138,20 @@ const Index = () => {
       </section>
 
       {/* Featured Courses */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-24">
+        <div className="section-container">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6 gradient-text">
               הקורסים הפופולריים
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              בחר מבין הקורסים המובילים שלנו והתחל את המסע שלך בלימוד העברית
+              בחר מבין הקורסים המובילים שלנו והתחל את המסע שלך
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
             {modulesLoading ? (
-              <div className="col-span-full text-center py-8 text-muted-foreground">
+              <div className="col-span-full text-center py-12 text-muted-foreground">
                 טוען קורסים...
               </div>
             ) : visibleModules.length > 0 ? (
@@ -164,8 +164,10 @@ const Index = () => {
                 />
               ))
             ) : (
-              <div className="col-span-full text-center py-12 text-muted-foreground">
-                <BookOpen className="w-16 h-16 mx-auto mb-4 opacity-50" />
+              <div className="col-span-full text-center py-16 text-muted-foreground">
+                <div className="w-20 h-20 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-6">
+                  <BookOpen className="w-10 h-10 opacity-50" />
+                </div>
                 <p className="text-lg font-medium mb-2">אין קורסים זמינים כרגע</p>
                 <p className="text-sm">חזרו אלינו בקרוב לקורסים חדשים ומרתקים</p>
               </div>
@@ -173,7 +175,7 @@ const Index = () => {
           </div>
 
           <div className="text-center">
-            <Button asChild size="lg" variant="outline" className="button-glow">
+            <Button asChild size="lg" variant="outline">
               <Link to="/courses">
                 צפה בכל הקורסים
                 <ArrowLeft className="w-5 h-5" />
@@ -184,8 +186,8 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-gradient-secondary">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-24 bg-card border-y border-border/30">
+        <div className="section-container">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6 gradient-text">
               למה לבחור בנו?
@@ -196,43 +198,37 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="glass-card hover:scale-105 transition-transform duration-300">
-              <CardHeader>
-                <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center mb-4">
-                  <BookOpen className="w-6 h-6 text-primary-foreground" />
+            <Card className="interactive-card">
+              <CardContent className="p-8">
+                <div className="w-14 h-14 rounded-xl bg-gradient-primary flex items-center justify-center mb-6">
+                  <BookOpen className="w-7 h-7 text-primary-foreground" />
                 </div>
-                <CardTitle>מבנה מודולרי</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
+                <h3 className="text-xl font-semibold mb-3">מבנה מודולרי</h3>
+                <p className="text-muted-foreground leading-relaxed">
                   מערכת לימוד מתקדמת המחולקת למודולים, פרקים ושיעורים לחוויית למידה מיטבית
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="glass-card hover:scale-105 transition-transform duration-300">
-              <CardHeader>
-                <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center mb-4">
-                  <Play className="w-6 h-6 text-primary-foreground" />
+            <Card className="interactive-card">
+              <CardContent className="p-8">
+                <div className="w-14 h-14 rounded-xl bg-gradient-primary flex items-center justify-center mb-6">
+                  <Play className="w-7 h-7 text-primary-foreground" />
                 </div>
-                <CardTitle>נגן וידאו מתקדם</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
+                <h3 className="text-xl font-semibold mb-3">נגן וידאו מתקדם</h3>
+                <p className="text-muted-foreground leading-relaxed">
                   נגן וידאו מותאם אישית עם פקדים נוחים, כתוביות ומהירות השמעה משתנה
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="glass-card hover:scale-105 transition-transform duration-300">
-              <CardHeader>
-                <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center mb-4">
-                  <Star className="w-6 h-6 text-primary-foreground" />
+            <Card className="interactive-card">
+              <CardContent className="p-8">
+                <div className="w-14 h-14 rounded-xl bg-gradient-primary flex items-center justify-center mb-6">
+                  <Star className="w-7 h-7 text-primary-foreground" />
                 </div>
-                <CardTitle>מעקב התקדמות</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
+                <h3 className="text-xl font-semibold mb-3">מעקב התקדמות</h3>
+                <p className="text-muted-foreground leading-relaxed">
                   מעקב מדויק אחר ההתקדמות שלך בכל רמה - שיעור, פרק ומודול
                 </p>
               </CardContent>

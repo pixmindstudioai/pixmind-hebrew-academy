@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
 import { useModules, useUserProgress } from '@/hooks/useContentData';
@@ -25,7 +26,6 @@ const Profile = () => {
   });
   const [error, setError] = useState('');
 
-  // Use individual hooks
   const { data: modules = [], isLoading: modulesLoading } = useModules('all');
   const { data: userProgress = [], isLoading: progressLoading } = useUserProgress(user?.id);
   const [comments, setComments] = useState<any[]>([]);
@@ -44,7 +44,6 @@ const Profile = () => {
         email: session.user.email || ''
       });
 
-      // Fetch user profile from users table
       const { data: profile } = await supabase
         .from('users')
         .select('*')
@@ -53,7 +52,6 @@ const Profile = () => {
       
       setUserProfile(profile);
 
-      // Fetch user comments
       if (session.user) {
         const { data: userComments } = await supabase
           .from('comments')
@@ -77,7 +75,6 @@ const Profile = () => {
       }
     );
 
-    // Realtime subscription for profile updates
     const profileChannel = supabase
       .channel('profile-changes')
       .on(
@@ -112,14 +109,12 @@ const Profile = () => {
     setError('');
 
     try {
-      // Update auth metadata
       const { error: authError } = await supabase.auth.updateUser({
         data: { full_name: formData.fullName }
       });
 
       if (authError) throw authError;
 
-      // Update users table
       const { error: dbError } = await supabase
         .from('users')
         .update({ full_name: formData.fullName })
@@ -127,7 +122,7 @@ const Profile = () => {
 
       if (dbError) throw dbError;
 
-      toast.success("פרופיל עודכן בהצלחה! הפרטים שלך נשמרו");
+      toast.success("פרופיל עודכן בהצלחה!");
       setIsEditing(false);
     } catch (err) {
       setError('שגיאה בעדכון הפרופיל');
@@ -145,22 +140,12 @@ const Profile = () => {
     if (error) {
       toast.error("לא ניתן להתנתק. אנא נסה שוב");
     } else {
-      toast.success("התנתקת בהצלחה! להתראות!");
+      toast.success("התנתקת בהצלחה!");
       navigate('/');
     }
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
   const getModuleProgress = (moduleId: string) => {
-    // This is a simplified calculation - you might want to improve this logic
     const moduleProgressEntries = userProgress.filter(p => p.lesson_id);
     const completedLessons = moduleProgressEntries.filter(p => p.completed).length;
     const totalLessons = moduleProgressEntries.length || 1;
@@ -168,213 +153,227 @@ const Profile = () => {
   };
 
   if (!user) {
-    return <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-        <p className="text-muted-foreground">טוען פרופיל...</p>
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">טוען פרופיל...</p>
+        </div>
       </div>
-    </div>;
+    );
   }
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="section-container py-8">
         {/* Profile Header */}
-        <div className="glass-card p-8 rounded-xl mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold gradient-text">הפרופיל שלי</h1>
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              size="sm"
-              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-            >
-              <LogOut className="w-4 h-4 ml-2" />
-              התנתק
-            </Button>
-          </div>
+        <Card className="mb-8">
+          <CardContent className="p-6 md:p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h1 className="text-2xl md:text-3xl font-bold gradient-text">הפרופיל שלי</h1>
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                size="sm"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <LogOut className="w-4 h-4 ml-2" />
+                התנתק
+              </Button>
+            </div>
 
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-            {user && (
-              <ProfileImageUpload
-                userId={user.id}
-                currentImageUrl={userProfile?.profile_picture_url}
-                userName={formData.fullName || formData.email}
-                onImageUpdate={handleImageUpdate}
-              />
-            )}
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+              {user && (
+                <ProfileImageUpload
+                  userId={user.id}
+                  currentImageUrl={userProfile?.profile_picture_url}
+                  userName={formData.fullName || formData.email}
+                  onImageUpdate={handleImageUpdate}
+                />
+              )}
 
-            <div className="flex-1 w-full">
-              {isEditing ? (
-                <form onSubmit={handleUpdateProfile} className="space-y-4">
-                  {error && (
-                    <Alert variant="destructive">
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  )}
-                  
+              <div className="flex-1 w-full">
+                {isEditing ? (
+                  <form onSubmit={handleUpdateProfile} className="space-y-4">
+                    {error && (
+                      <Alert variant="destructive">
+                        <AlertDescription>{error}</AlertDescription>
+                      </Alert>
+                    )}
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="fullName">שם מלא</Label>
+                      <Input
+                        id="fullName"
+                        name="fullName"
+                        value={formData.fullName}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="email">אימייל</Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        value={formData.email}
+                        disabled
+                        className="opacity-60"
+                      />
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button type="submit" size="sm" disabled={isLoading}>
+                        {isLoading ? 'שומר...' : 'שמור'}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsEditing(false)}
+                      >
+                        ביטול
+                      </Button>
+                    </div>
+                  </form>
+                ) : (
                   <div>
-                    <Label htmlFor="fullName" className="text-sm font-medium">
-                      שם מלא
-                    </Label>
-                    <Input
-                      id="fullName"
-                      name="fullName"
-                      value={formData.fullName}
-                      onChange={handleInputChange}
-                      className="text-right"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="email" className="text-sm font-medium">
-                      אימייל
-                    </Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      className="text-right"
-                      disabled
-                    />
-                  </div>
-
-                  <div className="flex space-x-2 space-x-reverse">
-                    <Button type="submit" size="sm" disabled={isLoading}>
-                      {isLoading ? 'שומר...' : 'שמור'}
-                    </Button>
+                    <h2 className="text-xl font-semibold mb-1">{formData.fullName || 'משתמש'}</h2>
+                    <p className="text-muted-foreground mb-4">{formData.email}</p>
                     <Button
-                      type="button"
+                      onClick={() => setIsEditing(true)}
                       variant="outline"
                       size="sm"
-                      onClick={() => setIsEditing(false)}
                     >
-                      ביטול
+                      <Edit className="w-4 h-4 ml-2" />
+                      ערוך פרופיל
                     </Button>
                   </div>
-                </form>
-              ) : (
-                <div>
-                  <h2 className="text-2xl font-semibold mb-2">{formData.fullName || 'משתמש'}</h2>
-                  <p className="text-muted-foreground mb-4">{formData.email}</p>
-                  <Button
-                    onClick={() => setIsEditing(true)}
-                    variant="outline"
-                    size="sm"
-                  >
-                    <Edit className="w-4 h-4 ml-2" />
-                    ערוך פרופיל
-                  </Button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Profile Tabs */}
         <Tabs defaultValue="courses" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
-            <TabsTrigger value="courses" className="flex items-center space-x-2 space-x-reverse">
+          <TabsList className="w-full justify-start mb-6">
+            <TabsTrigger value="courses" className="gap-2">
               <BookOpen className="w-4 h-4" />
               <span>הקורסים שלי</span>
             </TabsTrigger>
-            <TabsTrigger value="comments" className="flex items-center space-x-2 space-x-reverse">
+            <TabsTrigger value="comments" className="gap-2">
               <MessageCircle className="w-4 h-4" />
-              <span>הודעות שלי</span>
+              <span>הודעות</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center space-x-2 space-x-reverse">
+            <TabsTrigger value="settings" className="gap-2">
               <Settings className="w-4 h-4" />
               <span>הגדרות</span>
             </TabsTrigger>
           </TabsList>
 
           {/* My Courses Tab */}
-          <TabsContent value="courses" className="space-y-6">
-            <div className="glass-card p-6 rounded-xl">
-              <h3 className="text-xl font-semibold mb-6">הקורסים שלי</h3>
-              {modules.length > 0 ? (
-                <div className="grid gap-4">
-                  {modules.map((module) => {
-                    const progress = getModuleProgress(module.id);
-                    return (
-                      <div key={module.id} className="border border-border/50 rounded-lg p-4 hover:bg-accent/50 transition-colors">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-medium">{module.title}</h4>
-                          <span className="text-sm text-muted-foreground">{progress}%</span>
+          <TabsContent value="courses">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">הקורסים שלי</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {modules.length > 0 ? (
+                  <div className="space-y-4">
+                    {modules.map((module) => {
+                      const progress = getModuleProgress(module.id);
+                      return (
+                        <div 
+                          key={module.id} 
+                          className="p-4 rounded-xl border border-border/50 hover:border-primary/30 transition-colors"
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <h4 className="font-medium">{module.title}</h4>
+                            <span className="text-sm text-primary font-medium">{progress}%</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-3 line-clamp-1">
+                            {module.description}
+                          </p>
+                          <Progress value={progress} className="h-2" />
                         </div>
-                        <p className="text-sm text-muted-foreground mb-3">{module.description}</p>
-                        <div className="w-full bg-secondary rounded-full h-2">
-                          <div
-                            className="progress-gradient h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${progress}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-muted-foreground text-center py-8">
-                  עדיין לא נרשמת לאף קורס
-                </p>
-              )}
-            </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-40" />
+                    <p>עדיין לא נרשמת לאף קורס</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* My Comments Tab */}
-          <TabsContent value="comments" className="space-y-6">
-            <div className="glass-card p-6 rounded-xl">
-              <h3 className="text-xl font-semibold mb-6">הודעות שלי</h3>
-              {comments.length > 0 ? (
-                <div className="space-y-4">
-                  {comments.slice(0, 10).map((comment) => (
-                    <div key={comment.id} className="border border-border/50 rounded-lg p-4">
-                      <p className="text-sm mb-2">{comment.content}</p>
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>סטטוס: {comment.status === 'approved' ? 'אושר' : 'ממתין לאישור'}</span>
-                        <span>{new Date(comment.created_at).toLocaleDateString('he-IL')}</span>
+          <TabsContent value="comments">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">ההודעות שלי</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {comments.length > 0 ? (
+                  <div className="space-y-3">
+                    {comments.slice(0, 10).map((comment) => (
+                      <div 
+                        key={comment.id} 
+                        className="p-4 rounded-xl border border-border/50"
+                      >
+                        <p className="text-sm mb-3">{comment.content}</p>
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>
+                            סטטוס: {comment.status === 'approved' ? 'אושר' : 'ממתין'}
+                          </span>
+                          <span>{new Date(comment.created_at).toLocaleDateString('he-IL')}</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted-foreground text-center py-8">
-                  עדיין לא כתבת הודעות
-                </p>
-              )}
-            </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-40" />
+                    <p>עדיין לא כתבת הודעות</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Settings Tab */}
-          <TabsContent value="settings" className="space-y-6">
-            <div className="glass-card p-6 rounded-xl">
-              <h3 className="text-xl font-semibold mb-6">הגדרות</h3>
-              <div className="space-y-6">
+          <TabsContent value="settings">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">הגדרות</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
                 <div>
-                  <h4 className="font-medium mb-4">שינוי סיסמה</h4>
-                  <Button variant="outline">
-                    שנה סיסמה
-                  </Button>
+                  <h4 className="font-medium mb-3">שינוי סיסמה</h4>
+                  <Button variant="outline" size="sm">שנה סיסמה</Button>
                 </div>
                 
-                <div>
-                  <h4 className="font-medium mb-4">העדפות התראות</h4>
-                  <div className="space-y-2">
-                    <label className="flex items-center space-x-2 space-x-reverse">
-                      <input type="checkbox" className="rounded" defaultChecked />
+                <div className="pt-4 border-t border-border/50">
+                  <h4 className="font-medium mb-3">העדפות התראות</h4>
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input type="checkbox" className="rounded border-border" defaultChecked />
                       <span className="text-sm">התראות על קורסים חדשים</span>
                     </label>
-                    <label className="flex items-center space-x-2 space-x-reverse">
-                      <input type="checkbox" className="rounded" defaultChecked />
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input type="checkbox" className="rounded border-border" defaultChecked />
                       <span className="text-sm">התראות על תגובות</span>
                     </label>
                   </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
