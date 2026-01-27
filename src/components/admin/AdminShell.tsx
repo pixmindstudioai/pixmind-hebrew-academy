@@ -16,7 +16,8 @@ import {
   Package,
   FolderOpen,
   Users2,
-  Megaphone
+  Megaphone,
+  Calendar
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -63,6 +64,12 @@ const AdminShell = () => {
       label: 'הכרזות',
       icon: Megaphone,
       description: 'ניהול הכרזות והודעות למשתמשים'
+    },
+    {
+      href: '/admin/calendar',
+      label: 'יומן',
+      icon: Calendar,
+      description: 'ניהול אירועים, מפגשים ודדליינים'
     },
     {
       href: '/admin/students',

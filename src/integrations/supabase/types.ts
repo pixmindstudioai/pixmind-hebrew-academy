@@ -233,6 +233,100 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_event_visibility: {
+        Row: {
+          bundle_id: string | null
+          created_at: string
+          event_id: string
+          id: string
+          module_id: string | null
+        }
+        Insert: {
+          bundle_id?: string | null
+          created_at?: string
+          event_id: string
+          id?: string
+          module_id?: string | null
+        }
+        Update: {
+          bundle_id?: string | null
+          created_at?: string
+          event_id?: string
+          id?: string
+          module_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_event_visibility_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_event_visibility_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_event_visibility_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_events: {
+        Row: {
+          access_type: string
+          attachment_url: string | null
+          created_at: string
+          description: string | null
+          end_datetime: string | null
+          event_type: Database["public"]["Enums"]["event_type"]
+          external_link: string | null
+          id: string
+          is_active: boolean
+          location: string | null
+          start_datetime: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          access_type?: string
+          attachment_url?: string | null
+          created_at?: string
+          description?: string | null
+          end_datetime?: string | null
+          event_type?: Database["public"]["Enums"]["event_type"]
+          external_link?: string | null
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          start_datetime: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          access_type?: string
+          attachment_url?: string | null
+          created_at?: string
+          description?: string | null
+          end_datetime?: string | null
+          event_type?: Database["public"]["Enums"]["event_type"]
+          external_link?: string | null
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          start_datetime?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chapters: {
         Row: {
           cohort_id: string | null
@@ -2058,6 +2152,10 @@ export type Database = {
         Args: { p_announcement_id: string; p_user_email: string }
         Returns: boolean
       }
+      user_can_view_calendar_event: {
+        Args: { p_event_id: string; p_user_email: string }
+        Returns: boolean
+      }
       user_has_group_access: {
         Args: { p_group_id: string; p_user_email: string }
         Returns: boolean
@@ -2075,6 +2173,7 @@ export type Database = {
       comment_status: "pending" | "approved" | "hidden" | "flagged"
       content_status: "draft" | "active" | "archived"
       embed_type: "link" | "iframe"
+      event_type: "live_lesson" | "deadline" | "meeting" | "broadcast" | "other"
       message_status: "new" | "viewed" | "closed"
       message_type: "support" | "question" | "feedback" | "purchase" | "general"
       moderation_action: "approve" | "hide" | "flag" | "restore"
@@ -2212,6 +2311,7 @@ export const Constants = {
       comment_status: ["pending", "approved", "hidden", "flagged"],
       content_status: ["draft", "active", "archived"],
       embed_type: ["link", "iframe"],
+      event_type: ["live_lesson", "deadline", "meeting", "broadcast", "other"],
       message_status: ["new", "viewed", "closed"],
       message_type: ["support", "question", "feedback", "purchase", "general"],
       moderation_action: ["approve", "hide", "flag", "restore"],
