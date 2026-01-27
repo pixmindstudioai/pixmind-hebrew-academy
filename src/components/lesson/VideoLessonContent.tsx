@@ -1,9 +1,12 @@
 import EnhancedVideoPlayer from '@/components/EnhancedVideoPlayer';
+import AddToNotebookButton from '@/components/notebook/AddToNotebookButton';
 
 interface VideoLessonContentProps {
   videoUrl: string;
   title: string;
   lessonId: string;
+  moduleId?: string;
+  chapterId?: string;
   description?: string;
   richText?: string;
   onNextLesson?: () => void;
@@ -14,6 +17,8 @@ const VideoLessonContent = ({
   videoUrl, 
   title, 
   lessonId,
+  moduleId,
+  chapterId,
   description,
   richText,
   onNextLesson,
@@ -30,6 +35,17 @@ const VideoLessonContent = ({
           className="w-full"
           onNextLesson={onNextLesson}
           nextLessonTitle={nextLessonTitle}
+        />
+      </div>
+
+      {/* Add to Smart Notebook Button */}
+      <div className="flex justify-start">
+        <AddToNotebookButton
+          lessonId={lessonId}
+          lessonTitle={title}
+          moduleId={moduleId}
+          chapterId={chapterId}
+          videoUrl={videoUrl}
         />
       </div>
 

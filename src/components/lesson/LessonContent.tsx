@@ -16,6 +16,8 @@ interface LessonContentProps {
   lessonType: LessonType;
   title: string;
   lessonId: string;
+  moduleId?: string;
+  chapterId?: string;
   description?: string;
   richText?: string;
   videoUrl?: string;
@@ -28,6 +30,8 @@ const LessonContent = ({
   lessonType,
   title,
   lessonId,
+  moduleId,
+  chapterId,
   description,
   richText,
   videoUrl,
@@ -45,6 +49,8 @@ const LessonContent = ({
           videoUrl={videoUrl}
           title={title}
           lessonId={lessonId}
+          moduleId={moduleId}
+          chapterId={chapterId}
           description={description}
           richText={richText}
           onNextLesson={onNextLesson}
