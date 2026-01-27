@@ -52,6 +52,99 @@ export type Database = {
           },
         ]
       }
+      bundle_modules: {
+        Row: {
+          bundle_id: string
+          created_at: string
+          id: string
+          module_id: string
+          order_index: number
+        }
+        Insert: {
+          bundle_id: string
+          created_at?: string
+          id?: string
+          module_id: string
+          order_index?: number
+        }
+        Update: {
+          bundle_id?: string
+          created_at?: string
+          id?: string
+          module_id?: string
+          order_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bundle_modules_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bundle_modules_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bundles: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_paid: boolean
+          order_index: number
+          payment_url: string | null
+          regular_price: number | null
+          sale_active: boolean | null
+          sale_end_date: string | null
+          sale_price: number | null
+          sale_start_date: string | null
+          status: string
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_paid?: boolean
+          order_index?: number
+          payment_url?: string | null
+          regular_price?: number | null
+          sale_active?: boolean | null
+          sale_end_date?: string | null
+          sale_price?: number | null
+          sale_start_date?: string | null
+          status?: string
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_paid?: boolean
+          order_index?: number
+          payment_url?: string | null
+          regular_price?: number | null
+          sale_active?: boolean | null
+          sale_end_date?: string | null
+          sale_price?: number | null
+          sale_start_date?: string | null
+          status?: string
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chapters: {
         Row: {
           cohort_id: string | null
@@ -1124,6 +1217,47 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_bundle_access: {
+        Row: {
+          bundle_id: string
+          expires_at: string | null
+          granted_at: string
+          granted_by: string | null
+          id: string
+          notes: string | null
+          transaction_id: string | null
+          user_email: string
+        }
+        Insert: {
+          bundle_id: string
+          expires_at?: string | null
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          notes?: string | null
+          transaction_id?: string | null
+          user_email: string
+        }
+        Update: {
+          bundle_id?: string
+          expires_at?: string | null
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          notes?: string | null
+          transaction_id?: string | null
+          user_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_bundle_access_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "bundles"
             referencedColumns: ["id"]
           },
         ]
