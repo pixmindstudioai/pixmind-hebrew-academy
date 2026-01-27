@@ -205,6 +205,8 @@ const LessonView = () => {
                 lessonType={(lesson.lesson_type as LessonType) || 'text'}
                 title={lesson.title}
                 lessonId={lesson.id!}
+                moduleId={lesson.chapters?.module_id}
+                chapterId={lesson.chapter_id}
                 description={lesson.description}
                 richText={lesson.rich_text}
                 videoUrl={lesson.video_url}

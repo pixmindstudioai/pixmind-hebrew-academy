@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.mcp-tools]
 verify_jwt = false
+
+[functions.notebook-chat]
+verify_jwt = false

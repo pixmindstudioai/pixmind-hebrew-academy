@@ -1417,6 +1417,106 @@ export type Database = {
         }
         Relationships: []
       }
+      notebook_entries: {
+        Row: {
+          chapter_id: string | null
+          created_at: string
+          id: string
+          lesson_id: string
+          lesson_title: string
+          module_id: string | null
+          notebook_id: string
+          notes: string | null
+          video_timestamp: number | null
+          video_url: string | null
+        }
+        Insert: {
+          chapter_id?: string | null
+          created_at?: string
+          id?: string
+          lesson_id: string
+          lesson_title: string
+          module_id?: string | null
+          notebook_id: string
+          notes?: string | null
+          video_timestamp?: number | null
+          video_url?: string | null
+        }
+        Update: {
+          chapter_id?: string | null
+          created_at?: string
+          id?: string
+          lesson_id?: string
+          lesson_title?: string
+          module_id?: string | null
+          notebook_id?: string
+          notes?: string | null
+          video_timestamp?: number | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notebook_entries_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notebook_entries_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notebook_entries_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notebook_entries_notebook_id_fkey"
+            columns: ["notebook_id"]
+            isOneToOne: false
+            referencedRelation: "user_notebooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notebook_messages: {
+        Row: {
+          created_at: string
+          entry_id: string
+          id: string
+          message: string
+          sender: string
+        }
+        Insert: {
+          created_at?: string
+          entry_id: string
+          id?: string
+          message: string
+          sender: string
+        }
+        Update: {
+          created_at?: string
+          entry_id?: string
+          id?: string
+          message?: string
+          sender?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notebook_messages_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "notebook_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       oauth_auth_codes: {
         Row: {
           client_id: string
@@ -1898,6 +1998,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_notebooks: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_progress: {
         Row: {
