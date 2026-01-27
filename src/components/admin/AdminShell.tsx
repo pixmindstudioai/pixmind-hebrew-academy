@@ -12,7 +12,8 @@ import {
   CreditCard,
   ShoppingCart,
   Bot,
-  ChevronLeft
+  ChevronLeft,
+  Package
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -35,6 +36,12 @@ const AdminShell = () => {
       label: 'ניהול תוכן',
       icon: BookOpen,
       description: 'יצירה ועריכה של מודולים, פרקים ושיעורים'
+    },
+    {
+      href: '/admin/bundles',
+      label: 'חבילות קורסים',
+      icon: Package,
+      description: 'יצירה וניהול חבילות קורסים משולבות'
     },
     {
       href: '/admin/students',

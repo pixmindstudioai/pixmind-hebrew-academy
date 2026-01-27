@@ -23,6 +23,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Gift } from 'lucide-react';
 import ThumbnailUploader from './ThumbnailUploader';
+import ModuleBundlesInfo from './ModuleBundlesInfo';
 
 const moduleSchema = z.object({
   title: z.string().min(2, 'כותרת המודול חייבת להכיל לפחות 2 תווים').max(120, 'כותרת המודול לא יכולה להכיל יותר מ-120 תווים'),
@@ -129,6 +130,11 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading, showActions = true 
             {module ? 'ערוך את פרטי המודול' : 'צור מודול חדש עם פרקים ושיעורים'}
           </p>
         </div>
+      )}
+
+      {/* Show bundle membership info when editing an existing module */}
+      {module && (
+        <ModuleBundlesInfo moduleId={module.id} />
       )}
 
       <Form {...form}>
