@@ -532,6 +532,14 @@ const EditTaskDialog = ({ task, open, onOpenChange }: EditTaskDialogProps) => {
       setIsActive(task.is_active);
     }
   }, [open, task]);
+
+  const handleMandatoryChange = (checked: boolean) => {
+    setIsMandatory((prev) => (prev === checked ? prev : checked));
+  };
+
+  const handleActiveChange = (checked: boolean) => {
+    setIsActive((prev) => (prev === checked ? prev : checked));
+  };
   
   const handleSave = async () => {
     if (!task) return;
@@ -610,12 +618,12 @@ const EditTaskDialog = ({ task, open, onOpenChange }: EditTaskDialogProps) => {
           
           <div className="flex items-center justify-between">
             <Label>משימת חובה (חוסמת התקדמות)</Label>
-            <Switch checked={isMandatory} onCheckedChange={setIsMandatory} />
+            <Switch checked={isMandatory} onCheckedChange={handleMandatoryChange} />
           </div>
           
           <div className="flex items-center justify-between">
             <Label>משימה פעילה</Label>
-            <Switch checked={isActive} onCheckedChange={setIsActive} />
+            <Switch checked={isActive} onCheckedChange={handleActiveChange} />
           </div>
           
           {isMandatory && (
@@ -743,6 +751,14 @@ const AddTaskDialog = ({ open, onOpenChange }: AddTaskDialogProps) => {
         : [...prev, type]
     );
   };
+
+  const handleMandatoryChange = (checked: boolean) => {
+    setIsMandatory((prev) => (prev === checked ? prev : checked));
+  };
+
+  const handleActiveChange = (checked: boolean) => {
+    setIsActive((prev) => (prev === checked ? prev : checked));
+  };
   
   const selectedLessonData = lessons.find((l: any) => l.id === selectedLesson) as any;
   
@@ -846,12 +862,12 @@ const AddTaskDialog = ({ open, onOpenChange }: AddTaskDialogProps) => {
           
           <div className="flex items-center justify-between">
             <Label>משימת חובה (חוסמת התקדמות)</Label>
-            <Switch checked={isMandatory} onCheckedChange={setIsMandatory} />
+            <Switch checked={isMandatory} onCheckedChange={handleMandatoryChange} />
           </div>
           
           <div className="flex items-center justify-between">
             <Label>משימה פעילה</Label>
-            <Switch checked={isActive} onCheckedChange={setIsActive} />
+            <Switch checked={isActive} onCheckedChange={handleActiveChange} />
           </div>
           
           {isMandatory && (
