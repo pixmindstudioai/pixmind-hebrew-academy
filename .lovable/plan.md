@@ -1,43 +1,122 @@
 
+# תוכנית תיקון מערכת המשימות
 
-## תיקון שגיאת "Maximum update depth exceeded" ברכיב Switch
+## סיכום המצב הנוכחי
 
-### תיאור הבעיה
-השגיאה מתרחשת בגלל לולאת עדכונים אינסופית ברכיבי Switch של Radix UI. הבעיה קורית כאשר קוראים ישירות ל-setState בתוך onCheckedChange, מה שגורם להתנגשות עם המנגנון הפנימי של הרכיב.
+לאחר בדיקה מעמיקה, מערכת המשימות כבר מחוברת ל-Supabase ורוב הלוגיקה קיימת, אך יש בעיה אחת קריטית שמונעת מהעמוד לטעון כראוי.
 
-### קבצים שצריך לתקן
+## בעיה עיקרית שנמצאה
 
-**src/components/admin/LessonTaskManager.tsx**
-- שורה 207: השימוש ב-`onCheckedChange={setIsEnabled}` גורם ללולאה אינסופית
+### שגיאת React בקומפוננט TaskSubmissionSection
 
-### הפתרון הטכני
-
-יש להוסיף פונקציית wrapper שבודקת אם הערך באמת השתנה לפני עדכון ה-state:
+בקובץ `src/components/lesson/TaskSubmissionSection.tsx` (שורות 59-64) יש קוד שמפר את כללי React:
 
 ```typescript
-const handleEnabledChange = (checked: boolean) => {
-  setIsEnabled((prev) => (prev === checked ? prev : checked));
-};
+// ❌ קוד בעייתי - קריאה ל-setState בזמן רנדור
+if (effectiveStatus === 'rejected' && prevStatus !== 'rejected' && submission) {
+  setPrevStatus('rejected');
+  setShowRejectedDialog(true);
+}
 ```
 
-ואז להשתמש בפונקציה במקום setter ישיר:
+קריאה ל-`setState` בזמן הרנדור (לא בתוך `useEffect`) גורמת ללולאות עדכון אינסופיות.
 
-```tsx
-<Switch
-  id="task-enabled"
-  checked={isEnabled}
-  onCheckedChange={handleEnabledChange}
-  disabled={disabled}
-/>
+## מה כבר עובד
+
+| רכיב | סטטוס |
+|------|-------|
+| חיבור ל-Supabase | ✅ עובד |
+| טבלאות `lesson_tasks` ו-`task_submissions` | ✅ קיימות |
+| הרשאות RLS | ✅ מוגדרות נכון |
+| Edge Function לאימות AI | ✅ מוכן (עם LOVABLE_API_KEY) |
+| לוגיקת חסימת התקדמות | ✅ מיושמת ב-useCanProceedToLesson |
+| ממשק אדמין לניהול משימות | ✅ פעיל |
+| אפשרות לעקוף החלטת AI | ✅ קיימת |
+
+## תוכנית התיקון
+
+### שלב 1: תיקון שגיאת React
+
+**קובץ**: `src/components/lesson/TaskSubmissionSection.tsx`
+
+העברת הלוגיקה של הצגת הדיאלוג לתוך `useEffect`:
+
+```typescript
+// ✅ קוד מתוקן
+useEffect(() => {
+  if (effectiveStatus === 'rejected' && submission) {
+    setShowRejectedDialog(true);
+  }
+}, [effectiveStatus, submission]);
 ```
 
-### שינויים נדרשים
+**למה זה מתקן את הבעיה?**
+- React דורש שכל שינויי state יקרו בתוך event handlers או useEffect
+- הקוד הקיים מפעיל setState בזמן הרנדור, מה שגורם לרנדור נוסף, שמפעיל setState שוב - לולאה אינסופית
 
-1. **ב-LessonTaskManager.tsx:**
-   - הוספת פונקציית `handleEnabledChange` אחרי הגדרת ה-states (שורה 74)
-   - עדכון ה-Switch בשורה 204-209 להשתמש בפונקציה החדשה
+### שלב 2: אימות תהליך ה-AI
 
-### למה הפתרון עובד?
+הפונקציה `validate-task` כבר מוגדרת נכון:
+- משתמשת ב-LOVABLE_API_KEY (שקיים כ-Secret)
+- קוראת ל-Google Gemini דרך Lovable AI Gateway
+- מחזירה approved/rejected עם הסבר
 
-הפתרון מונע עדכון state כאשר הערך לא באמת משתנה. כאשר Radix UI Switch מפעיל את ה-callback כחלק מסנכרון פנימי, אם הערך זהה לקודם - לא מתבצע עדכון ולא נגרמת רנדור מחודש, וכך נשברת הלולאה האינסופית.
+**פעולה נדרשת**: בדיקה שה-Edge Function פרוסה
 
+### שלב 3: וידוא לוגיקת החסימה
+
+הלוגיקה כבר מיושמת בקוד:
+
+1. `useCanProceedToLesson` - בודק אם המשתמש יכול להמשיך לשיעור הבא
+2. `LessonView.tsx` - מציג התראה על שיעור נעול
+3. `isNextLessonBlocked()` - מונע ניווט לשיעור הבא
+
+---
+
+## פירוט טכני
+
+### קבצים לעריכה
+
+**1. src/components/lesson/TaskSubmissionSection.tsx**
+
+שינויים:
+- הסרת הקוד הבעייתי בשורות 57-64
+- הוספת useEffect לניהול הדיאלוג
+- הסרת ה-state `prevStatus` שלא נחוץ יותר
+
+```typescript
+// לפני התיקון (שורות 57-64):
+const [prevStatus, setPrevStatus] = useState<string | null>(null);
+if (effectiveStatus === 'rejected' && prevStatus !== 'rejected' && submission) {
+  setPrevStatus('rejected');
+  setShowRejectedDialog(true);
+} else if (effectiveStatus !== 'rejected' && prevStatus === 'rejected') {
+  setPrevStatus(effectiveStatus);
+}
+
+// אחרי התיקון:
+useEffect(() => {
+  // הצג דיאלוג רק כאשר הסטטוס הוא rejected ויש הגשה
+  if (effectiveStatus === 'rejected' && submission) {
+    setShowRejectedDialog(true);
+  }
+}, [effectiveStatus, submission]);
+```
+
+---
+
+## תוצאות צפויות
+
+לאחר התיקון:
+1. דף המשימות יטען בהצלחה ללא שגיאות
+2. משימות יוצגו מקובצות לפי קורס
+3. סטטוס כל משימה יוצג (לא הוגש/בבדיקה/אושר/נדחה)
+4. משימות חובה ימנעו מעבר לשיעור הבא עד לאישור
+5. הדיאלוג של דחייה יופיע כראוי
+
+## הערות נוספות
+
+- ה-LOVABLE_API_KEY כבר מוגדר ב-Secrets
+- אין צורך ב-Google Gemini API Key נפרד - המערכת משתמשת ב-Lovable AI Gateway
+- כל טקסטי הממשק כבר בעברית
+- הממשק כבר מותאם ל-RTL
