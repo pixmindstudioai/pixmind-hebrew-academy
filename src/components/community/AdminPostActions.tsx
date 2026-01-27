@@ -13,9 +13,10 @@ import { MoreVertical, Pin, PinOff, Lock, Unlock, Trash2 } from 'lucide-react';
 interface AdminPostActionsProps {
   post: GroupPost;
   groupId: string;
+  asDropdownItems?: boolean;
 }
 
-const AdminPostActions = ({ post, groupId }: AdminPostActionsProps) => {
+const AdminPostActions = ({ post, groupId, asDropdownItems = false }: AdminPostActionsProps) => {
   const togglePin = useTogglePostPin();
   const toggleLock = useTogglePostLock();
   const deletePost = useDeletePost();
@@ -36,6 +37,50 @@ const AdminPostActions = ({ post, groupId }: AdminPostActionsProps) => {
       deletePost.mutate({ postId: post.id, groupId });
     }
   };
+  
+  // Return just the menu items without the dropdown wrapper
+  if (asDropdownItems) {
+    return (
+      <>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleTogglePin}>
+          {post.is_pinned ? (
+            <>
+              <PinOff className="w-4 h-4 ml-2" />
+              בטל הצמדה
+            </>
+          ) : (
+            <>
+              <Pin className="w-4 h-4 ml-2" />
+              הצמד הודעה
+            </>
+          )}
+        </DropdownMenuItem>
+        
+        <DropdownMenuItem onClick={handleToggleLock}>
+          {post.is_locked ? (
+            <>
+              <Unlock className="w-4 h-4 ml-2" />
+              בטל נעילה
+            </>
+          ) : (
+            <>
+              <Lock className="w-4 h-4 ml-2" />
+              נעל דיון
+            </>
+          )}
+        </DropdownMenuItem>
+        
+        <DropdownMenuItem 
+          onClick={handleDelete}
+          className="text-destructive focus:text-destructive"
+        >
+          <Trash2 className="w-4 h-4 ml-2" />
+          מחק הודעה
+        </DropdownMenuItem>
+      </>
+    );
+  }
   
   return (
     <DropdownMenu>

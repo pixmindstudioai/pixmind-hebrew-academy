@@ -17,7 +17,8 @@ import {
   FolderOpen,
   Users2,
   Megaphone,
-  Calendar
+  Calendar,
+  ClipboardCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -70,6 +71,12 @@ const AdminShell = () => {
       label: 'יומן',
       icon: Calendar,
       description: 'ניהול אירועים, מפגשים ודדליינים'
+    },
+    {
+      href: '/admin/tasks',
+      label: 'ניהול משימות',
+      icon: ClipboardCheck,
+      description: 'ניהול משימות והגשות בכל הקורסים'
     },
     {
       href: '/admin/students',
