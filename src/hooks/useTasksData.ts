@@ -151,6 +151,8 @@ export const useUserTasks = () => {
     queryFn: async () => {
       if (!user?.email) return [];
 
+      const userEmail = user.email.toLowerCase();
+
       // First get all tasks for active lessons
       const { data: tasks, error: tasksError } = await supabase
         .from('lesson_tasks')
@@ -168,7 +170,8 @@ export const useUserTasks = () => {
               module_id,
               modules!inner (
                 id,
-                title
+                title,
+                is_paid
               )
             )
           )
@@ -176,38 +179,51 @@ export const useUserTasks = () => {
         .eq('is_active', true);
 
       if (tasksError) throw tasksError;
+      if (!tasks || tasks.length === 0) return [];
 
       // Get user's submissions
       const { data: submissions, error: submissionsError } = await supabase
         .from('task_submissions')
         .select('*')
-        .eq('user_email', user.email.toLowerCase());
+        .eq('user_email', userEmail);
 
       if (submissionsError) throw submissionsError;
 
       // Get user's module access
-      const { data: access, error: accessError } = await supabase
+      const { data: moduleAccess } = await supabase
         .from('user_module_access')
         .select('module_id')
-        .eq('user_email', user.email.toLowerCase());
+        .eq('user_email', userEmail);
 
-      if (accessError) throw accessError;
+      // Get user's bundle access and which modules those bundles include
+      const { data: bundleAccess } = await supabase
+        .from('user_bundle_access')
+        .select('bundle_id')
+        .eq('user_email', userEmail);
 
-      const accessedModuleIds = new Set(access?.map(a => a.module_id) || []);
+      let bundleModuleIds: string[] = [];
+      if (bundleAccess && bundleAccess.length > 0) {
+        const bundleIds = bundleAccess.map(b => b.bundle_id);
+        const { data: bundleModules } = await supabase
+          .from('bundle_modules')
+          .select('module_id')
+          .in('bundle_id', bundleIds);
+        
+        bundleModuleIds = bundleModules?.map(bm => bm.module_id) || [];
+      }
 
-      // Check for free modules (not paid)
-      const { data: modules } = await supabase
-        .from('modules')
-        .select('id, is_paid')
-        .eq('is_paid', false);
-
-      const freeModuleIds = new Set(modules?.map(m => m.id) || []);
+      const accessedModuleIds = new Set([
+        ...(moduleAccess?.map(a => a.module_id) || []),
+        ...bundleModuleIds
+      ]);
 
       // Combine tasks with submissions, filtering by access
       const tasksWithSubmissions = (tasks || [])
         .filter(task => {
+          const module = (task as any).lessons?.chapters?.modules;
           const moduleId = (task as any).lessons?.chapters?.module_id;
-          return freeModuleIds.has(moduleId) || accessedModuleIds.has(moduleId);
+          // User has access if: module is free OR user has direct/bundle access
+          return !module?.is_paid || accessedModuleIds.has(moduleId);
         })
         .map(task => {
           const submission = submissions?.find(s => s.task_id === task.id);
