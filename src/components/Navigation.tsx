@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, Home, BookOpen, User, Settings, LogOut } from "lucide-react";
+import { Menu, X, Home, BookOpen, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -15,14 +14,12 @@ const Navigation = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Get initial session
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user || null);
     };
     getSession();
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setUser(session?.user || null);
@@ -58,23 +55,23 @@ const Navigation = () => {
   };
 
   return (
-    <nav className="bg-card/95 backdrop-blur-sm border-b border-border/50 sticky top-0 z-50">
+    <nav className="bg-card border-b border-border/50 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link 
             to="/" 
-            className="flex items-center space-x-2 space-x-reverse hover:opacity-80 transition-opacity"
+            className="flex items-center gap-3 hover:opacity-90 transition-opacity"
           >
             <img 
               src="/logo.png" 
-              alt="PixMind Studio Academy Logo" 
+              alt="PixMind Studio Academy" 
               className="h-10 w-auto"
             />
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8 space-x-reverse">
+          <div className="hidden md:flex items-center gap-2">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -82,10 +79,10 @@ const Navigation = () => {
                   key={item.href}
                   to={item.href}
                   className={cn(
-                    "flex items-center space-x-2 space-x-reverse px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                    "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
                     isActive(item.href)
-                      ? "bg-primary text-primary-foreground shadow-lg"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
                   )}
                 >
                   <Icon className="w-4 h-4" />
@@ -95,7 +92,7 @@ const Navigation = () => {
             })}
             
             {user ? (
-              <div className="flex items-center space-x-4 space-x-reverse">
+              <div className="flex items-center gap-3 mr-4">
                 <NotificationBell />
                 {userNavItems.map((item) => {
                   const Icon = item.icon;
@@ -104,10 +101,10 @@ const Navigation = () => {
                       key={item.href}
                       to={item.href}
                       className={cn(
-                        "flex items-center space-x-2 space-x-reverse px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                        "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
                         isActive(item.href)
-                          ? "bg-primary text-primary-foreground shadow-lg"
-                          : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
                       )}
                     >
                       <Icon className="w-4 h-4" />
@@ -116,9 +113,9 @@ const Navigation = () => {
                   );
                 })}
                 
-                <div className="flex items-center space-x-2 space-x-reverse">
-                  <Avatar className="w-8 h-8">
-                    <AvatarFallback className="text-xs">
+                <div className="flex items-center gap-3 pr-4 border-r border-border/50">
+                  <Avatar className="w-9 h-9">
+                    <AvatarFallback>
                       {getInitials(user.user_metadata?.full_name || user.email || 'U')}
                     </AvatarFallback>
                   </Avatar>
@@ -133,17 +130,17 @@ const Navigation = () => {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center space-x-2 space-x-reverse">
+              <div className="flex items-center gap-2 mr-4">
                 <Button variant="ghost" size="sm" asChild>
                   <Link to="/login">התחברות</Link>
                 </Button>
-                <Button variant="outline" size="sm" className="button-glow" asChild>
+                <Button variant="default" size="sm" asChild>
                   <Link to="/signup">הרשמה</Link>
                 </Button>
                 <Button 
-                  variant="secondary" 
+                  variant="outline" 
                   size="sm" 
-                  className="text-xs opacity-70 hover:opacity-100 transition-opacity" 
+                  className="text-xs opacity-70 hover:opacity-100" 
                   asChild
                 >
                   <Link to="/admin-login">ניהול</Link>
@@ -156,9 +153,8 @@ const Navigation = () => {
           <div className="md:hidden">
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2"
             >
               {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
@@ -168,7 +164,7 @@ const Navigation = () => {
         {/* Mobile Navigation */}
         {isOpen && (
           <div className="md:hidden border-t border-border/50 py-4 animate-fade-in">
-            <div className="flex flex-col space-y-2">
+            <div className="flex flex-col gap-1">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -177,10 +173,10 @@ const Navigation = () => {
                     to={item.href}
                     onClick={() => setIsOpen(false)}
                     className={cn(
-                      "flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                      "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
                       isActive(item.href)
                         ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     )}
                   >
                     <Icon className="w-5 h-5" />
@@ -197,10 +193,10 @@ const Navigation = () => {
                     to={item.href}
                     onClick={() => setIsOpen(false)}
                     className={cn(
-                      "flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                      "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
                       isActive(item.href)
                         ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     )}
                   >
                     <Icon className="w-5 h-5" />
@@ -209,16 +205,16 @@ const Navigation = () => {
                 );
               })}
               
-              <div className="pt-4 border-t border-border/30">
+              <div className="pt-4 mt-2 border-t border-border/30">
                 {user ? (
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-3 space-x-reverse px-4 py-2">
-                      <Avatar className="w-8 h-8">
-                        <AvatarFallback className="text-xs">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 px-4 py-2">
+                      <Avatar className="w-9 h-9">
+                        <AvatarFallback>
                           {getInitials(user.user_metadata?.full_name || user.email || 'U')}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-sm text-muted-foreground truncate">
                         {user.user_metadata?.full_name || user.email}
                       </span>
                     </div>
@@ -233,11 +229,11 @@ const Navigation = () => {
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-2">
-                    <Button variant="ghost" size="sm" className="w-full" asChild>
+                  <div className="flex flex-col gap-2">
+                    <Button variant="ghost" className="w-full justify-center" asChild>
                       <Link to="/login" onClick={() => setIsOpen(false)}>התחברות</Link>
                     </Button>
-                    <Button variant="outline" size="sm" className="w-full button-glow" asChild>
+                    <Button variant="default" className="w-full justify-center" asChild>
                       <Link to="/signup" onClick={() => setIsOpen(false)}>הרשמה</Link>
                     </Button>
                   </div>

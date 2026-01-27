@@ -1,4 +1,3 @@
-
 import { Play, Clock, BookOpen, CheckCircle, Edit, Trash2, Eye, DollarSign, Shield, EyeOff, Users, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -71,55 +70,50 @@ const ModuleCard = ({
       return;
     }
 
-    // Check access for user clicks
     if (!moduleAccess) {
-      // No access to paid module
       if (module.payment_url) {
-        // Redirect to payment URL if available
         window.open(module.payment_url, '_blank');
       } else {
-        // Show error message if no payment URL
         toast.error('מודול זה בתשלום. אין לך גישה.');
       }
       return;
     }
 
-    // User has access, proceed normally
     onClick?.(module);
   };
 
   return (
-    <Card className="glass-card hover:shadow-[var(--shadow-card)] transition-all duration-300 hover:scale-105 group">
+    <Card className="group overflow-hidden interactive-card border-border/40">
       <CardHeader className="p-0">
-        <div className="relative overflow-hidden rounded-t-lg bg-gradient-secondary aspect-video">
+        <div className="relative overflow-hidden aspect-video bg-muted">
           {(module.thumbnail_url || module.image_url) ? (
             <img 
               src={module.thumbnail_url || module.image_url} 
               alt={module.title}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-secondary">
-              <BookOpen className="w-16 h-16 text-muted-foreground" />
+            <div className="w-full h-full flex items-center justify-center">
+              <BookOpen className="w-16 h-16 text-muted-foreground/40" />
             </div>
           )}
           
           {/* Play overlay for user view */}
           {!isAdminView && (
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <div className="w-16 h-16 bg-primary/90 rounded-full flex items-center justify-center backdrop-blur-sm">
-                <Play className="w-8 h-8 text-primary-foreground mr-1" />
+            <div className="absolute inset-0 bg-background/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center shadow-lg">
+                <Play className="w-7 h-7 text-primary-foreground mr-0.5" />
               </div>
             </div>
           )}
 
           {/* Status badge for admin view */}
           {isAdminView && (
-            <div className="absolute top-4 left-4 flex gap-2">
+            <div className="absolute top-3 left-3 flex gap-2">
               {getStatusBadge()}
               {module.is_hidden && (
-                <Badge variant="secondary" className="bg-muted/90 text-muted-foreground">
+                <Badge variant="secondary">
                   <EyeOff className="w-3 h-3 ml-1" />
                   מוסתר
                 </Badge>
@@ -129,19 +123,19 @@ const ModuleCard = ({
 
           {/* Payment/Access badge for user view */}
           {!isAdminView && module.is_paid && (
-            <div className="absolute top-4 right-4">
+            <div className="absolute top-3 right-3">
               {isLegacyFree ? (
-                <Badge variant="default" className="bg-green-500/90 text-white">
+                <Badge variant="success">
                   <Gift className="w-3 h-3 ml-1" />
                   גישה חינמית
                 </Badge>
               ) : isPaidWithAccess ? (
-                <Badge variant="default" className="bg-success/90 text-success-foreground">
+                <Badge variant="success">
                   <Shield className="w-3 h-3 ml-1" />
                   יש לך גישה
                 </Badge>
               ) : (
-                <Badge variant="secondary" className="bg-accent/90 text-accent-foreground">
+                <Badge variant="warning">
                   <DollarSign className="w-3 h-3 ml-1" />
                   בתשלום
                 </Badge>
@@ -150,26 +144,27 @@ const ModuleCard = ({
           )}
 
           {/* Progress indicator for user view */}
-          {!isAdminView && isStarted && (
-            <div className="absolute top-4 left-4">
-              <div className="bg-black/60 backdrop-blur-sm rounded-full px-3 py-1 text-xs text-white">
+          {!isAdminView && isStarted && !isCompleted && (
+            <div className="absolute top-3 left-3">
+              <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm">
                 {progressPercentage.toFixed(0)}%
-              </div>
+              </Badge>
             </div>
           )}
 
           {/* Completion badge */}
           {!isAdminView && isCompleted && (
-            <div className="absolute top-4 right-4">
-              <div className="bg-success/90 backdrop-blur-sm rounded-full p-2">
-                <CheckCircle className="w-4 h-4 text-success-foreground" />
-              </div>
+            <div className="absolute top-3 left-3">
+              <Badge variant="success">
+                <CheckCircle className="w-3 h-3 ml-1" />
+                הושלם
+              </Badge>
             </div>
           )}
 
           {/* Admin actions */}
           {isAdminView && (
-            <div className="absolute top-4 right-4">
+            <div className="absolute top-3 right-3">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="secondary" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
@@ -209,29 +204,29 @@ const ModuleCard = ({
         </div>
       </CardHeader>
 
-      <CardContent className="p-6">
-        <h3 className="text-xl font-semibold mb-2 text-card-foreground group-hover:text-primary transition-colors">
+      <CardContent className="p-5">
+        <h3 className="text-lg font-semibold mb-2 text-foreground group-hover:text-primary transition-colors line-clamp-1">
           {module.title}
         </h3>
-        <p className="text-muted-foreground text-sm leading-relaxed mb-4 line-clamp-3">
+        <p className="text-muted-foreground text-sm leading-relaxed mb-4 line-clamp-2">
           {module.description}
         </p>
 
         {/* Sale badge and pricing */}
-        {!isAdminView && module.is_paid && (
+        {!isAdminView && module.is_paid && !isLegacyFree && (
           <div className="mb-4 space-y-2">
-            {!isLegacyFree && <SaleBadge module={module} size="sm" />}
+            <SaleBadge module={module} size="sm" />
             <PriceDisplay module={module} size="sm" isLegacyFreeUser={isLegacyFree} />
           </div>
         )}
 
         {/* Course stats */}
-        <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
-          <div className="flex items-center space-x-2 space-x-reverse">
+        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+          <div className="flex items-center gap-1.5">
             <Clock className="w-4 h-4" />
             <span>{duration}</span>
           </div>
-          <div className="flex items-center space-x-2 space-x-reverse">
+          <div className="flex items-center gap-1.5">
             <BookOpen className="w-4 h-4" />
             <span>{lessonsCount} שיעורים</span>
           </div>
@@ -239,33 +234,30 @@ const ModuleCard = ({
 
         {/* Progress bar for user view */}
         {!isAdminView && isStarted && (
-          <div className="mb-4">
+          <div>
             <div className="flex justify-between items-center mb-2">
               <span className="text-xs text-muted-foreground">התקדמות</span>
               <span className="text-xs text-muted-foreground">
                 {completedLessons}/{lessonsCount}
               </span>
             </div>
-            <Progress 
-              value={progressPercentage} 
-              className="h-2 bg-muted"
-            />
+            <Progress value={progressPercentage} className="h-2" />
           </div>
         )}
 
         {/* Admin info */}
         {isAdminView && (
-          <div className="text-xs text-muted-foreground space-y-1">
-            <div>סדר: {module.order_index}</div>
-            <div>נוצר: {new Date(module.created_at).toLocaleDateString('he-IL')}</div>
-            {module.is_hidden && (
-              <div className="flex items-center gap-1 text-muted-foreground/80 mt-2">
-                <EyeOff className="w-3 h-3" />
-                <span>הקורס לא מופיע בדף הבית</span>
-              </div>
-            )}
+          <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t border-border/50">
+            <div className="flex justify-between">
+              <span>סדר:</span>
+              <span>{module.order_index}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>נוצר:</span>
+              <span>{new Date(module.created_at).toLocaleDateString('he-IL')}</span>
+            </div>
             {module.was_free_before && (
-              <div className="flex items-center gap-1 text-green-600 dark:text-green-400 mt-2">
+              <div className="flex items-center gap-1 text-success mt-2">
                 <Gift className="w-3 h-3" />
                 <span>היה חינמי בעבר</span>
               </div>
@@ -274,9 +266,9 @@ const ModuleCard = ({
         )}
       </CardContent>
 
-      <CardFooter className="p-6 pt-0">
+      <CardFooter className="p-5 pt-0">
         <Button 
-          className="w-full button-glow" 
+          className="w-full" 
           variant={isStarted || isAdminView ? "default" : "outline"}
           onClick={() => handleModuleClick(module)}
         >
@@ -284,23 +276,11 @@ const ModuleCard = ({
             ? "ניהול מודול"
             : !moduleAccess
               ? "רכישה"
-              : isLegacyFree
-                ? isCompleted
-                  ? "צפה שוב"
-                  : isStarted
-                    ? "המשך לימוד"
-                    : "התחל ללמוד"
-                : isPaidWithAccess
-                  ? isCompleted 
-                    ? "צפה שוב"
-                    : isStarted 
-                      ? "המשך לימוד"
-                      : "התחל ללמוד"
-                  : isCompleted 
-                    ? "צפה שוב" 
-                    : isStarted 
-                      ? "המשך לימוד" 
-                      : "התחל ללמוד"
+              : isCompleted 
+                ? "צפה שוב" 
+                : isStarted 
+                  ? "המשך לימוד" 
+                  : "התחל ללמוד"
           }
         </Button>
       </CardFooter>
