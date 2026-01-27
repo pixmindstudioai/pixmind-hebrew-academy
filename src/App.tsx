@@ -32,8 +32,10 @@ import BundlesPage from "./pages/admin/BundlesPage";
 import MaterialsPage from "./pages/admin/MaterialsPage";
 import DiscussionsPage from "./pages/admin/DiscussionsPage";
 import AnnouncementsPage from "./pages/admin/AnnouncementsPage";
+import CalendarPage from "./pages/admin/CalendarPage";
 import Community from "./pages/Community";
 import Announcements from "./pages/Announcements";
+import Calendar from "./pages/Calendar";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +55,7 @@ const App = () => (
             <Route path="/tasks" element={<><Navigation /><Tasks /></>} />
             <Route path="/community" element={<><Navigation /><Community /></>} />
             <Route path="/announcements" element={<><Navigation /><Announcements /></>} />
+            <Route path="/calendar" element={<><Navigation /><Calendar /></>} />
             
             {/* Authentication Routes */}
             <Route path="/login" element={<Login />} />
@@ -81,6 +84,9 @@ const App = () => (
                 </Route>
                 <Route path="announcements" element={<AdminShell />}>
                   <Route index element={<AnnouncementsPage />} />
+                </Route>
+                <Route path="calendar" element={<AdminShell />}>
+                  <Route index element={<CalendarPage />} />
                 </Route>
                 <Route path="modules/:moduleId/cohorts" element={<AdminShell />}>
                   <Route index element={<CohortsPage />} />
