@@ -31,7 +31,9 @@ import MCPToolsPage from "./pages/admin/MCPToolsPage";
 import BundlesPage from "./pages/admin/BundlesPage";
 import MaterialsPage from "./pages/admin/MaterialsPage";
 import DiscussionsPage from "./pages/admin/DiscussionsPage";
+import AnnouncementsPage from "./pages/admin/AnnouncementsPage";
 import Community from "./pages/Community";
+import Announcements from "./pages/Announcements";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +52,7 @@ const App = () => (
             <Route path="/lesson/:lessonId" element={<><Navigation /><LessonView /></>} />
             <Route path="/tasks" element={<><Navigation /><Tasks /></>} />
             <Route path="/community" element={<><Navigation /><Community /></>} />
+            <Route path="/announcements" element={<><Navigation /><Announcements /></>} />
             
             {/* Authentication Routes */}
             <Route path="/login" element={<Login />} />
@@ -75,6 +78,9 @@ const App = () => (
                 </Route>
                 <Route path="discussions" element={<AdminShell />}>
                   <Route index element={<DiscussionsPage />} />
+                </Route>
+                <Route path="announcements" element={<AdminShell />}>
+                  <Route index element={<AnnouncementsPage />} />
                 </Route>
                 <Route path="modules/:moduleId/cohorts" element={<AdminShell />}>
                   <Route index element={<CohortsPage />} />
