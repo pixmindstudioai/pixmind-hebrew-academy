@@ -97,7 +97,10 @@ const transformToAdminLesson = (lesson: Lesson): AdminLesson => ({
   publishedAt: lesson.published_at ? new Date(lesson.published_at) : undefined,
   visibility_mode: lesson.visibility_mode,
   cohort_id: lesson.cohort_id,
-});
+  // Add new fields
+  lesson_type: (lesson as any).lesson_type || 'text',
+  images: (lesson as any).images && Array.isArray((lesson as any).images) ? (lesson as any).images : [],
+} as AdminLesson & { lesson_type: string; images: any[] });
 
 const ContentPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -256,17 +259,18 @@ const ContentPage = () => {
     console.log('Raw lesson form data:', data);
     
     // Transform form data to match database schema
-    const { video, embeds, attachments, order, visibility_mode, cohort_id, ...restData } = data;
+    const { video, embeds, attachments, order, visibility_mode, cohort_id, images, lesson_type, ...restData } = data;
     
     const lessonData: any = {
       ...restData,
       visibility_mode: visibility_mode || 'inherit',
       cohort_id: cohort_id || null,
+      lesson_type: lesson_type || 'text',
       // Don't send order_index - let the backend calculate it automatically
     };
     
-    // Transform video object to individual database columns
-    if (video) {
+    // Transform video object to individual database columns (only for video lessons)
+    if (video && lesson_type === 'video') {
       lessonData.video_provider = video.provider;
       lessonData.video_url = video.url;
       lessonData.video_id = video.videoId;
@@ -277,6 +281,7 @@ const ContentPage = () => {
     // Add JSONB fields
     if (embeds) lessonData.embeds = embeds;
     if (attachments) lessonData.attachments = attachments;
+    if (images && lesson_type === 'text_with_images') lessonData.images = images;
     
     console.log('Transformed lesson data for database (order_index will be auto-calculated):', lessonData);
     
@@ -301,7 +306,7 @@ const ContentPage = () => {
   const handleUpdateLesson = (data: any) => {
     if (!editingLesson) return;
     
-    const { video, embeds, attachments, links, visibility_mode, cohort_id, ...formData } = data;
+    const { video, embeds, attachments, links, visibility_mode, cohort_id, images, lesson_type, ...formData } = data;
     
     // Validate required fields
     if (!formData.title?.trim()) {
@@ -332,15 +337,23 @@ const ContentPage = () => {
       thumbnail_url: formData.thumbnail_url,
       visibility_mode: visibility_mode || 'inherit',
       cohort_id: cohort_id || null,
+      lesson_type: lesson_type || 'text',
     };
     
-    // Handle video data
-    if (video) {
+    // Handle video data (only for video lessons)
+    if (video && lesson_type === 'video') {
       lessonData.video_provider = video.provider;
       lessonData.video_url = video.url;
       lessonData.video_id = video.videoId;
       lessonData.video_start_time = video.startTime;
       lessonData.video_thumbnail = video.thumbnail;
+    } else if (lesson_type !== 'video') {
+      // Clear video fields if not a video lesson
+      lessonData.video_provider = null;
+      lessonData.video_url = null;
+      lessonData.video_id = null;
+      lessonData.video_start_time = null;
+      lessonData.video_thumbnail = null;
     }
     
     // Add JSONB fields
@@ -352,6 +365,12 @@ const ContentPage = () => {
     }
     if (links && Array.isArray(links)) {
       lessonData.links = links;
+    }
+    // Handle images (only for text_with_images lessons)
+    if (lesson_type === 'text_with_images' && images && Array.isArray(images)) {
+      lessonData.images = images;
+    } else {
+      lessonData.images = [];
     }
     
     console.log('Updating lesson with data:', lessonData);

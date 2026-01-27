@@ -51,6 +51,7 @@ export interface Lesson {
   description: string;
   order_index: number;
   status: 'draft' | 'active' | 'archived';
+  lesson_type?: 'text' | 'text_with_images' | 'video';
   visibility_mode?: string;
   cohort_id?: string | null;
   video_provider?: 'youtube' | 'vimeo' | 'file';
@@ -63,6 +64,7 @@ export interface Lesson {
   duration_sec?: number;
   links?: Array<{label: string; url: string}> | null;
   attachments?: Array<{name: string; url: string; type: string; size: number}> | null;
+  images?: Array<{id?: string; url: string; caption?: string; alt?: string; order?: number}> | null;
   created_at: string;
   updated_at: string;
   published_at?: string;
@@ -238,11 +240,15 @@ export const useLessons = (chapterId: string, includeStatus?: 'active' | 'all') 
       // Parse JSON fields safely with proper typing
       const lessons = (data || []).map(lesson => ({
         ...lesson,
+        lesson_type: lesson.lesson_type || 'text',
         links: lesson.links && Array.isArray(lesson.links) 
           ? lesson.links as Array<{label: string; url: string}> 
           : null,
         attachments: lesson.attachments && Array.isArray(lesson.attachments) 
           ? lesson.attachments as Array<{name: string; url: string; type: string; size: number}>
+          : null,
+        images: lesson.images && Array.isArray(lesson.images)
+          ? lesson.images as Array<{id?: string; url: string; caption?: string; alt?: string; order?: number}>
           : null,
       })) as Lesson[];
       
@@ -352,11 +358,15 @@ export const useLesson = (lessonId: string) => {
       // Parse JSON fields safely with proper typing
       const parsedLesson = {
         ...lesson,
+        lesson_type: lesson.lesson_type || 'text',
         links: lesson.links && Array.isArray(lesson.links) 
           ? lesson.links as Array<{label: string; url: string}> 
           : null,
         attachments: lesson.attachments && Array.isArray(lesson.attachments) 
           ? lesson.attachments as Array<{name: string; url: string; type: string; size: number}>
+          : null,
+        images: lesson.images && Array.isArray(lesson.images)
+          ? lesson.images as Array<{id?: string; url: string; caption?: string; alt?: string; order?: number}>
           : null,
       } as any; // Cast as any to avoid type conflicts with Supabase relations
       

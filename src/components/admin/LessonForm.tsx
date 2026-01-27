@@ -23,15 +23,20 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { FileText, Image, Video, Info } from 'lucide-react';
 import VideoUrlInput from './VideoUrlInput';
 import AttachmentManager from './AttachmentManager';
 import EmbedManager from './EmbedManager';
 import LinksManager from './LinksManager';
 import ThumbnailUploader from './ThumbnailUploader';
 import LessonCommentsButton from './LessonCommentsButton';
+import LessonImageManager, { LessonImage } from './LessonImageManager';
 import { AdminLesson, AdminChapter, LessonVideo, LessonEmbed, LessonAttachment } from '@/types/admin';
 import { useCohorts } from '@/hooks/useCohortsData';
 import { supabase } from '@/integrations/supabase/client';
+
+export type LessonTypeValue = 'text' | 'text_with_images' | 'video';
 
 const lessonSchema = z.object({
   title: z.string().min(2, 'כותרת השיעור חייבת להכיל לפחות 2 תווים').max(120, 'כותרת השיעור לא יכולה להכיל יותר מ-120 תווים'),
@@ -39,6 +44,7 @@ const lessonSchema = z.object({
   chapter_id: z.string().min(1, 'יש לבחור פרק'),
   order: z.number().min(0, 'מספר הסדר חייב להיות 0 או יותר'),
   status: z.enum(['draft', 'active', 'archived']).default('draft'),
+  lesson_type: z.enum(['text', 'text_with_images', 'video']).default('text'),
   duration_sec: z.number().optional(),
   rich_text: z.string().optional(),
   thumbnail_url: z.string().url('יש להזין כתובת URL תקינה לתמונה').optional().or(z.literal('')),
@@ -62,6 +68,7 @@ interface LessonFormProps {
     embeds: LessonEmbed[];
     attachments: LessonAttachment[];
     links: Array<{ label: string; url: string; }>;
+    images: LessonImage[];
   }) => void;
   onCancel: () => void;
   isLoading?: boolean;
@@ -72,6 +79,7 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
   const [embeds, setEmbeds] = useState<LessonEmbed[]>(lesson?.embeds || []);
   const [attachments, setAttachments] = useState<LessonAttachment[]>(lesson?.attachments || []);
   const [links, setLinks] = useState<Array<{ label: string; url: string; }>>(lesson?.links || []);
+  const [images, setImages] = useState<LessonImage[]>((lesson as any)?.images || []);
   const [moduleId, setModuleId] = useState<string>('');
 
   const form = useForm<LessonFormData>({
@@ -82,6 +90,7 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
       chapter_id: lesson?.chapterId || '',
       order: lesson?.order || 0,
       status: lesson?.status || 'draft',
+      lesson_type: ((lesson as any)?.lesson_type as LessonTypeValue) || 'text',
       duration_sec: lesson?.durationSec || undefined,
       rich_text: lesson?.richText || '',
       thumbnail_url: lesson?.thumbnailUrl || '',
@@ -89,6 +98,8 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
       cohort_id: (lesson as any)?.cohort_id || null,
     },
   });
+
+  const lessonType = form.watch('lesson_type');
 
   const selectedChapterId = form.watch('chapter_id');
   const visibilityMode = form.watch('visibility_mode');
@@ -112,10 +123,11 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
     }
     onSubmit({
       ...data,
-      video,
+      video: data.lesson_type === 'video' ? video : undefined,
       embeds,
       attachments,
       links,
+      images: data.lesson_type === 'text_with_images' ? images : [],
     });
   };
 
@@ -293,21 +305,87 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
             )}
           />
 
-          <Tabs defaultValue="video" className="w-full">
+          {/* Lesson Type Selector */}
+          <Card className="border-primary/20 bg-primary/5">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Info className="w-5 h-5" />
+                סוג השיעור
+              </CardTitle>
+              <CardDescription>
+                בחר את סוג התוכן העיקרי של השיעור
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <FormField
+                control={form.control}
+                name="lesson_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <button
+                          type="button"
+                          onClick={() => field.onChange('text')}
+                          disabled={isLoading}
+                          className={`p-4 rounded-lg border-2 transition-all text-right ${
+                            field.value === 'text'
+                              ? 'border-primary bg-primary/10'
+                              : 'border-border hover:border-primary/50'
+                          }`}
+                        >
+                          <FileText className={`w-8 h-8 mb-2 ${field.value === 'text' ? 'text-primary' : 'text-muted-foreground'}`} />
+                          <div className="font-medium">שיעור טקסט</div>
+                          <div className="text-sm text-muted-foreground">תוכן טקסט עשיר בלבד</div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => field.onChange('text_with_images')}
+                          disabled={isLoading}
+                          className={`p-4 rounded-lg border-2 transition-all text-right ${
+                            field.value === 'text_with_images'
+                              ? 'border-primary bg-primary/10'
+                              : 'border-border hover:border-primary/50'
+                          }`}
+                        >
+                          <Image className={`w-8 h-8 mb-2 ${field.value === 'text_with_images' ? 'text-primary' : 'text-muted-foreground'}`} />
+                          <div className="font-medium">טקסט עם תמונות</div>
+                          <div className="text-sm text-muted-foreground">טקסט + תמונות עם כיתובים</div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => field.onChange('video')}
+                          disabled={isLoading}
+                          className={`p-4 rounded-lg border-2 transition-all text-right ${
+                            field.value === 'video'
+                              ? 'border-primary bg-primary/10'
+                              : 'border-border hover:border-primary/50'
+                          }`}
+                        >
+                          <Video className={`w-8 h-8 mb-2 ${field.value === 'video' ? 'text-primary' : 'text-muted-foreground'}`} />
+                          <div className="font-medium">שיעור וידאו</div>
+                          <div className="text-sm text-muted-foreground">וידאו מ-YouTube / Vimeo</div>
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Dynamic content based on lesson type */}
+          <Tabs defaultValue="content" className="w-full">
             <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="video">וידאו</TabsTrigger>
               <TabsTrigger value="content">תוכן</TabsTrigger>
+              {lessonType === 'video' && <TabsTrigger value="video">וידאו</TabsTrigger>}
+              {lessonType === 'text_with_images' && <TabsTrigger value="images">תמונות</TabsTrigger>}
               <TabsTrigger value="links">לינקים</TabsTrigger>
               <TabsTrigger value="attachments">קבצים</TabsTrigger>
             </TabsList>
-
-            <TabsContent value="video" className="space-y-4">
-              <VideoUrlInput
-                video={video}
-                onChange={handleVideoChange}
-                disabled={isLoading}
-              />
-            </TabsContent>
 
             <TabsContent value="content" className="space-y-4">
               <FormField
@@ -315,17 +393,25 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
                 name="rich_text"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>תוכן נוסף</FormLabel>
+                    <FormLabel>
+                      {lessonType === 'video' ? 'תיאור נוסף מתחת לוידאו' : 'תוכן השיעור'}
+                    </FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="הוסף תוכן טקסט עשיר לשיעור..."
+                        placeholder={
+                          lessonType === 'video'
+                            ? 'הוסף תיאור שיוצג מתחת לוידאו...'
+                            : 'הזן את תוכן השיעור כאן...'
+                        }
                         className="min-h-[200px]"
                         {...field}
                         disabled={isLoading}
                       />
                     </FormControl>
                     <FormDescription>
-                      תוכן טקסט נוסף שיוצג יחד עם הוידאו
+                      {lessonType === 'text' && 'זהו התוכן העיקרי של השיעור'}
+                      {lessonType === 'text_with_images' && 'הטקסט יוצג יחד עם התמונות'}
+                      {lessonType === 'video' && 'הטקסט יוצג מתחת לנגן הוידאו'}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -356,6 +442,26 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
                 )}
               />
             </TabsContent>
+
+            {lessonType === 'video' && (
+              <TabsContent value="video" className="space-y-4">
+                <VideoUrlInput
+                  video={video}
+                  onChange={handleVideoChange}
+                  disabled={isLoading}
+                />
+              </TabsContent>
+            )}
+
+            {lessonType === 'text_with_images' && (
+              <TabsContent value="images" className="space-y-4">
+                <LessonImageManager
+                  images={images}
+                  onChange={setImages}
+                  disabled={isLoading}
+                />
+              </TabsContent>
+            )}
 
             <TabsContent value="links" className="space-y-4">
               <LinksManager
