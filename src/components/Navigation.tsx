@@ -30,7 +30,6 @@ const Navigation = () => {
   }, []);
 
   const navItems = [
-    { href: "/", label: "עמוד הבית", icon: Home },
     { href: "/courses", label: "קורסים", icon: BookOpen },
   ];
 
