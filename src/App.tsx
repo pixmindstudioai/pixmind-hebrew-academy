@@ -30,7 +30,7 @@ import PaymentsPage from "./pages/admin/PaymentsPage";
 import PurchasesPage from "./pages/admin/PurchasesPage";
 import MCPToolsPage from "./pages/admin/MCPToolsPage";
 import BundlesPage from "./pages/admin/BundlesPage";
-import MaterialsPage from "./pages/admin/MaterialsPage";
+
 import DiscussionsPage from "./pages/admin/DiscussionsPage";
 import AnnouncementsPage from "./pages/admin/AnnouncementsPage";
 import CalendarPage from "./pages/admin/CalendarPage";
@@ -38,7 +38,7 @@ import TasksAdminPage from "./pages/admin/TasksPage";
 import Community from "./pages/Community";
 import Announcements from "./pages/Announcements";
 import Calendar from "./pages/Calendar";
-import Materials from "./pages/Materials";
+import MaterialsRemoved from "./pages/MaterialsRemoved";
 
 const queryClient = new QueryClient();
 
@@ -60,8 +60,8 @@ const App = () => (
             <Route path="/community" element={<><Navigation /><Community /></>} />
             <Route path="/announcements" element={<><Navigation /><Announcements /></>} />
             <Route path="/calendar" element={<><Navigation /><Calendar /></>} />
-            <Route path="/materials" element={<><Navigation /><Materials /></>} />
-            
+            <Route path="/materials" element={<MaterialsRemoved />} />
+            <Route path="/admin/materials" element={<MaterialsRemoved />} />
             {/* Authentication Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
@@ -80,9 +80,6 @@ const App = () => (
                 </Route>
                 <Route path="bundles" element={<AdminShell />}>
                   <Route index element={<BundlesPage />} />
-                </Route>
-                <Route path="materials" element={<AdminShell />}>
-                  <Route index element={<MaterialsPage />} />
                 </Route>
                 <Route path="discussions" element={<AdminShell />}>
                   <Route index element={<DiscussionsPage />} />

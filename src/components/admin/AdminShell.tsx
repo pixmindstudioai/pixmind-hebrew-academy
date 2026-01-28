@@ -14,7 +14,7 @@ import {
   Bot,
   ChevronLeft,
   Package,
-  FolderOpen,
+  
   Users2,
   Megaphone,
   Calendar,
@@ -47,12 +47,6 @@ const AdminShell = () => {
       label: 'חבילות קורסים',
       icon: Package,
       description: 'יצירה וניהול חבילות קורסים משולבות'
-    },
-    {
-      href: '/admin/materials',
-      label: 'חומרי לימוד',
-      icon: FolderOpen,
-      description: 'ניהול תיקיות וקבצים לקורסים'
     },
     {
       href: '/admin/discussions',

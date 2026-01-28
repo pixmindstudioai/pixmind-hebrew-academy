@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, Home, BookOpen, User, LogOut, ClipboardCheck, Users, Megaphone, Calendar, NotebookPen, FolderOpen } from "lucide-react";
+import { Menu, X, Home, BookOpen, User, LogOut, ClipboardCheck, Users, Megaphone, Calendar, NotebookPen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -38,7 +38,6 @@ const Navigation = () => {
     { href: "/calendar", label: "יומן", icon: Calendar },
     { href: "/community", label: "קהילה", icon: Users },
     { href: "/tasks", label: "משימות", icon: ClipboardCheck },
-    { href: "/materials", label: "חומרי לימוד", icon: FolderOpen },
     { href: "/notebook", label: "מחברת חכמה", icon: NotebookPen },
     { href: "/profile", label: "פרופיל", icon: User },
   ];
