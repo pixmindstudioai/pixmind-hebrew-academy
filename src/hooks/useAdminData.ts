@@ -510,8 +510,71 @@ export const useDeleteLesson = () => {
           }
         });
       } else {
-        toast.error(`שגיאת הרשאה במחיקה: ${error.message}`);
+      toast.error(`שגיאת הרשאה במחיקה: ${error.message}`);
       }
+    },
+  });
+};
+
+// Chapter reordering with optimistic update
+export const useReorderChapters = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (chapters: Array<{ id: string; order_index: number; module_id: string }>) => {
+      // Batch update all chapters with their new order_index
+      const updates = chapters.map(chapter => 
+        supabase
+          .from('chapters')
+          .update({ order_index: chapter.order_index })
+          .eq('id', chapter.id)
+      );
+      
+      const results = await Promise.all(updates);
+      
+      // Check for any errors
+      const errors = results.filter(r => r.error);
+      if (errors.length > 0) {
+        throw new Error(errors[0].error?.message || 'שגיאה בעדכון הסדר');
+      }
+      
+      return chapters;
+    },
+    onMutate: async (newChapters) => {
+      // Cancel outgoing refetches
+      const moduleId = newChapters[0]?.module_id;
+      await queryClient.cancelQueries({ queryKey: ['admin-chapters', moduleId] });
+      
+      // Snapshot previous value
+      const previousChapters = queryClient.getQueryData(['admin-chapters', moduleId]);
+      
+      // Optimistically update
+      queryClient.setQueryData(['admin-chapters', moduleId], (old: any[]) => {
+        if (!old) return old;
+        return old.map(chapter => {
+          const updated = newChapters.find(c => c.id === chapter.id);
+          return updated ? { ...chapter, order_index: updated.order_index } : chapter;
+        }).sort((a, b) => a.order_index - b.order_index);
+      });
+      
+      return { previousChapters, moduleId };
+    },
+    onError: (error, _, context) => {
+      // Rollback on error
+      if (context?.previousChapters && context?.moduleId) {
+        queryClient.setQueryData(
+          ['admin-chapters', context.moduleId], 
+          context.previousChapters
+        );
+      }
+      console.error('Reorder chapters error:', error);
+      toast.error(`שגיאה בשינוי הסדר: ${error.message}`);
+    },
+    onSuccess: (chapters) => {
+      const moduleId = chapters[0]?.module_id;
+      // Also invalidate user-facing queries
+      queryClient.invalidateQueries({ queryKey: ['chapters', moduleId] });
+      toast.success('סדר הפרקים עודכן בהצלחה');
     },
   });
 };
