@@ -186,29 +186,41 @@ const ChapterForm = ({ chapter, modules, onSubmit, onCancel, isLoading, showActi
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="order_index"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>מספר סדר</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    min="0"
-                    placeholder="0"
-                    {...field}
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                    disabled={isLoading}
-                  />
-                </FormControl>
-                <FormDescription>
-                  קביעת סדר הפרק במודול (0 = ראשון)
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Show order_index only for new chapters - for existing chapters, use drag-and-drop */}
+          {!chapter && (
+            <FormField
+              control={form.control}
+              name="order_index"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>מספר סדר התחלתי</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="0"
+                      placeholder="0"
+                      {...field}
+                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    ניתן לשנות את הסדר באמצעות גרירה לאחר היצירה
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {/* Info message for existing chapters about drag-and-drop */}
+          {chapter && (
+            <div className="rounded-lg border bg-muted/50 p-4">
+              <p className="text-sm text-muted-foreground">
+                💡 <strong>שינוי סדר הפרקים:</strong> ניתן לגרור את הפרקים ברשימה כדי לשנות את הסדר שלהם.
+              </p>
+            </div>
+          )}
 
           {/* Visibility Section */}
           <div className="border rounded-lg p-4 space-y-4">

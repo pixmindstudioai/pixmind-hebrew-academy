@@ -23,6 +23,7 @@ import {
 import { toast } from 'sonner';
 import ModuleCard from '@/components/shared/ModuleCard';
 import ChapterAccordion from '@/components/shared/ChapterAccordion';
+import DraggableChaptersList from '@/components/admin/DraggableChaptersList';
 import ModuleForm from '@/components/admin/ModuleForm';
 import ChapterForm from '@/components/admin/ChapterForm';
 import LessonForm from '@/components/admin/LessonForm';
@@ -38,7 +39,8 @@ import {
   useLessons,
   useCreateLesson,
   useUpdateLesson,
-  useDeleteLesson
+  useDeleteLesson,
+  useReorderChapters
 } from '@/hooks/useAdminData';
 import { Module, Chapter, Lesson } from '@/hooks/useContentData';
 import { AdminModule, AdminChapter, AdminLesson } from '@/types/admin';
@@ -149,6 +151,17 @@ const ContentPage = () => {
   const createLesson = useCreateLesson();
   const updateLesson = useUpdateLesson();
   const deleteLesson = useDeleteLesson();
+  const reorderChapters = useReorderChapters();
+
+  // Handler for chapter reordering
+  const handleReorderChapters = (reorderedChapters: Chapter[]) => {
+    const updates = reorderedChapters.map(chapter => ({
+      id: chapter.id,
+      order_index: chapter.order_index,
+      module_id: chapter.module_id,
+    }));
+    reorderChapters.mutate(updates);
+  };
 
   // Module handlers
   const handleCreateModule = (data: any) => {
@@ -580,50 +593,76 @@ const ContentPage = () => {
           </div>
 
           {selectedModule ? (
-            <div className="space-y-4">
-              {filteredChapters.map((chapter) => {
-                // Enrich chapter with cohort object
-                const chapterWithCohort = {
-                  ...chapter,
-                  cohort: chapter.cohort_id ? cohortMap[chapter.cohort_id] || null : null,
-                };
-                
-                // Enrich lessons with cohort objects
-                const enrichedLessons = lessons.filter(lesson => lesson.chapter_id === chapter.id).map(lesson => ({
-                  ...lesson,
-                  links: lesson.links && Array.isArray(lesson.links) 
-                    ? lesson.links as Array<{label: string; url: string}> 
-                    : null,
-                  attachments: lesson.attachments && Array.isArray(lesson.attachments) 
-                    ? lesson.attachments as Array<{name: string; url: string; type: string; size: number}>
-                    : null,
-                  cohort: lesson.cohort_id ? cohortMap[lesson.cohort_id] || null : null,
-                }));
-                
-                return (
-                  <ChapterAccordion
-                    key={chapter.id}
-                    chapter={chapterWithCohort}
-                    lessons={enrichedLessons as any[]}
-                    isAdminView
-                    onEditChapter={handleEditChapter}
-                    onDeleteChapter={handleDeleteChapter}
-                    onAddLesson={() => {
-                      setSelectedChapter(chapter.id);
-                      setLessonDialogOpen(true);
-                    }}
-                    onEditLesson={handleEditLesson}
-                    onDeleteLesson={handleDeleteLesson}
-                  />
-                );
-              })}
-
-              {filteredChapters.length === 0 && (
-                <div className="text-center py-12 text-muted-foreground">
-                  {searchTerm ? 'לא נמצאו פרקים המתאימים לחיפוש' : 'עדיין אין פרקים במודול זה'}
+            <>
+              {/* Show drag-and-drop list when not searching */}
+              {!searchTerm ? (
+                <DraggableChaptersList
+                  chapters={chapters}
+                  lessons={lessons as any[]}
+                  cohortMap={cohortMap}
+                  onReorder={handleReorderChapters}
+                  onEditChapter={handleEditChapter}
+                  onDeleteChapter={handleDeleteChapter}
+                  onAddLesson={(chapterId) => {
+                    setSelectedChapter(chapterId);
+                    setEditingLesson(null);
+                    setLessonDialogOpen(true);
+                  }}
+                  onEditLesson={handleEditLesson}
+                  onDeleteLesson={handleDeleteLesson}
+                />
+              ) : (
+                /* Fall back to regular list when searching */
+                <div className="space-y-4">
+                  {filteredChapters.map((chapter) => {
+                    const chapterWithCohort = {
+                      ...chapter,
+                      cohort: chapter.cohort_id ? cohortMap[chapter.cohort_id] || null : null,
+                    };
+                    
+                    const enrichedLessons = lessons.filter(lesson => lesson.chapter_id === chapter.id).map(lesson => ({
+                      ...lesson,
+                      links: lesson.links && Array.isArray(lesson.links) 
+                        ? lesson.links as Array<{label: string; url: string}> 
+                        : null,
+                      attachments: lesson.attachments && Array.isArray(lesson.attachments) 
+                        ? lesson.attachments as Array<{name: string; url: string; type: string; size: number}>
+                        : null,
+                      cohort: lesson.cohort_id ? cohortMap[lesson.cohort_id] || null : null,
+                    }));
+                    
+                    return (
+                      <ChapterAccordion
+                        key={chapter.id}
+                        chapter={chapterWithCohort}
+                        lessons={enrichedLessons as any[]}
+                        isAdminView
+                        onEditChapter={handleEditChapter}
+                        onDeleteChapter={handleDeleteChapter}
+                        onAddLesson={() => {
+                          setSelectedChapter(chapter.id);
+                          setLessonDialogOpen(true);
+                        }}
+                        onEditLesson={handleEditLesson}
+                        onDeleteLesson={handleDeleteLesson}
+                      />
+                    );
+                  })}
                 </div>
               )}
-            </div>
+
+              {chapters.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  עדיין אין פרקים במודול זה
+                </div>
+              )}
+              
+              {searchTerm && filteredChapters.length === 0 && chapters.length > 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  לא נמצאו פרקים המתאימים לחיפוש
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-12 text-muted-foreground">
               בחר מודול כדי לצפות בפרקים שלו
