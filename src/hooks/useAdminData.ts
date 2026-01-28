@@ -516,26 +516,34 @@ export const useDeleteLesson = () => {
   });
 };
 
-// Chapter reordering with optimistic update
+// Chapter reordering with optimistic update using RPC for atomic transaction
 export const useReorderChapters = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async (chapters: Array<{ id: string; order_index: number; module_id: string }>) => {
-      // Batch update all chapters with their new order_index
-      const updates = chapters.map(chapter => 
-        supabase
-          .from('chapters')
-          .update({ order_index: chapter.order_index })
-          .eq('id', chapter.id)
-      );
+      const moduleId = chapters[0]?.module_id;
+      if (!moduleId) throw new Error('No module ID provided');
       
-      const results = await Promise.all(updates);
+      // Sort by new order_index to get the correct order
+      const orderedIds = chapters
+        .sort((a, b) => a.order_index - b.order_index)
+        .map(c => c.id);
       
-      // Check for any errors
-      const errors = results.filter(r => r.error);
-      if (errors.length > 0) {
-        throw new Error(errors[0].error?.message || 'שגיאה בעדכון הסדר');
+      // Call RPC instead of direct updates - handles UNIQUE constraint safely
+      const { error } = await supabase.rpc('reorder_chapters', {
+        p_module_id: moduleId,
+        p_ordered_chapter_ids: orderedIds
+      });
+      
+      if (error) {
+        console.error('Reorder RPC error:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        throw new Error(error.message || 'שגיאה בשינוי הסדר');
       }
       
       return chapters;
@@ -572,6 +580,8 @@ export const useReorderChapters = () => {
     },
     onSuccess: (chapters) => {
       const moduleId = chapters[0]?.module_id;
+      // Invalidate to ensure fresh data from DB
+      queryClient.invalidateQueries({ queryKey: ['admin-chapters', moduleId] });
       // Also invalidate user-facing queries
       queryClient.invalidateQueries({ queryKey: ['chapters', moduleId] });
       toast.success('סדר הפרקים עודכן בהצלחה');
