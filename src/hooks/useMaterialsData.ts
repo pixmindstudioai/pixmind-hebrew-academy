@@ -103,8 +103,9 @@ export const useCreateFolder = () => {
       queryClient.invalidateQueries({ queryKey: ["admin-materials-folders"] });
       toast.success("התיקייה נוצרה בהצלחה");
     },
-    onError: () => {
-      toast.error("שגיאה ביצירת התיקייה");
+    onError: (error: Error) => {
+      console.error("Folder creation error:", error);
+      toast.error(`שגיאה ביצירת התיקייה: ${error?.message || "שגיאה לא ידועה"}`);
     },
   });
 };
