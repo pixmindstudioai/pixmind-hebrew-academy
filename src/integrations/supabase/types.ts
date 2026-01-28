@@ -2244,6 +2244,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      reorder_chapters: {
+        Args: { p_module_id: string; p_ordered_chapter_ids: string[] }
+        Returns: undefined
+      }
       reset_user_module_progress: {
         Args: { p_module_id: string; p_user_id: string }
         Returns: undefined

@@ -96,16 +96,28 @@ export const useCreateFolder = () => {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        // Log detailed error info for debugging
+        console.error("Folder creation error details:", {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        throw error;
+      }
       return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-materials-folders"] });
       toast.success("התיקייה נוצרה בהצלחה");
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
       console.error("Folder creation error:", error);
-      toast.error(`שגיאה ביצירת התיקייה: ${error?.message || "שגיאה לא ידועה"}`);
+      // Show detailed error message for admins
+      const errorCode = error?.code || "unknown";
+      const errorMessage = error?.message || "שגיאה לא ידועה";
+      toast.error(`שגיאה ביצירת התיקייה: [${errorCode}] ${errorMessage}`);
     },
   });
 };
