@@ -138,7 +138,14 @@ const LessonView = () => {
   }
 
   // Check if this lesson is blocked due to previous incomplete task
-  const isCurrentLessonBlocked = canProceedData && !canProceedData.canProceed;
+  const isBlockedByPreviousTask = canProceedData && !canProceedData.canProceed;
+  
+  // Check if THIS lesson has a mandatory task that is not yet approved
+  const currentTaskStatus = getEffectiveStatus(currentSubmission);
+  const isBlockedByCurrentTask = currentTask?.is_mandatory && currentTaskStatus !== 'approved';
+  
+  // Combined blocking - either blocked by previous task or current lesson's mandatory task
+  const isLessonBlocked = isBlockedByPreviousTask || isBlockedByCurrentTask;
 
   return (
     <AuthGuard>
@@ -150,13 +157,15 @@ const LessonView = () => {
     >
       {/* Mandatory Task Blocker Modal - Cannot be dismissed */}
       <MandatoryTaskBlocker
-        isBlocked={isCurrentLessonBlocked}
-        taskLessonId={canProceedData?.blockedByLessonId}
+        isBlocked={isLessonBlocked}
+        taskLessonId={isBlockedByPreviousTask ? canProceedData?.blockedByLessonId : lessonId}
+        taskLessonTitle={isBlockedByPreviousTask ? undefined : lesson.title}
+        isCurrentLessonTask={isBlockedByCurrentTask && !isBlockedByPreviousTask}
       />
 
       <div className={cn(
         "min-h-screen transition-all duration-300",
-        isCurrentLessonBlocked && "blur-sm pointer-events-none select-none"
+        isLessonBlocked && "blur-sm pointer-events-none select-none"
       )}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Breadcrumb */}

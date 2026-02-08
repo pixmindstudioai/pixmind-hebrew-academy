@@ -9,24 +9,26 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Lock, ArrowLeft } from 'lucide-react';
+import { Lock, ClipboardList } from 'lucide-react';
 
 interface MandatoryTaskBlockerProps {
   isBlocked: boolean;
   taskLessonId?: string;
   taskLessonTitle?: string;
+  isCurrentLessonTask?: boolean;
 }
 
 const MandatoryTaskBlocker: React.FC<MandatoryTaskBlockerProps> = ({
   isBlocked,
   taskLessonId,
   taskLessonTitle,
+  isCurrentLessonTask = false,
 }) => {
   const navigate = useNavigate();
 
   // Block ESC key at document level when modal is shown
   useEffect(() => {
-    if (!isBlocked || !taskLessonId) return;
+    if (!isBlocked) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -37,42 +39,65 @@ const MandatoryTaskBlocker: React.FC<MandatoryTaskBlockerProps> = ({
 
     document.addEventListener('keydown', handleKeyDown, true);
     return () => document.removeEventListener('keydown', handleKeyDown, true);
-  }, [isBlocked, taskLessonId]);
+  }, [isBlocked]);
 
-  // Don't render if not blocked or no lesson to navigate to
-  if (!isBlocked || !taskLessonId) return null;
+  // Don't render if not blocked
+  if (!isBlocked) return null;
 
   const handleGoToTask = () => {
-    navigate(`/lesson/${taskLessonId}`);
+    // Navigate to the tasks page
+    navigate('/tasks');
+  };
+
+  const handleGoToTaskLesson = () => {
+    if (taskLessonId) {
+      navigate(`/lesson/${taskLessonId}`);
+    }
   };
 
   return (
     <AlertDialog open={true}>
       <AlertDialogContent className="max-w-md text-center">
         <AlertDialogHeader className="items-center">
-          <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Lock className="w-8 h-8 text-destructive" />
+          <div className="w-20 h-20 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-10 h-10 text-destructive" />
           </div>
-          <AlertDialogTitle className="text-xl">
-            יש להשלים משימה לפני המשך
+          <AlertDialogTitle className="text-xl text-center">
+            {isCurrentLessonTask 
+              ? 'יש להשלים משימה בשיעור זה'
+              : 'יש להשלים משימה לפני המשך'
+            }
           </AlertDialogTitle>
-          <AlertDialogDescription className="text-base text-muted-foreground">
-            שיעור זה נעול עד שתשלים את המשימה בשיעור הקודם.
-            {taskLessonTitle && (
-              <span className="block mt-2 font-medium text-foreground">
-                "{taskLessonTitle}"
-              </span>
+          <AlertDialogDescription className="text-base text-muted-foreground text-center">
+            {isCurrentLessonTask ? (
+              <>
+                כדי להמשיך בשיעור זה, יש להשלים את המשימה המצורפת.
+                {taskLessonTitle && (
+                  <span className="block mt-2 font-medium text-foreground">
+                    "{taskLessonTitle}"
+                  </span>
+                )}
+              </>
+            ) : (
+              <>
+                שיעור זה נעול עד שתשלים את המשימה בשיעור הקודם.
+                {taskLessonTitle && (
+                  <span className="block mt-2 font-medium text-foreground">
+                    "{taskLessonTitle}"
+                  </span>
+                )}
+              </>
             )}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className="justify-center sm:justify-center">
+        <AlertDialogFooter className="justify-center sm:justify-center mt-4">
           <Button
-            onClick={handleGoToTask}
-            className="w-full sm:w-auto"
+            onClick={isCurrentLessonTask ? handleGoToTask : handleGoToTaskLesson}
+            className="w-full sm:w-auto gap-2"
             size="lg"
           >
-            <ArrowLeft className="w-4 h-4 ml-2" />
-            עבור למשימה
+            <ClipboardList className="w-5 h-5" />
+            מעבר למשימה
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
