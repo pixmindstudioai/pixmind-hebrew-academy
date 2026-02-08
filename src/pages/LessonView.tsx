@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Download, FileText, ArrowRight, ArrowLeft, CheckCircle, Loader2, AlertCircle, ExternalLink, Paperclip, Lock } from "lucide-react";
+import { Download, FileText, ArrowRight, ArrowLeft, CheckCircle, Loader2, AlertCircle, ExternalLink, Paperclip, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { LessonContent, LessonType } from "@/components/lesson";
 import CommentSection from "@/components/CommentSection";
 import ProgressBadge from "@/components/ProgressBadge";
@@ -13,7 +13,6 @@ import LessonRating from "@/components/LessonRating";
 import AccessGuard from "@/components/AccessGuard";
 import AuthGuard from "@/components/AuthGuard";
 import ProgressToggle from "@/components/ProgressToggle";
-import TaskSubmissionSection from "@/components/lesson/TaskSubmissionSection";
 import MandatoryTaskBlocker from "@/components/MandatoryTaskBlocker";
 import { cn } from "@/lib/utils";
 import { 
@@ -158,6 +157,7 @@ const LessonView = () => {
       {/* Mandatory Task Blocker Modal - Cannot be dismissed */}
       <MandatoryTaskBlocker
         isBlocked={isLessonBlocked}
+        taskId={isBlockedByPreviousTask ? canProceedData?.blockedByTaskId : currentTask?.id}
         taskLessonId={isBlockedByPreviousTask ? canProceedData?.blockedByLessonId : lessonId}
         taskLessonTitle={isBlockedByPreviousTask ? undefined : lesson.title}
         isCurrentLessonTask={isBlockedByCurrentTask && !isBlockedByPreviousTask}
@@ -393,8 +393,39 @@ const LessonView = () => {
               {/* Lesson Rating */}
               <LessonRating lessonId={lesson.id} />
 
-              {/* Task Submission Section */}
-              <TaskSubmissionSection lessonId={lessonId!} />
+              {/* Task Link Card - replaces inline submission */}
+              {currentTask && currentTask.is_active && (
+                <Card className="border-orange-200 bg-gradient-to-br from-orange-50/80 to-amber-50/50 dark:from-orange-950/20 dark:to-amber-950/10">
+                  <CardContent className="py-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
+                          <ClipboardCheck className="w-5 h-5 text-orange-600" />
+                        </div>
+                        <div>
+                          <div className="font-medium flex items-center gap-2">
+                            משימת שיעור
+                            {currentTask.is_mandatory && (
+                              <Badge variant="outline" className="border-orange-300 text-orange-700 text-xs">
+                                חובה
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {currentTaskStatus === 'approved' ? 'המשימה אושרה ✓' : 'לחץ להגשה'}
+                          </div>
+                        </div>
+                      </div>
+                      <Button asChild variant="outline" className="border-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/30">
+                        <Link to={`/tasks/${currentTask.id}`}>
+                          עבור למשימה
+                          <ArrowLeft className="w-4 h-4 mr-2" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Embeds Section */}
               {embeds.length > 0 && (
