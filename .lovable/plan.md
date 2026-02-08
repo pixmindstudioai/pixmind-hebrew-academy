@@ -1,204 +1,294 @@
 
-# תוכנית תיקון באגים: קריסת מודאל אדמין וחסימת גישה למשימות
+# תוכנית ארכיטקטורה חדשה למשימות - דף משימה עצמאי
 
-## סקירת הבעיות
+## סקירת הבעיות הנוכחיות
 
-### בעיה #1: קריסת מודאל אדמין בעת בחירת תמונה/קובץ
-**מיקום הבאג:** `src/components/admin/LessonTaskManager.tsx`
-
-**שורש הבעיה:** 
-ברכיב `LessonTaskManager`, ה-Checkbox עבור סוגי הגשה (טקסט/קובץ/תמונה) אינו מחובר נכון:
-- ה-`onClick` נמצא על ה-div העוטף
-- ה-Checkbox עצמו חסר `onCheckedChange` handler
-- כאשר לוחצים ישירות על ה-Checkbox (לא על ה-div), זה עלול לגרום להתנהגות לא צפויה
-
-```typescript
-// הקוד הנוכחי (בעייתי)
-<div onClick={() => handleTypeToggle(type.value)}>
-  <Checkbox checked={allowedTypes.includes(type.value)} disabled={disabled} />
-  // חסר onCheckedChange!
-</div>
-```
-
-### בעיה #2: חוסר חסימה אפקטיבית למשימות חובה
-**מיקום הבאג:** `src/pages/LessonView.tsx`
-
-**שורש הבעיה:**
-כרגע, כשמשימת חובה לא הושלמה:
-- מוצג רק `Alert` פשוט שניתן להתעלם ממנו
-- התוכן נשאר נגיש ואינטראקטיבי לחלוטין
-- המשתמש יכול לצרוך את השיעור בחופשיות
-
-**הדרישה:** 
-- מודאל מלא-מסך שלא ניתן לסגירה
-- רקע מטושטש ולא אינטראקטיבי
-- אי אפשר לסגור עם ESC או לחיצה מחוץ למודאל
-- כפתור ניווט לדף המשימה
+### מה לא עובד כרגע:
+1. **משימות מוצגות בתוך שיעורים** - ההגשה מתבצעת ב-`LessonView` דרך `TaskSubmissionSection`
+2. **אין דף משימה עצמאי** - לא קיים route `/tasks/{task_id}`
+3. **לחיצה על משימה מעבירה לשיעור** - במקום לדף משימה ייעודי
+4. **חסימה לא מפנה למשימה** - `MandatoryTaskBlocker` מפנה ל-`/tasks` או לשיעור
 
 ---
 
-## פתרון בעיה #1: תיקון קריסת המודאל
+## ארכיטקטורה חדשה
 
-### שינויים ב-`src/components/admin/LessonTaskManager.tsx`
+### 1. יצירת דף משימה עצמאי: `/tasks/{taskId}`
 
-1. **הוספת `onCheckedChange` ל-Checkbox** - לוודא שהאירוע מטופל נכון
-2. **מניעת event propagation** - שה-Checkbox לא יפעיל גם את ה-onClick של ה-div
-3. **הוספת `type="button"` implicit** - למניעת form submission
+**קובץ חדש:** `src/pages/TaskView.tsx`
 
+דף זה יכלול:
+- כותרת המשימה (שם השיעור המקושר)
+- הוראות המשימה בצורה ברורה
+- סוגי הגשה מותרים (טקסט / תמונה / קובץ)
+- טופס הגשה עם:
+  - Textarea לטקסט
+  - העלאת קובץ/תמונה
+  - כפתור "שלח משימה"
+- סטטוס נוכחי:
+  - לא הוגש
+  - בבדיקת AI
+  - אושר (עם popup הצלחה)
+  - נדחה (עם הסבר)
+- Breadcrumb לניווט חזרה
+
+### 2. עדכון דף רשימת המשימות: `/tasks`
+
+**קובץ:** `src/pages/Tasks.tsx`
+
+שינויים:
+- הכפתור "עבור לשיעור" ישתנה ל-"עבור למשימה"
+- לחיצה תפנה ל-`/tasks/{taskId}` במקום `/lesson/{lessonId}`
+- הוספת מידע נוסף על כל משימה בכרטיס
+
+### 3. עדכון חסימת שיעור: `MandatoryTaskBlocker`
+
+**קובץ:** `src/components/MandatoryTaskBlocker.tsx`
+
+שינויים:
+- כפתור "מעבר למשימה" יפנה ל-`/tasks/{taskId}` 
+- דורש קבלת `taskId` כ-prop (בנוסף ל-`taskLessonId`)
+- הודעה ברורה יותר בעברית
+
+### 4. עדכון LessonView - הסרת הגשה inline
+
+**קובץ:** `src/pages/LessonView.tsx`
+
+שינויים:
+- הסרת רכיב `TaskSubmissionSection` מה-inline
+- החלפה בכרטיס "יש משימה בשיעור זה" עם קישור לדף המשימה
+- עדכון `MandatoryTaskBlocker` לשלוח `taskId`
+
+### 5. עדכון Routing
+
+**קובץ:** `src/App.tsx`
+
+הוספת route חדש:
 ```typescript
-// הקוד המתוקן
-{SUBMISSION_TYPES.map(type => (
-  <div
-    key={type.value}
-    className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-all ${
-      allowedTypes.includes(type.value)
-        ? 'border-primary bg-primary/10'
-        : 'border-border hover:border-primary/50'
-    }`}
-    onClick={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (!disabled) handleTypeToggle(type.value);
-    }}
-  >
-    <Checkbox
-      checked={allowedTypes.includes(type.value)}
-      disabled={disabled}
-      onCheckedChange={(checked) => {
-        if (!disabled) handleTypeToggle(type.value);
-      }}
-      onClick={(e) => e.stopPropagation()}
-    />
-    <type.icon className="w-4 h-4" />
-    <span className="text-sm">{type.label}</span>
-  </div>
-))}
+<Route path="/tasks/:taskId" element={<><Navigation /><TaskView /></>} />
 ```
 
----
+### 6. הוספת Hook לטעינת משימה בודדת
 
-## פתרון בעיה #2: חסימת גישה אפקטיבית למשימות חובה
+**קובץ:** `src/hooks/useTasksData.ts`
 
-### יצירת רכיב חדש: `src/components/MandatoryTaskBlocker.tsx`
-
-רכיב מודאל שלא ניתן לסגירה:
-
+הוספת:
 ```typescript
-interface MandatoryTaskBlockerProps {
-  isBlocked: boolean;
-  taskLessonId: string;
-  taskLessonTitle?: string;
+export const useTaskById = (taskId: string) => {
+  // טעינת משימה עם פרטי השיעור המקושר
 }
 ```
 
-**תכונות הרכיב:**
-- `AlertDialog` עם `open` קבוע (אין `onOpenChange`)
-- רקע מטושטש באמצעות `backdrop-blur-md`
-- חסימת ESC ולחיצה מחוץ למודאל (`onEscapeKeyDown` + `onInteractOutside`)
-- כפתור יחיד: "עבור למשימה" שמנווט לשיעור עם המשימה
+---
 
-### עיצוב המודאל:
-- כותרת: "יש להשלים משימה לפני המשך"
-- הסבר: "שיעור זה כולל משימת חובה שעליך להשלים לפני שתוכל לצפות בתוכן"
-- כפתור ראשי: "עבור למשימה" עם אייקון
+## מבנה דף המשימה החדש (`TaskView.tsx`)
 
-### שינויים ב-`src/pages/LessonView.tsx`
-
-1. **הסרת ה-Alert הנוכחי** - שמוצג כאשר השיעור חסום
-2. **הוספת הרכיב `MandatoryTaskBlocker`** - עם הפרמטרים הנכונים
-3. **טשטוש התוכן** - כאשר השיעור חסום, כל התוכן יהיה מטושטש
-
-```typescript
-// שימוש ברכיב החדש
-<MandatoryTaskBlocker
-  isBlocked={isCurrentLessonBlocked}
-  taskLessonId={canProceedData?.blockedByLessonId}
-  taskLessonTitle={/* שם השיעור החוסם */}
-/>
-
-{/* עטיפת התוכן ב-blur condition */}
-<div className={cn(
-  "transition-all duration-300",
-  isCurrentLessonBlocked && "blur-sm pointer-events-none select-none"
-)}>
-  {/* כל תוכן השיעור */}
-</div>
+```text
++------------------------------------------+
+|  📋 Breadcrumb: קורסים > שם הקורס > שם השיעור > משימה  |
++------------------------------------------+
+|                                          |
+|  ┌────────────────────────────────────┐  |
+|  │  משימת שיעור: "שם השיעור"           │  |
+|  │  Badge: חובה / רשות                │  |
+|  └────────────────────────────────────┘  |
+|                                          |
+|  ┌────────────────────────────────────┐  |
+|  │  הוראות המשימה:                     │  |
+|  │  [תוכן ההוראות מהמשימה]            │  |
+|  │                                    │  |
+|  │  סוגי הגשה מותרים: טקסט, תמונה     │  |
+|  └────────────────────────────────────┘  |
+|                                          |
+|  ┌────────────────────────────────────┐  |
+|  │  סטטוס: [Badge עם סטטוס נוכחי]     │  |
+|  │                                    │  |
+|  │  [אזור הגשה - טקסט/קובץ/תמונה]     │  |
+|  │                                    │  |
+|  │  [ 🚀 שלח משימה ]                  │  |
+|  └────────────────────────────────────┘  |
+|                                          |
+|  ┌────────────────────────────────────┐  |
+|  │  [ חזרה לשיעור ]                   │  |
+|  └────────────────────────────────────┘  |
++------------------------------------------+
 ```
 
 ---
 
-## קבצים לעדכון
+## פופאפים לאחר הגשה
 
-| קובץ | שינוי |
-|------|-------|
-| `src/components/admin/LessonTaskManager.tsx` | תיקון Checkbox handlers |
-| `src/components/MandatoryTaskBlocker.tsx` | **רכיב חדש** - מודאל חסימה |
-| `src/pages/LessonView.tsx` | שילוב המודאל החדש + blur לתוכן |
+### אם אושר:
+```text
++----------------------------------+
+|     ✅ המשימה אושרה!              |
+|                                  |
+|  כל הכבוד! המשימה שלך אושרה       |
+|  ותוכל להמשיך לשיעור הבא.        |
+|                                  |
+|     [ חזרה לשיעור ]              |
++----------------------------------+
+```
+
+### אם נדחה:
+```text
++----------------------------------+
+|     ❌ המשימה נדחתה               |
+|                                  |
+|  ההגשה לא עמדה בדרישות המשימה.    |
+|  אנא קרא את ההוראות שוב ונסה      |
+|  להגיש הגשה חדשה.                |
+|                                  |
+|     [ הגש שוב ]                  |
++----------------------------------+
+```
+
+---
+
+## קבצים לעדכון/יצירה
+
+| קובץ | פעולה | תיאור |
+|------|-------|-------|
+| `src/pages/TaskView.tsx` | **חדש** | דף משימה עצמאי |
+| `src/App.tsx` | עדכון | הוספת route `/tasks/:taskId` |
+| `src/pages/Tasks.tsx` | עדכון | שינוי ניווט ל-`/tasks/{taskId}` |
+| `src/components/MandatoryTaskBlocker.tsx` | עדכון | ניווט ל-task page |
+| `src/pages/LessonView.tsx` | עדכון | הסרת inline submission, הוספת link |
+| `src/hooks/useTasksData.ts` | עדכון | הוספת `useTaskById` hook |
+
+---
+
+## לוגיקת חסימה מעודכנת
+
+### בכניסה לשיעור עם משימת חובה לא מושלמת:
+
+1. בדיקה אם יש משימה משויכת לשיעור
+2. בדיקה אם המשימה היא חובה (`is_mandatory = true`)
+3. בדיקה אם יש הגשה מאושרת למשתמש הנוכחי
+4. אם לא - הצגת `MandatoryTaskBlocker` עם:
+   - הודעה: "כדי להמשיך בשיעור זה, יש להשלים את המשימה המצורפת"
+   - כפתור: "מעבר למשימה" → `/tasks/{taskId}`
+5. תוכן השיעור מטושטש ולא אינטראקטיבי
+
+### בדף המשימה לאחר אישור:
+1. הצגת popup הצלחה
+2. כפתור "חזרה לשיעור" → `/lesson/{lessonId}`
+3. השיעור כעת נגיש לחלוטין
 
 ---
 
 ## פרטים טכניים
 
-### MandatoryTaskBlocker - מבנה הרכיב
+### Hook חדש: `useTaskById`
 
 ```typescript
-import { AlertDialog, AlertDialogContent } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
-import { Lock, ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+export const useTaskById = (taskId: string) => {
+  return useQuery({
+    queryKey: ['task', taskId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('lesson_tasks')
+        .select(`
+          *,
+          lessons!inner (
+            id,
+            title,
+            chapter_id,
+            chapters!inner (
+              id,
+              title,
+              module_id,
+              modules!inner (
+                id,
+                title
+              )
+            )
+          )
+        `)
+        .eq('id', taskId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!taskId,
+  });
+};
+```
 
-const MandatoryTaskBlocker = ({ isBlocked, taskLessonId, taskLessonTitle }) => {
+### עדכון Props של MandatoryTaskBlocker
+
+```typescript
+interface MandatoryTaskBlockerProps {
+  isBlocked: boolean;
+  taskId?: string;           // ID של המשימה עצמה
+  taskLessonId?: string;     // ID השיעור המקושר
+  taskLessonTitle?: string;
+  isCurrentLessonTask?: boolean;
+}
+```
+
+### TaskView - מבנה הרכיב
+
+```typescript
+const TaskView = () => {
+  const { taskId } = useParams();
   const navigate = useNavigate();
   
-  if (!isBlocked || !taskLessonId) return null;
+  const { data: task } = useTaskById(taskId!);
+  const { data: submission } = useUserTaskSubmission(taskId!);
+  
+  // States for submission
+  const [textContent, setTextContent] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  
+  // Show success/rejection dialogs
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [showRejectedDialog, setShowRejectedDialog] = useState(false);
+  
+  // Watch for status changes
+  useEffect(() => {
+    if (effectiveStatus === 'approved') {
+      setShowSuccessDialog(true);
+    } else if (effectiveStatus === 'rejected') {
+      setShowRejectedDialog(true);
+    }
+  }, [effectiveStatus]);
   
   return (
-    <AlertDialog open={true}>
-      <AlertDialogContent 
-        className="max-w-md"
-        onEscapeKeyDown={(e) => e.preventDefault()}
-        onInteractOutside={(e) => e.preventDefault()}
-      >
-        {/* תוכן המודאל */}
-      </AlertDialogContent>
-    </AlertDialog>
+    <AuthGuard>
+      {/* Breadcrumb */}
+      {/* Task Card with instructions */}
+      {/* Status Badge */}
+      {/* Submission Form */}
+      {/* Success Dialog */}
+      {/* Rejection Dialog */}
+    </AuthGuard>
   );
 };
 ```
 
-### LessonView - שילוב הפתרון
-
-```typescript
-return (
-  <AuthGuard>
-    <AccessGuard moduleId={...}>
-      {/* מודאל החסימה - מעל הכל */}
-      <MandatoryTaskBlocker
-        isBlocked={isCurrentLessonBlocked}
-        taskLessonId={canProceedData?.blockedByLessonId}
-      />
-      
-      <div className={cn(
-        "min-h-screen",
-        isCurrentLessonBlocked && "blur-sm pointer-events-none"
-      )}>
-        {/* כל התוכן הקיים */}
-      </div>
-    </AccessGuard>
-  </AuthGuard>
-);
-```
-
 ---
 
-## בדיקות לאחר התיקון
+## בדיקות לאחר יישום
 
 | בדיקה | תוצאה צפויה |
 |-------|-------------|
-| לחיצה על "תמונה" במודאל משימה (אדמין) | המודאל נשאר פתוח, הבחירה משתנה |
-| לחיצה על "קובץ" במודאל משימה (אדמין) | המודאל נשאר פתוח, הבחירה משתנה |
-| פתיחת שיעור עם משימת חובה לא מאושרת | מודאל חסימה מופיע, תוכן מטושטש |
-| לחיצת ESC במודאל החסימה | המודאל נשאר פתוח |
-| לחיצה מחוץ למודאל החסימה | המודאל נשאר פתוח |
-| לחיצה על "עבור למשימה" | ניווט לשיעור עם המשימה |
-| שיעור עם משימה מאושרת | אין חסימה, תוכן נגיש |
+| כניסה ל-`/tasks` | רשימת משימות מקובצת לפי קורס |
+| לחיצה על משימה | ניווט ל-`/tasks/{taskId}` |
+| הגשת משימה בדף משימה | נשמרת ב-DB, מופעל AI validation |
+| אישור AI | popup הצלחה, כפתור "חזרה לשיעור" |
+| דחיית AI | popup דחייה, אפשרות הגשה מחדש |
+| כניסה לשיעור עם משימת חובה לא מושלמת | popup חסימה עם כפתור "מעבר למשימה" |
+| לחיצה על "מעבר למשימה" | ניווט ל-`/tasks/{taskId}` |
+| לאחר אישור - כניסה לשיעור | תוכן נגיש לחלוטין, ללא חסימה |
+
+---
+
+## מה לא משתנה
+
+- טבלאות DB (`lesson_tasks`, `task_submissions`)
+- Edge function `validate-task`
+- Admin panel task creation
+- לוגיקת AI validation
+- RLS policies
