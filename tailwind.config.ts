@@ -19,7 +19,8 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				'sans': ['Heebo', 'Assistant', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+				'sans': ['Samsung One Hebrew', 'Heebo', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+				'heading': ['Samsung SS Head', 'Samsung One Hebrew', 'Heebo', 'ui-sans-serif', 'system-ui', 'sans-serif'],
 			},
 			fontSize: {
 				'display': ['4rem', { lineHeight: '1.1', fontWeight: '700' }],
