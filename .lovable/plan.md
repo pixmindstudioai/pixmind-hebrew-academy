@@ -1,216 +1,204 @@
 
-# תוכנית תיקון שני באגים קריטיים
+# תוכנית תיקון באגים: קריסת מודאל אדמין וחסימת גישה למשימות
 
 ## סקירת הבעיות
 
-### באג #1: יצירת תיקיות חומרי לימוד נכשלת
-**שורש הבעיה**: מדיניות RLS משתמשת ב-`is_admin()` שתלוי ב-`auth.uid()` מ-Supabase Auth. אבל מערכת האדמין משתמשת ב-localStorage ולא ב-Supabase Auth, כך ש-`auth.uid()` מחזיר `NULL` ו-RLS חוסם את הפעולה.
+### בעיה #1: קריסת מודאל אדמין בעת בחירת תמונה/קובץ
+**מיקום הבאג:** `src/components/admin/LessonTaskManager.tsx`
 
-### באג #2: גרירת פרקים זורקת שגיאת UNIQUE constraint
-**שורש הבעיה**: הקוד הנוכחי משתמש ב-`Promise.all` לעדכון מספר פרקים במקביל. כשמחליפים order_index בין שני פרקים, נוצר מצב זמני שבו שני פרקים מנסים לקבל את אותו order_index, והאילוץ `UNIQUE(module_id, order_index)` נכשל.
-
----
-
-## פתרון באג #1: תיקון RLS לתיקיות חומרים
-
-### אסטרטגיה
-במקום לשנות את מערכת ה-Auth, נשתמש באותו דפוס שעובד עבור טבלת `modules` - שימוש ב-`is_admin_user()` שמכיר גם את ה-placeholder UUID.
-
-### מיגרציית DB נדרשת
-
-```sql
--- עדכון מדיניות RLS עבור materials_folders
-DROP POLICY IF EXISTS "Admins can select folders" ON public.materials_folders;
-DROP POLICY IF EXISTS "Admins can insert folders" ON public.materials_folders;
-DROP POLICY IF EXISTS "Admins can update folders" ON public.materials_folders;
-DROP POLICY IF EXISTS "Admins can delete folders" ON public.materials_folders;
-
-CREATE POLICY "Admins can manage folders" ON public.materials_folders
-  FOR ALL TO public
-  USING (is_admin_user(auth.uid()) OR is_admin())
-  WITH CHECK (is_admin_user(auth.uid()) OR is_admin());
-
--- אותו דבר עבור materials_files ו-materials_folder_access
-```
-
-### עדכון קוד: שיפור הודעות שגיאה
-
-קובץ: `src/hooks/useMaterialsData.ts`
+**שורש הבעיה:** 
+ברכיב `LessonTaskManager`, ה-Checkbox עבור סוגי הגשה (טקסט/קובץ/תמונה) אינו מחובר נכון:
+- ה-`onClick` נמצא על ה-div העוטף
+- ה-Checkbox עצמו חסר `onCheckedChange` handler
+- כאשר לוחצים ישירות על ה-Checkbox (לא על ה-div), זה עלול לגרום להתנהגות לא צפויה
 
 ```typescript
-export const useCreateFolder = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (data: { title: string; description?: string }) => {
-      const { data: result, error } = await supabase
-        .from("materials_folders")
-        .insert(data)
-        .select()
-        .single();
-      
-      if (error) {
-        console.error("Folder creation error details:", {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint
-        });
-        throw error;
-      }
-      return result;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-materials-folders"] });
-      toast.success("התיקייה נוצרה בהצלחה");
-    },
-    onError: (error: any) => {
-      console.error("Folder creation error:", error);
-      // הודעה מפורטת לאדמין
-      const errorCode = error?.code || "unknown";
-      const errorMessage = error?.message || "שגיאה לא ידועה";
-      toast.error(`שגיאה ביצירת התיקייה: [${errorCode}] ${errorMessage}`);
-    },
-  });
-};
+// הקוד הנוכחי (בעייתי)
+<div onClick={() => handleTypeToggle(type.value)}>
+  <Checkbox checked={allowedTypes.includes(type.value)} disabled={disabled} />
+  // חסר onCheckedChange!
+</div>
 ```
+
+### בעיה #2: חוסר חסימה אפקטיבית למשימות חובה
+**מיקום הבאג:** `src/pages/LessonView.tsx`
+
+**שורש הבעיה:**
+כרגע, כשמשימת חובה לא הושלמה:
+- מוצג רק `Alert` פשוט שניתן להתעלם ממנו
+- התוכן נשאר נגיש ואינטראקטיבי לחלוטין
+- המשתמש יכול לצרוך את השיעור בחופשיות
+
+**הדרישה:** 
+- מודאל מלא-מסך שלא ניתן לסגירה
+- רקע מטושטש ולא אינטראקטיבי
+- אי אפשר לסגור עם ESC או לחיצה מחוץ למודאל
+- כפתור ניווט לדף המשימה
 
 ---
 
-## פתרון באג #2: גרירת פרקים עם Postgres RPC
+## פתרון בעיה #1: תיקון קריסת המודאל
 
-### אסטרטגיה
-יצירת פונקציית RPC ב-Postgres שמבצעת את השינוי בטרנזקציה אחת, עם שלב ביניים של ערכי order_index גבוהים כדי למנוע התנגשויות.
+### שינויים ב-`src/components/admin/LessonTaskManager.tsx`
 
-### מיגרציית DB: יצירת פונקציית reorder_chapters
-
-```sql
-CREATE OR REPLACE FUNCTION public.reorder_chapters(
-  p_module_id uuid,
-  p_ordered_chapter_ids uuid[]
-)
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  v_chapter_id uuid;
-  v_index int;
-BEGIN
-  -- וידוא שהמשתמש הוא אדמין
-  IF NOT (is_admin_user(auth.uid()) OR is_admin()) THEN
-    RAISE EXCEPTION 'Only admins can reorder chapters';
-  END IF;
-
-  -- וידוא שכל הפרקים שייכים למודול הנכון
-  IF EXISTS (
-    SELECT 1 FROM unnest(p_ordered_chapter_ids) AS cid
-    WHERE NOT EXISTS (
-      SELECT 1 FROM chapters 
-      WHERE id = cid AND module_id = p_module_id
-    )
-  ) THEN
-    RAISE EXCEPTION 'All chapter IDs must belong to the specified module';
-  END IF;
-
-  -- שלב 1: הקצאת ערכי order_index גבוהים זמניים
-  v_index := 1;
-  FOREACH v_chapter_id IN ARRAY p_ordered_chapter_ids
-  LOOP
-    UPDATE chapters
-    SET order_index = 100000 + v_index
-    WHERE id = v_chapter_id AND module_id = p_module_id;
-    v_index := v_index + 1;
-  END LOOP;
-
-  -- שלב 2: נורמליזציה לערכים סופיים (0-based)
-  v_index := 0;
-  FOREACH v_chapter_id IN ARRAY p_ordered_chapter_ids
-  LOOP
-    UPDATE chapters
-    SET order_index = v_index
-    WHERE id = v_chapter_id AND module_id = p_module_id;
-    v_index := v_index + 1;
-  END LOOP;
-END;
-$$;
-```
-
-### עדכון קוד: שימוש ב-RPC במקום Promise.all
-
-קובץ: `src/hooks/useAdminData.ts`
+1. **הוספת `onCheckedChange` ל-Checkbox** - לוודא שהאירוע מטופל נכון
+2. **מניעת event propagation** - שה-Checkbox לא יפעיל גם את ה-onClick של ה-div
+3. **הוספת `type="button"` implicit** - למניעת form submission
 
 ```typescript
-export const useReorderChapters = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (chapters: Array<{ id: string; order_index: number; module_id: string }>) => {
-      const moduleId = chapters[0]?.module_id;
-      if (!moduleId) throw new Error('No module ID provided');
-      
-      // מיון לפי order_index החדש כדי לקבל את הסדר הנכון
-      const orderedIds = chapters
-        .sort((a, b) => a.order_index - b.order_index)
-        .map(c => c.id);
-      
-      // קריאה ל-RPC במקום עדכון ישיר
-      const { error } = await supabase.rpc('reorder_chapters', {
-        p_module_id: moduleId,
-        p_ordered_chapter_ids: orderedIds
-      });
-      
-      if (error) {
-        console.error('Reorder RPC error:', error);
-        throw new Error(error.message || 'שגיאה בשינוי הסדר');
-      }
-      
-      return chapters;
-    },
-    // ... שאר הקוד נשאר אותו דבר (optimistic updates, rollback, etc.)
-  });
-};
+// הקוד המתוקן
+{SUBMISSION_TYPES.map(type => (
+  <div
+    key={type.value}
+    className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-all ${
+      allowedTypes.includes(type.value)
+        ? 'border-primary bg-primary/10'
+        : 'border-border hover:border-primary/50'
+    }`}
+    onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!disabled) handleTypeToggle(type.value);
+    }}
+  >
+    <Checkbox
+      checked={allowedTypes.includes(type.value)}
+      disabled={disabled}
+      onCheckedChange={(checked) => {
+        if (!disabled) handleTypeToggle(type.value);
+      }}
+      onClick={(e) => e.stopPropagation()}
+    />
+    <type.icon className="w-4 h-4" />
+    <span className="text-sm">{type.label}</span>
+  </div>
+))}
 ```
 
 ---
 
-## רשימת קבצים לעדכון
+## פתרון בעיה #2: חסימת גישה אפקטיבית למשימות חובה
+
+### יצירת רכיב חדש: `src/components/MandatoryTaskBlocker.tsx`
+
+רכיב מודאל שלא ניתן לסגירה:
+
+```typescript
+interface MandatoryTaskBlockerProps {
+  isBlocked: boolean;
+  taskLessonId: string;
+  taskLessonTitle?: string;
+}
+```
+
+**תכונות הרכיב:**
+- `AlertDialog` עם `open` קבוע (אין `onOpenChange`)
+- רקע מטושטש באמצעות `backdrop-blur-md`
+- חסימת ESC ולחיצה מחוץ למודאל (`onEscapeKeyDown` + `onInteractOutside`)
+- כפתור יחיד: "עבור למשימה" שמנווט לשיעור עם המשימה
+
+### עיצוב המודאל:
+- כותרת: "יש להשלים משימה לפני המשך"
+- הסבר: "שיעור זה כולל משימת חובה שעליך להשלים לפני שתוכל לצפות בתוכן"
+- כפתור ראשי: "עבור למשימה" עם אייקון
+
+### שינויים ב-`src/pages/LessonView.tsx`
+
+1. **הסרת ה-Alert הנוכחי** - שמוצג כאשר השיעור חסום
+2. **הוספת הרכיב `MandatoryTaskBlocker`** - עם הפרמטרים הנכונים
+3. **טשטוש התוכן** - כאשר השיעור חסום, כל התוכן יהיה מטושטש
+
+```typescript
+// שימוש ברכיב החדש
+<MandatoryTaskBlocker
+  isBlocked={isCurrentLessonBlocked}
+  taskLessonId={canProceedData?.blockedByLessonId}
+  taskLessonTitle={/* שם השיעור החוסם */}
+/>
+
+{/* עטיפת התוכן ב-blur condition */}
+<div className={cn(
+  "transition-all duration-300",
+  isCurrentLessonBlocked && "blur-sm pointer-events-none select-none"
+)}>
+  {/* כל תוכן השיעור */}
+</div>
+```
+
+---
+
+## קבצים לעדכון
 
 | קובץ | שינוי |
 |------|-------|
-| `supabase/migrations/xxx.sql` | מיגרציה חדשה עם תיקון RLS ופונקציית RPC |
-| `src/hooks/useMaterialsData.ts` | שיפור הודעות שגיאה |
-| `src/hooks/useAdminData.ts` | שימוש ב-RPC במקום Promise.all |
+| `src/components/admin/LessonTaskManager.tsx` | תיקון Checkbox handlers |
+| `src/components/MandatoryTaskBlocker.tsx` | **רכיב חדש** - מודאל חסימה |
+| `src/pages/LessonView.tsx` | שילוב המודאל החדש + blur לתוכן |
 
 ---
 
-## סיכום טכני
+## פרטים טכניים
 
-```text
-┌──────────────────────────────────────────────────────────────────┐
-│  באג #1: יצירת תיקיות                                           │
-├──────────────────────────────────────────────────────────────────┤
-│  בעיה: is_admin() לא עובד כי אין Supabase session               │
-│  פתרון: שימוש ב-is_admin_user() כמו בטבלת modules               │
-└──────────────────────────────────────────────────────────────────┘
+### MandatoryTaskBlocker - מבנה הרכיב
 
-┌──────────────────────────────────────────────────────────────────┐
-│  באג #2: גרירת פרקים                                            │
-├──────────────────────────────────────────────────────────────────┤
-│  בעיה: Promise.all גורם להתנגשות order_index                    │
-│  פתרון: Postgres RPC עם 2-phase update בטרנזקציה אחת            │
-│                                                                  │
-│  שלב 1: order_index = 100000 + i (ערכים גבוהים זמניים)          │
-│  שלב 2: order_index = i (ערכים סופיים)                          │
-└──────────────────────────────────────────────────────────────────┘
+```typescript
+import { AlertDialog, AlertDialogContent } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Lock, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
+const MandatoryTaskBlocker = ({ isBlocked, taskLessonId, taskLessonTitle }) => {
+  const navigate = useNavigate();
+  
+  if (!isBlocked || !taskLessonId) return null;
+  
+  return (
+    <AlertDialog open={true}>
+      <AlertDialogContent 
+        className="max-w-md"
+        onEscapeKeyDown={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+      >
+        {/* תוכן המודאל */}
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
 ```
+
+### LessonView - שילוב הפתרון
+
+```typescript
+return (
+  <AuthGuard>
+    <AccessGuard moduleId={...}>
+      {/* מודאל החסימה - מעל הכל */}
+      <MandatoryTaskBlocker
+        isBlocked={isCurrentLessonBlocked}
+        taskLessonId={canProceedData?.blockedByLessonId}
+      />
+      
+      <div className={cn(
+        "min-h-screen",
+        isCurrentLessonBlocked && "blur-sm pointer-events-none"
+      )}>
+        {/* כל התוכן הקיים */}
+      </div>
+    </AccessGuard>
+  </AuthGuard>
+);
+```
+
+---
 
 ## בדיקות לאחר התיקון
 
 | בדיקה | תוצאה צפויה |
 |-------|-------------|
-| יצירת תיקייה חדשה | הצלחה, Toast ירוק |
-| גרירת פרק ראשון למיקום אחרון | הצלחה, אין שגיאת constraint |
-| גרירה מהירה של מספר פרקים | הצלחה |
-| רענון עמוד המשתמש | סדר פרקים מעודכן |
+| לחיצה על "תמונה" במודאל משימה (אדמין) | המודאל נשאר פתוח, הבחירה משתנה |
+| לחיצה על "קובץ" במודאל משימה (אדמין) | המודאל נשאר פתוח, הבחירה משתנה |
+| פתיחת שיעור עם משימת חובה לא מאושרת | מודאל חסימה מופיע, תוכן מטושטש |
+| לחיצת ESC במודאל החסימה | המודאל נשאר פתוח |
+| לחיצה מחוץ למודאל החסימה | המודאל נשאר פתוח |
+| לחיצה על "עבור למשימה" | ניווט לשיעור עם המשימה |
+| שיעור עם משימה מאושרת | אין חסימה, תוכן נגיש |
