@@ -178,14 +178,12 @@ const Tasks = () => {
                             <div className="flex items-center gap-3">
                               {getStatusBadge(task)}
                               
-                              {lessonId && (
-                                <Button variant="ghost" size="sm" asChild>
-                                  <Link to={`/lesson/${lessonId}`}>
-                                    עבור לשיעור
-                                    <ArrowLeft className="w-4 h-4 mr-1" />
-                                  </Link>
-                                </Button>
-                              )}
+                              <Button variant="ghost" size="sm" asChild>
+                                <Link to={`/tasks/${task.id}`}>
+                                  עבור למשימה
+                                  <ArrowLeft className="w-4 h-4 mr-1" />
+                                </Link>
+                              </Button>
                             </div>
                           </div>
                         </CardContent>

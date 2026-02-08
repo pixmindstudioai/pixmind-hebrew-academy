@@ -416,6 +416,40 @@ export const useOverrideSubmission = () => {
   });
 };
 
+// Fetch a single task by ID with full lesson/chapter/module info
+export const useTaskById = (taskId: string) => {
+  return useQuery({
+    queryKey: ['task-by-id', taskId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('lesson_tasks')
+        .select(`
+          *,
+          lessons!inner (
+            id,
+            title,
+            chapter_id,
+            chapters!inner (
+              id,
+              title,
+              module_id,
+              modules!inner (
+                id,
+                title
+              )
+            )
+          )
+        `)
+        .eq('id', taskId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!taskId,
+  });
+};
+
 // Check if user can proceed to next lesson (no mandatory pending/rejected tasks)
 export const useCanProceedToLesson = (lessonId: string) => {
   const { user } = useAuth();

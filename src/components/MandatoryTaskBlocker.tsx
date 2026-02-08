@@ -13,6 +13,7 @@ import { Lock, ClipboardList } from 'lucide-react';
 
 interface MandatoryTaskBlockerProps {
   isBlocked: boolean;
+  taskId?: string;
   taskLessonId?: string;
   taskLessonTitle?: string;
   isCurrentLessonTask?: boolean;
@@ -20,6 +21,7 @@ interface MandatoryTaskBlockerProps {
 
 const MandatoryTaskBlocker: React.FC<MandatoryTaskBlockerProps> = ({
   isBlocked,
+  taskId,
   taskLessonId,
   taskLessonTitle,
   isCurrentLessonTask = false,
@@ -45,13 +47,12 @@ const MandatoryTaskBlocker: React.FC<MandatoryTaskBlockerProps> = ({
   if (!isBlocked) return null;
 
   const handleGoToTask = () => {
-    // Navigate to the tasks page
-    navigate('/tasks');
-  };
-
-  const handleGoToTaskLesson = () => {
-    if (taskLessonId) {
-      navigate(`/lesson/${taskLessonId}`);
+    // Navigate to the dedicated task page if taskId is provided
+    if (taskId) {
+      navigate(`/tasks/${taskId}`);
+    } else {
+      // Fallback to tasks list
+      navigate('/tasks');
     }
   };
 
@@ -92,7 +93,7 @@ const MandatoryTaskBlocker: React.FC<MandatoryTaskBlockerProps> = ({
         </AlertDialogHeader>
         <AlertDialogFooter className="justify-center sm:justify-center mt-4">
           <Button
-            onClick={isCurrentLessonTask ? handleGoToTask : handleGoToTaskLesson}
+            onClick={handleGoToTask}
             className="w-full sm:w-auto gap-2"
             size="lg"
           >

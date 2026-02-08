@@ -13,6 +13,7 @@ import SignUp from "./pages/SignUp";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import Tasks from "./pages/Tasks";
+import TaskView from "./pages/TaskView";
 import Notebook from "./pages/Notebook";
 import AdminLoginPage from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -56,6 +57,7 @@ const App = () => (
             <Route path="/courses/:moduleId" element={<><Navigation /><CourseDetail /></>} />
             <Route path="/lesson/:lessonId" element={<><Navigation /><LessonView /></>} />
             <Route path="/tasks" element={<><Navigation /><Tasks /></>} />
+            <Route path="/tasks/:taskId" element={<><Navigation /><TaskView /></>} />
             <Route path="/notebook" element={<><Navigation /><Notebook /></>} />
             <Route path="/community" element={<><Navigation /><Community /></>} />
             <Route path="/announcements" element={<><Navigation /><Announcements /></>} />
