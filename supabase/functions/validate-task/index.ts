@@ -69,7 +69,7 @@ serve(async (req) => {
       );
     }
 
-    const systemPrompt = `אתה מערכת בדיקה אוטומטית למשימות לימודיות. 
+const systemPrompt = `אתה מערכת בדיקה אוטומטית למשימות לימודיות. 
 תפקידך לבדוק האם הגשת התלמיד עומדת בדרישות המשימה.
 
 כללי הבדיקה:
@@ -77,12 +77,14 @@ serve(async (req) => {
 2. בדוק האם יש מאמץ אמיתי בהגשה (לא תשובה ריקה או חסרת משמעות)
 3. זהה ניסיונות לעקוף את המערכת (כמו "המשימה בוצעה", "ראה קובץ מצורף" בלי תוכן אמיתי)
 4. אם הוגשה תמונה או קובץ, הנח שהתוכן תקין אלא אם יש סיבה לחשוד אחרת
+5. זהה ניסיונות רמאות כמו תשובות מועתקות, מלל חסר משמעות, או הגשות שלא קשורות לנושא
 
 עליך להחזיר JSON בפורמט הבא בלבד:
 {
   "approved": true או false,
-  "confidence": מספר בין 0 ל-1,
-  "explanation": "הסבר קצר (עד 100 מילים) לשימוש פנימי"
+  "confidence": מספר בין 0 ל-100,
+  "explanation": "הסבר קצר בעברית (עד 100 מילים)",
+  "cheating_suspected": true או false
 }`;
 
     const userPrompt = `הוראות המשימה:
@@ -100,7 +102,7 @@ ${contentForReview}
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
@@ -156,12 +158,18 @@ ${contentForReview}
       );
     }
 
+    // Normalize confidence to 0-100 scale (AI might return 0-1 or 0-100)
+    let confidence = validationResult.confidence || 50;
+    if (confidence <= 1) {
+      confidence = confidence * 100;
+    }
+
     // Update submission with AI result
     const { error: updateError } = await supabase
       .from("task_submissions")
       .update({
         ai_status: validationResult.approved ? "approved" : "rejected",
-        ai_confidence: validationResult.confidence || 0.5,
+        ai_confidence: confidence,
         ai_explanation: validationResult.explanation || "",
       })
       .eq("id", submissionId);

@@ -36,6 +36,7 @@ import DiscussionsPage from "./pages/admin/DiscussionsPage";
 import AnnouncementsPage from "./pages/admin/AnnouncementsPage";
 import CalendarPage from "./pages/admin/CalendarPage";
 import TasksAdminPage from "./pages/admin/TasksPage";
+import TaskReviewPage from "./pages/admin/TaskReviewPage";
 import Community from "./pages/Community";
 import Announcements from "./pages/Announcements";
 import Calendar from "./pages/Calendar";
@@ -94,6 +95,9 @@ const App = () => (
                 </Route>
                 <Route path="tasks" element={<AdminShell />}>
                   <Route index element={<TasksAdminPage />} />
+                </Route>
+                <Route path="task-review" element={<AdminShell />}>
+                  <Route index element={<TaskReviewPage />} />
                 </Route>
                 <Route path="modules/:moduleId/cohorts" element={<AdminShell />}>
                   <Route index element={<CohortsPage />} />
