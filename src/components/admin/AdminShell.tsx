@@ -73,6 +73,12 @@ const AdminShell = () => {
       description: 'ניהול משימות והגשות בכל הקורסים'
     },
     {
+      href: '/admin/task-review',
+      label: 'בדיקת ביצועי משימות',
+      icon: ClipboardCheck,
+      description: 'סקירה ואישור ידני של הגשות משימות'
+    },
+    {
       href: '/admin/students',
       label: 'ניהול תלמידים',
       icon: Users,
