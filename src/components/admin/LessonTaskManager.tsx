@@ -246,11 +246,19 @@ const LessonTaskManager = ({ lessonId, disabled }: LessonTaskManagerProps) => {
                       ? 'border-primary bg-primary/10'
                       : 'border-border hover:border-primary/50'
                   }`}
-                  onClick={() => !disabled && handleTypeToggle(type.value)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!disabled) handleTypeToggle(type.value);
+                  }}
                 >
                   <Checkbox
                     checked={allowedTypes.includes(type.value)}
                     disabled={disabled}
+                    onCheckedChange={() => {
+                      if (!disabled) handleTypeToggle(type.value);
+                    }}
+                    onClick={(e) => e.stopPropagation()}
                   />
                   <type.icon className="w-4 h-4" />
                   <span className="text-sm">{type.label}</span>

@@ -14,6 +14,8 @@ import AccessGuard from "@/components/AccessGuard";
 import AuthGuard from "@/components/AuthGuard";
 import ProgressToggle from "@/components/ProgressToggle";
 import TaskSubmissionSection from "@/components/lesson/TaskSubmissionSection";
+import MandatoryTaskBlocker from "@/components/MandatoryTaskBlocker";
+import { cn } from "@/lib/utils";
 import { 
   useLesson, 
   useLessonAttachments, 
@@ -146,25 +148,17 @@ const LessonView = () => {
       paymentUrl={null}
       isPaid={false}
     >
-      <div className="min-h-screen">
+      {/* Mandatory Task Blocker Modal - Cannot be dismissed */}
+      <MandatoryTaskBlocker
+        isBlocked={isCurrentLessonBlocked}
+        taskLessonId={canProceedData?.blockedByLessonId}
+      />
+
+      <div className={cn(
+        "min-h-screen transition-all duration-300",
+        isCurrentLessonBlocked && "blur-sm pointer-events-none select-none"
+      )}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Blocked Lesson Alert */}
-          {isCurrentLessonBlocked && (
-            <Alert className="mb-6 border-red-200 bg-red-50 dark:bg-red-950/30">
-              <Lock className="w-4 h-4 text-red-600" />
-              <AlertTitle className="text-red-800 dark:text-red-300">שיעור נעול</AlertTitle>
-              <AlertDescription className="text-red-700 dark:text-red-400">
-                עליך להשלים את המשימה בשיעור הקודם לפני שתוכל לגשת לשיעור זה.
-                <Button 
-                  variant="link" 
-                  className="text-red-700 dark:text-red-400 p-0 h-auto mr-2"
-                  onClick={() => navigate(`/lesson/${canProceedData?.blockedByLessonId}`)}
-                >
-                  עבור לשיעור עם המשימה
-                </Button>
-              </AlertDescription>
-            </Alert>
-          )}
           {/* Breadcrumb */}
           <div className="flex items-center space-x-2 space-x-reverse text-sm text-muted-foreground mb-8">
             <Link to="/courses" className="hover:text-foreground transition-colors">
