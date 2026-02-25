@@ -59,6 +59,8 @@ const CalendarPage = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<CalendarEventFormData>(defaultFormData);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [visibilityType, setVisibilityType] = useState<'global' | 'course' | 'cycle'>('global');
+  const [selectedCourseForCycle, setSelectedCourseForCycle] = useState<string>('');
 
   // Fetch modules for visibility selection
   const { data: modules = [] } = useQuery({
@@ -103,6 +105,8 @@ const CalendarPage = () => {
   const openCreateDialog = () => {
     setEditingId(null);
     setFormData(defaultFormData);
+    setVisibilityType('global');
+    setSelectedCourseForCycle('');
     setIsDialogOpen(true);
   };
 
@@ -112,6 +116,29 @@ const CalendarPage = () => {
 
     const visibility = await fetchEventVisibility(eventId);
     
+    const visCohorts = visibility.filter(v => v.cohort_id).map(v => v.cohort_id!);
+    const visModules = visibility.filter(v => v.module_id).map(v => v.module_id!);
+    const visBundles = visibility.filter(v => v.bundle_id).map(v => v.bundle_id!);
+
+    // Determine visibility type from existing data
+    let detectedType: 'global' | 'course' | 'cycle' = 'global';
+    if (visCohorts.length > 0) {
+      detectedType = 'cycle';
+    } else if (visModules.length > 0 || visBundles.length > 0) {
+      detectedType = 'course';
+    } else if (event.access_type === 'restricted') {
+      detectedType = 'course';
+    }
+
+    // If cycle, find the course for the first cohort
+    if (detectedType === 'cycle' && visCohorts.length > 0) {
+      const cohort = cohorts.find(c => c.id === visCohorts[0]);
+      setSelectedCourseForCycle(cohort?.module_id || '');
+    } else {
+      setSelectedCourseForCycle('');
+    }
+    
+    setVisibilityType(detectedType);
     setEditingId(eventId);
     setFormData({
       title: event.title,
@@ -122,11 +149,11 @@ const CalendarPage = () => {
       location: event.location || '',
       external_link: event.external_link || '',
       attachment_url: event.attachment_url || '',
-      access_type: event.access_type as 'all' | 'restricted',
+      access_type: detectedType === 'global' ? 'all' : 'restricted',
       is_active: event.is_active,
-      visibility_modules: visibility.filter(v => v.module_id).map(v => v.module_id!),
-      visibility_bundles: visibility.filter(v => v.bundle_id).map(v => v.bundle_id!),
-      visibility_cohorts: visibility.filter(v => v.cohort_id).map(v => v.cohort_id!)
+      visibility_modules: visModules,
+      visibility_bundles: visBundles,
+      visibility_cohorts: visCohorts
     });
     setIsDialogOpen(true);
   };
@@ -216,7 +243,7 @@ const CalendarPage = () => {
                         <Badge variant="secondary">לא פעיל</Badge>
                       )}
                       <Badge variant={event.access_type === 'all' ? 'default' : 'secondary'}>
-                        {event.access_type === 'all' ? 'כולם' : 'מוגבל'}
+                        {event.access_type === 'all' ? 'כללי' : 'מוגבל'}
                       </Badge>
                     </div>
                     
@@ -386,22 +413,43 @@ const CalendarPage = () => {
             </div>
 
             <div>
-              <Label>הרשאות צפייה</Label>
+              <Label>סוג חשיפה</Label>
               <Select
-                value={formData.access_type}
-                onValueChange={value => setFormData(prev => ({ ...prev, access_type: value as 'all' | 'restricted' }))}
+                value={visibilityType}
+                onValueChange={(value: 'global' | 'course' | 'cycle') => {
+                  setVisibilityType(value);
+                  if (value === 'global') {
+                    setFormData(prev => ({
+                      ...prev,
+                      access_type: 'all',
+                      visibility_modules: [],
+                      visibility_bundles: [],
+                      visibility_cohorts: []
+                    }));
+                  } else {
+                    setFormData(prev => ({
+                      ...prev,
+                      access_type: 'restricted',
+                      visibility_modules: [],
+                      visibility_bundles: [],
+                      visibility_cohorts: []
+                    }));
+                  }
+                  setSelectedCourseForCycle('');
+                }}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">כל המשתמשים המחוברים</SelectItem>
-                  <SelectItem value="restricted">משתמשים רשומים לקורסים/חבילות ספציפיות</SelectItem>
+                  <SelectItem value="global">כללי - כל המשתמשים</SelectItem>
+                  <SelectItem value="course">קורס מסוים</SelectItem>
+                  <SelectItem value="cycle">מחזור מסוים</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {formData.access_type === 'restricted' && (
+            {visibilityType === 'course' && (
               <>
                 <div>
                   <Label className="mb-2 block">קורסים</Label>
@@ -434,6 +482,62 @@ const CalendarPage = () => {
                     ))}
                   </div>
                 </div>
+              </>
+            )}
+
+            {visibilityType === 'cycle' && (
+              <>
+                <div>
+                  <Label className="mb-2 block">בחר קורס</Label>
+                  <Select
+                    value={selectedCourseForCycle}
+                    onValueChange={(value) => {
+                      setSelectedCourseForCycle(value);
+                      setFormData(prev => ({ ...prev, visibility_cohorts: [] }));
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="בחר קורס לסינון מחזורים" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {modules.map(module => (
+                        <SelectItem key={module.id} value={module.id}>
+                          {module.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {selectedCourseForCycle && (
+                  <div>
+                    <Label className="mb-2 block">מחזורים</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {cohorts
+                        .filter(c => c.module_id === selectedCourseForCycle)
+                        .map(cohort => (
+                          <Badge
+                            key={cohort.id}
+                            variant={formData.visibility_cohorts.includes(cohort.id) ? 'default' : 'outline'}
+                            className="cursor-pointer"
+                            onClick={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                visibility_cohorts: prev.visibility_cohorts.includes(cohort.id)
+                                  ? prev.visibility_cohorts.filter(id => id !== cohort.id)
+                                  : [...prev.visibility_cohorts, cohort.id]
+                              }));
+                            }}
+                          >
+                            {cohort.name}
+                          </Badge>
+                        ))}
+                      {cohorts.filter(c => c.module_id === selectedCourseForCycle).length === 0 && (
+                        <p className="text-sm text-muted-foreground">אין מחזורים פעילים לקורס זה</p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </>
             )}
 
