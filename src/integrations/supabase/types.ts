@@ -236,6 +236,7 @@ export type Database = {
       calendar_event_visibility: {
         Row: {
           bundle_id: string | null
+          cohort_id: string | null
           created_at: string
           event_id: string
           id: string
@@ -243,6 +244,7 @@ export type Database = {
         }
         Insert: {
           bundle_id?: string | null
+          cohort_id?: string | null
           created_at?: string
           event_id: string
           id?: string
@@ -250,6 +252,7 @@ export type Database = {
         }
         Update: {
           bundle_id?: string | null
+          cohort_id?: string | null
           created_at?: string
           event_id?: string
           id?: string
@@ -261,6 +264,13 @@ export type Database = {
             columns: ["bundle_id"]
             isOneToOne: false
             referencedRelation: "bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_event_visibility_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
             referencedColumns: ["id"]
           },
           {

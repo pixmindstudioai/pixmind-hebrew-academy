@@ -38,7 +38,8 @@ const defaultFormData: CalendarEventFormData = {
   access_type: 'all',
   is_active: true,
   visibility_modules: [],
-  visibility_bundles: []
+  visibility_bundles: [],
+  visibility_cohorts: []
 };
 
 const CalendarPage = () => {
@@ -85,6 +86,20 @@ const CalendarPage = () => {
     }
   });
 
+  // Fetch cohorts for visibility selection
+  const { data: cohorts = [] } = useQuery({
+    queryKey: ['admin-cohorts-list'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('cohorts')
+        .select('id, name, module_id')
+        .eq('is_active', true)
+        .order('name');
+      if (error) throw error;
+      return data;
+    }
+  });
+
   const openCreateDialog = () => {
     setEditingId(null);
     setFormData(defaultFormData);
@@ -110,7 +125,8 @@ const CalendarPage = () => {
       access_type: event.access_type as 'all' | 'restricted',
       is_active: event.is_active,
       visibility_modules: visibility.filter(v => v.module_id).map(v => v.module_id!),
-      visibility_bundles: visibility.filter(v => v.bundle_id).map(v => v.bundle_id!)
+      visibility_bundles: visibility.filter(v => v.bundle_id).map(v => v.bundle_id!),
+      visibility_cohorts: visibility.filter(v => v.cohort_id).map(v => v.cohort_id!)
     });
     setIsDialogOpen(true);
   };
