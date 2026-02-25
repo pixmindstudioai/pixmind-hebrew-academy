@@ -24,6 +24,7 @@ export interface CalendarEventVisibility {
   event_id: string;
   module_id: string | null;
   bundle_id: string | null;
+  cohort_id: string | null;
   created_at: string;
 }
 
@@ -40,6 +41,7 @@ export interface CalendarEventFormData {
   is_active: boolean;
   visibility_modules: string[];
   visibility_bundles: string[];
+  visibility_cohorts: string[];
 }
 
 const eventTypeLabels: Record<string, string> = {
@@ -127,12 +129,20 @@ export const useCalendarData = () => {
           ...formData.visibility_modules.map(moduleId => ({
             event_id: event.id,
             module_id: moduleId,
-            bundle_id: null
+            bundle_id: null,
+            cohort_id: null
           })),
           ...formData.visibility_bundles.map(bundleId => ({
             event_id: event.id,
             module_id: null,
-            bundle_id: bundleId
+            bundle_id: bundleId,
+            cohort_id: null
+          })),
+          ...formData.visibility_cohorts.map(cohortId => ({
+            event_id: event.id,
+            module_id: null,
+            bundle_id: null,
+            cohort_id: cohortId
           }))
         ];
 
@@ -202,12 +212,20 @@ export const useCalendarData = () => {
           ...formData.visibility_modules.map(moduleId => ({
             event_id: id,
             module_id: moduleId,
-            bundle_id: null
+            bundle_id: null,
+            cohort_id: null
           })),
           ...formData.visibility_bundles.map(bundleId => ({
             event_id: id,
             module_id: null,
-            bundle_id: bundleId
+            bundle_id: bundleId,
+            cohort_id: null
+          })),
+          ...formData.visibility_cohorts.map(cohortId => ({
+            event_id: id,
+            module_id: null,
+            bundle_id: null,
+            cohort_id: cohortId
           }))
         ];
 
