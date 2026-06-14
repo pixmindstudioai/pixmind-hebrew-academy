@@ -197,10 +197,11 @@ const TasksPage = () => {
       allowed_types: task.allowed_types,
       is_mandatory: task.is_mandatory,
       is_active: !task.is_active,
+      xp_reward: (task as any).xp_reward ?? 50,
     });
     toast.success(task.is_active ? 'המשימה הושבתה' : 'המשימה הופעלה');
   };
-  
+
   const handleToggleMandatory = async (task: TaskWithLesson) => {
     await updateTask.mutateAsync({
       id: task.id,
@@ -209,6 +210,7 @@ const TasksPage = () => {
       allowed_types: task.allowed_types,
       is_mandatory: !task.is_mandatory,
       is_active: task.is_active,
+      xp_reward: (task as any).xp_reward ?? 50,
     });
     toast.success(task.is_mandatory ? 'המשימה כעת אופציונלית' : 'המשימה כעת חובה');
   };
@@ -444,6 +446,10 @@ const TaskItem = ({ task, onEdit, onViewSubmissions, onToggleActive, onToggleMan
               חובה
             </Badge>
           )}
+
+          <Badge variant="outline" className="border-primary/40 bg-primary/10 text-primary">
+            +{(task as any).xp_reward ?? 50} XP
+          </Badge>
         </div>
         
         <p className="text-sm text-muted-foreground line-clamp-1 mb-2">
@@ -520,9 +526,10 @@ const EditTaskDialog = ({ task, open, onOpenChange }: EditTaskDialogProps) => {
   const [allowedTypes, setAllowedTypes] = useState<string[]>([]);
   const [isMandatory, setIsMandatory] = useState(false);
   const [isActive, setIsActive] = useState(true);
-  
+  const [xpReward, setXpReward] = useState(50);
+
   const updateTask = useUpsertLessonTask();
-  
+
   // Reset form when task changes or dialog opens
   useEffect(() => {
     if (open && task) {
@@ -530,6 +537,7 @@ const EditTaskDialog = ({ task, open, onOpenChange }: EditTaskDialogProps) => {
       setAllowedTypes(task.allowed_types);
       setIsMandatory(task.is_mandatory);
       setIsActive(task.is_active);
+      setXpReward((task as any).xp_reward ?? 50);
     }
   }, [open, task]);
 
@@ -551,8 +559,9 @@ const EditTaskDialog = ({ task, open, onOpenChange }: EditTaskDialogProps) => {
       allowed_types: allowedTypes,
       is_mandatory: isMandatory,
       is_active: isActive,
+      xp_reward: xpReward,
     });
-    
+
     toast.success('המשימה עודכנה בהצלחה');
     onOpenChange(false);
   };
@@ -625,7 +634,18 @@ const EditTaskDialog = ({ task, open, onOpenChange }: EditTaskDialogProps) => {
             <Label>משימה פעילה</Label>
             <Switch checked={isActive} onCheckedChange={handleActiveChange} />
           </div>
-          
+
+          <div className="space-y-2">
+            <Label>תגמול XP</Label>
+            <Input
+              type="number"
+              min={0}
+              value={xpReward}
+              onChange={(e) => setXpReward(Number(e.target.value))}
+              placeholder="50"
+            />
+          </div>
+
           {isMandatory && (
             <div className="p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg text-sm">
               <AlertCircle className="w-4 h-4 inline ml-2 text-orange-500" />
@@ -633,7 +653,7 @@ const EditTaskDialog = ({ task, open, onOpenChange }: EditTaskDialogProps) => {
             </div>
           )}
         </div>
-        
+
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             ביטול
@@ -658,6 +678,7 @@ const AddTaskDialog = ({ open, onOpenChange }: AddTaskDialogProps) => {
   const [allowedTypes, setAllowedTypes] = useState<string[]>(['text']);
   const [isMandatory, setIsMandatory] = useState(false);
   const [isActive, setIsActive] = useState(true);
+  const [xpReward, setXpReward] = useState(50);
   const [lessonsSearch, setLessonsSearch] = useState('');
   
   const createTask = useUpsertLessonTask();
@@ -729,16 +750,18 @@ const AddTaskDialog = ({ open, onOpenChange }: AddTaskDialogProps) => {
       allowed_types: allowedTypes,
       is_mandatory: isMandatory,
       is_active: isActive,
+      xp_reward: xpReward,
     });
-    
+
     toast.success('המשימה נוצרה בהצלחה');
-    
+
     // Reset form
     setSelectedLesson('');
     setInstructions('');
     setAllowedTypes(['text']);
     setIsMandatory(false);
     setIsActive(true);
+    setXpReward(50);
     setLessonsSearch('');
     
     onOpenChange(false);
@@ -869,7 +892,18 @@ const AddTaskDialog = ({ open, onOpenChange }: AddTaskDialogProps) => {
             <Label>משימה פעילה</Label>
             <Switch checked={isActive} onCheckedChange={handleActiveChange} />
           </div>
-          
+
+          <div className="space-y-2">
+            <Label>תגמול XP</Label>
+            <Input
+              type="number"
+              min={0}
+              value={xpReward}
+              onChange={(e) => setXpReward(Number(e.target.value))}
+              placeholder="50"
+            />
+          </div>
+
           {isMandatory && (
             <div className="p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg text-sm">
               <AlertCircle className="w-4 h-4 inline ml-2 text-orange-500" />
@@ -877,7 +911,7 @@ const AddTaskDialog = ({ open, onOpenChange }: AddTaskDialogProps) => {
             </div>
           )}
         </div>
-        
+
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             ביטול

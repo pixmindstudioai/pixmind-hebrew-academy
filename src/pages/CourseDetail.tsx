@@ -1,6 +1,7 @@
 
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowRight, Clock, BookOpen, Users, Star, Play, Gift } from "lucide-react";
+import { ArrowRight, Clock, BookOpen, Users, Star, Play, Gift, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -15,24 +16,41 @@ import { SaleBadge } from "@/components/SaleBadge";
 import { PriceDisplay } from "@/components/PriceDisplay";
 import { useUserCohortsForModule, filterVisibleChapters, filterVisibleLessons } from "@/hooks/useUserCohorts";
 import { useModuleAccess } from "@/hooks/useUserModuleAccess";
+import { useAuth } from "@/hooks/useAuth";
+import { ProgressRing } from "@/components/gamification";
+import { LESSON_XP } from "@/lib/levels";
+import { useMyProfile } from "@/hooks/useGamification";
 
 // Wrapper component to fetch lessons for each chapter with visibility filtering
-const ChapterLessonsWrapper = ({ 
-  chapter, 
-  userProgress, 
+const ChapterLessonsWrapper = ({
+  chapter,
+  userProgress,
   onLessonClick,
   allowedCohortIds,
+  onCountChange,
+  lockedByXp = false,
+  requiredXp = 0,
 }: {
   chapter: Chapter;
   userProgress: any[];
   onLessonClick: (lesson: any) => void;
   allowedCohortIds: string[];
+  /** Report this chapter's visible lesson count up so the parent can aggregate course totals. */
+  onCountChange?: (chapterId: string, count: number) => void;
+  /** XP gate: chapter is locked until the member reaches requiredXp. */
+  lockedByXp?: boolean;
+  requiredXp?: number;
 }) => {
   const { data: lessons = [] } = useLessons(chapter.id, 'active');
-  
+
   // Filter lessons based on visibility rules
   const visibleLessons = filterVisibleLessons(lessons, chapter, allowedCohortIds);
-  
+
+  // Bubble the real visible-lesson count up to the course page.
+  useEffect(() => {
+    onCountChange?.(chapter.id, visibleLessons.length);
+  }, [chapter.id, visibleLessons.length, onCountChange]);
+
   if (visibleLessons.length === 0 && lessons.length > 0) {
     // Chapter has lessons but none visible to this user
     return null;
@@ -52,6 +70,8 @@ const ChapterLessonsWrapper = ({
         lessons={visibleLessons}
         completedLessons={userProgress.filter(p => p.completed).map(p => p.lesson_id)}
         onLessonClick={onLessonClick}
+        lockedByXp={lockedByXp}
+        requiredXp={requiredXp}
       />
     </div>
   );
@@ -60,12 +80,21 @@ const ChapterLessonsWrapper = ({
 const CourseDetail = () => {
   const { moduleId } = useParams<{ moduleId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { data: modules = [] } = useModules('active');
   const { data: chapters = [] } = useChapters(moduleId || '', 'active');
-  const { data: userProgress = [] } = useUserProgress("current-user-id");
+  const { data: userProgress = [] } = useUserProgress(user?.id);
   const updateProgress = useUpdateProgress();
   const { isLegacyFreeUser } = useModuleAccess();
+  const { data: myProfile } = useMyProfile();
+  const xpTotal = myProfile?.xp_total ?? 0;
+
+  // Real visible-lesson counts reported by each chapter wrapper, keyed by chapter id.
+  const [lessonCounts, setLessonCounts] = useState<Record<string, number>>({});
+  const handleCountChange = useCallback((chapterId: string, count: number) => {
+    setLessonCounts((prev) => (prev[chapterId] === count ? prev : { ...prev, [chapterId]: count }));
+  }, []);
   
   // Get user's cohort memberships for this module
   const { data: userCohorts = [] } = useUserCohortsForModule(moduleId || '');
@@ -107,13 +136,17 @@ const CourseDetail = () => {
     );
   }
 
-  // Calculate progress
-  const totalLessons = visibleChapters.reduce((acc, chapter) => {
-    return acc + 5; // Placeholder
-  }, 0);
-  
+  // Calculate progress from the real visible-lesson counts reported by each chapter.
+  const totalLessons = visibleChapters.reduce(
+    (acc, chapter) => acc + (lessonCounts[chapter.id] ?? 0),
+    0
+  );
+
   const completedLessons = userProgress.filter(p => p.completed).length;
-  const progressPercentage = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+  const progressPercentage = totalLessons > 0
+    ? Math.min(100, (completedLessons / totalLessons) * 100)
+    : 0;
+  const maxCourseXp = totalLessons * LESSON_XP;
 
   return (
     <AuthGuard>
@@ -231,15 +264,23 @@ const CourseDetail = () => {
                   <BookOpen className="w-6 h-6" />
                   תוכן הקורס
                 </h2>
-                {visibleChapters.map((chapter) => (
-                  <ChapterLessonsWrapper
-                    key={chapter.id}
-                    chapter={chapter}
-                    userProgress={userProgress}
-                    onLessonClick={handleLessonClick}
-                    allowedCohortIds={allowedCohortIds}
-                  />
-                ))}
+                {visibleChapters.map((chapter) => {
+                  // Effective XP gate = the higher of the module's threshold and the chapter's own.
+                  const requiredXp = Math.max(module.min_xp ?? 0, chapter.min_xp ?? 0);
+                  const lockedByXp = requiredXp > 0 && xpTotal < requiredXp;
+                  return (
+                    <ChapterLessonsWrapper
+                      key={chapter.id}
+                      chapter={chapter}
+                      userProgress={userProgress}
+                      onLessonClick={handleLessonClick}
+                      allowedCohortIds={allowedCohortIds}
+                      onCountChange={handleCountChange}
+                      lockedByXp={lockedByXp}
+                      requiredXp={requiredXp}
+                    />
+                  );
+                })}
 
                 {visibleChapters.length === 0 && (
                   <div className="text-center py-12 text-muted-foreground">
@@ -252,6 +293,28 @@ const CourseDetail = () => {
 
             {/* Sidebar */}
             <div className="space-y-6">
+              {/* Gamified progress + XP reward */}
+              <div className="glass-card p-6 rounded-2xl">
+                <h3 className="font-semibold mb-4">ההתקדמות שלך</h3>
+                <div className="flex items-center gap-5">
+                  <ProgressRing value={progressPercentage} size={96} strokeWidth={9}>
+                    <span className="text-2xl font-bold text-primary leading-none">
+                      {Math.round(progressPercentage)}%
+                    </span>
+                    <span className="mt-1 text-[11px] text-muted-foreground">הושלם</span>
+                  </ProgressRing>
+                  <div className="flex-1 space-y-2">
+                    <div className="text-sm text-muted-foreground">
+                      {completedLessons} מתוך {totalLessons} שיעורים
+                    </div>
+                    <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary">
+                      <Sparkles className="h-4 w-4" />
+                      תרוויח עד {maxCourseXp} XP בקורס הזה
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Course Stats */}
               <div className="glass-card p-6 rounded-2xl">
                 <h3 className="font-semibold mb-4">פרטי הקורס</h3>

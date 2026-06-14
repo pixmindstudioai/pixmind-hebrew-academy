@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Navigation from "./components/Navigation";
+import { AppShell } from "./components/shell/AppShell";
 import Index from "./pages/Index";
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
@@ -41,6 +41,11 @@ import Community from "./pages/Community";
 import Announcements from "./pages/Announcements";
 import Calendar from "./pages/Calendar";
 import MaterialsRemoved from "./pages/MaterialsRemoved";
+import Feed from "./pages/Feed";
+import Messages from "./pages/Messages";
+import Leaderboard from "./pages/Leaderboard";
+import BadgesPage from "./pages/admin/BadgesPage";
+import FeedModerationPage from "./pages/admin/FeedModerationPage";
 
 const queryClient = new QueryClient();
 
@@ -52,25 +57,13 @@ const App = () => (
       <BrowserRouter>
         <div className="min-h-screen bg-background">
           <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<><Navigation /><Index /></>} />
-            <Route path="/courses" element={<><Navigation /><Courses /></>} />
-            <Route path="/courses/:moduleId" element={<><Navigation /><CourseDetail /></>} />
-            <Route path="/lesson/:lessonId" element={<><Navigation /><LessonView /></>} />
-            <Route path="/tasks" element={<><Navigation /><Tasks /></>} />
-            <Route path="/tasks/:taskId" element={<><Navigation /><TaskView /></>} />
-            <Route path="/notebook" element={<><Navigation /><Notebook /></>} />
-            <Route path="/community" element={<><Navigation /><Community /></>} />
-            <Route path="/announcements" element={<><Navigation /><Announcements /></>} />
-            <Route path="/calendar" element={<><Navigation /><Calendar /></>} />
-            <Route path="/materials" element={<MaterialsRemoved />} />
-            <Route path="/admin/materials" element={<MaterialsRemoved />} />
-            {/* Authentication Routes */}
+            {/* Authentication Routes (no shell) */}
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
-            <Route path="/profile" element={<Profile />} />
-            
-            {/* Admin Routes */}
+            <Route path="/materials" element={<MaterialsRemoved />} />
+            <Route path="/admin/materials" element={<MaterialsRemoved />} />
+
+            {/* Admin Routes (own shell) */}
             <Route path="/admin-login" element={<AdminLoginPage />} />
             <Route path="/admin/*" element={
               <Routes>
@@ -86,6 +79,12 @@ const App = () => (
                 </Route>
                 <Route path="discussions" element={<AdminShell />}>
                   <Route index element={<DiscussionsPage />} />
+                </Route>
+                <Route path="feed-moderation" element={<AdminShell />}>
+                  <Route index element={<FeedModerationPage />} />
+                </Route>
+                <Route path="badges" element={<AdminShell />}>
+                  <Route index element={<BadgesPage />} />
                 </Route>
                 <Route path="announcements" element={<AdminShell />}>
                   <Route index element={<AnnouncementsPage />} />
@@ -127,7 +126,27 @@ const App = () => (
                 </Route>
               </Routes>
             } />
-            
+
+            {/* Member / public app — wrapped by the Claws-style AppShell.
+                Visitors keep the public top nav; members get sidebar + top bar + bottom tabs. */}
+            <Route element={<AppShell />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/courses" element={<Courses />} />
+              <Route path="/courses/:moduleId" element={<CourseDetail />} />
+              <Route path="/lesson/:lessonId" element={<LessonView />} />
+              <Route path="/tasks" element={<Tasks />} />
+              <Route path="/tasks/:taskId" element={<TaskView />} />
+              <Route path="/notebook" element={<Notebook />} />
+              <Route path="/community" element={<Community />} />
+              <Route path="/feed" element={<Feed />} />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/announcements" element={<Announcements />} />
+              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/profile/:userId" element={<Profile />} />
+            </Route>
+
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>

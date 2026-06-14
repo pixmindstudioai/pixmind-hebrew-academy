@@ -1,82 +1,60 @@
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  ClipboardCheck, 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
-  ArrowLeft,
+import {
+  CheckCircle,
+  Clock,
+  Trophy,
+  Zap,
+  ListChecks,
   BookOpen,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react';
 import AuthGuard from '@/components/AuthGuard';
 import { useUserTasks, getEffectiveStatus } from '@/hooks/useTasksData';
+import { StatTile } from '@/components/gamification';
+import { ChallengeCard, type ChallengeStatus } from '@/components/challenges/ChallengeCard';
+
+const DEFAULT_XP = 50;
 
 const Tasks = () => {
   const { data: tasks = [], isLoading, error } = useUserTasks();
 
-  // Group tasks by module
+  // Group tasks by module (preserve existing grouping behavior)
   const tasksByModule = tasks.reduce((acc, task) => {
     const moduleTitle = (task as any).lessons?.chapters?.modules?.title || 'ללא קורס';
-    if (!acc[moduleTitle]) {
-      acc[moduleTitle] = [];
-    }
+    if (!acc[moduleTitle]) acc[moduleTitle] = [];
     acc[moduleTitle].push(task);
     return acc;
   }, {} as Record<string, typeof tasks>);
 
-  const getStatusBadge = (task: any) => {
-    const status = getEffectiveStatus(task.submission);
-
-    switch (status) {
-      case 'approved':
-        return (
-          <Badge className="bg-green-500 hover:bg-green-600">
-            <CheckCircle className="w-3 h-3 ml-1" />
-            אושר
-          </Badge>
-        );
-      case 'rejected':
-        return (
-          <Badge variant="destructive">
-            <XCircle className="w-3 h-3 ml-1" />
-            נדחה
-          </Badge>
-        );
-      case 'pending':
-        return (
-          <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
-            <Clock className="w-3 h-3 ml-1" />
-            בבדיקה
-          </Badge>
-        );
-      default:
-        return (
-          <Badge variant="outline">
-            <ClipboardCheck className="w-3 h-3 ml-1" />
-            לא הוגש
-          </Badge>
-        );
-    }
-  };
+  // Summary metrics
+  const statusOf = (t: any): ChallengeStatus => getEffectiveStatus(t.submission);
+  const approvedTasks = tasks.filter((t) => statusOf(t) === 'approved');
+  const pendingCount = tasks.filter((t) => statusOf(t) === 'pending').length;
+  const xpFromChallenges = approvedTasks.reduce(
+    (sum, t) => sum + ((t as any).xp_reward ?? DEFAULT_XP),
+    0
+  );
 
   if (isLoading) {
     return (
       <AuthGuard>
-        <div className="min-h-screen py-8">
-          <div className="max-w-4xl mx-auto px-4">
-            <div className="mb-8">
-              <Skeleton className="h-10 w-48 mb-2" />
-              <Skeleton className="h-5 w-72" />
-            </div>
-            <div className="space-y-6">
-              {[1, 2, 3].map(i => (
-                <Skeleton key={i} className="h-40 w-full" />
-              ))}
-            </div>
+        <div dir="rtl" className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
+          <div className="mb-8 space-y-3">
+            <Skeleton className="h-10 w-48" />
+            <Skeleton className="h-5 w-72" />
+          </div>
+          <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-28 w-full rounded-2xl" />
+            ))}
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-44 w-full rounded-2xl" />
+            ))}
           </div>
         </div>
       </AuthGuard>
@@ -86,15 +64,13 @@ const Tasks = () => {
   if (error) {
     return (
       <AuthGuard>
-        <div className="min-h-screen flex items-center justify-center">
-          <Card className="max-w-md">
+        <div dir="rtl" className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
+          <Card className="glass-card mx-auto max-w-md">
             <CardContent className="pt-6">
-              <div className="flex flex-col items-center text-center gap-4">
-                <AlertCircle className="w-12 h-12 text-destructive" />
-                <p>שגיאה בטעינת המשימות</p>
-                <Button onClick={() => window.location.reload()}>
-                  נסה שוב
-                </Button>
+              <div className="flex flex-col items-center gap-4 text-center">
+                <AlertCircle className="h-12 w-12 text-destructive" />
+                <p className="text-foreground">שגיאה בטעינת האתגרים</p>
+                <Button onClick={() => window.location.reload()}>נסה שוב</Button>
               </div>
             </CardContent>
           </Card>
@@ -105,130 +81,87 @@ const Tasks = () => {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen py-8">
-        <div className="max-w-4xl mx-auto px-4">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <ClipboardCheck className="w-8 h-8 text-primary" />
-              <h1 className="text-3xl font-bold">המשימות שלי</h1>
-            </div>
-            <p className="text-muted-foreground">
-              כאן תוכל לראות את כל המשימות מהקורסים שאתה רשום אליהם
-            </p>
+      <div dir="rtl" className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
+        {/* Hero */}
+        <header className="mb-8">
+          <div className="mb-2 flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <Trophy className="h-6 w-6" />
+            </span>
+            <h1 className="gradient-text font-heading text-3xl font-bold sm:text-4xl">אתגרים</h1>
           </div>
+          <p className="text-muted-foreground">השלם אתגרים, צבור XP, עלה רמות</p>
+        </header>
 
-          {/* No Tasks State */}
-          {tasks.length === 0 && (
-            <Card className="text-center py-12">
-              <CardContent>
-                <BookOpen className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
-                <h3 className="text-xl font-semibold mb-2">אין משימות עדיין</h3>
-                <p className="text-muted-foreground mb-4">
-                  המשימות יופיעו כאן כשתתחיל ללמוד בקורסים
+        {/* Empty state */}
+        {tasks.length === 0 ? (
+          <Card className="glass-card text-center">
+            <CardContent className="flex flex-col items-center gap-4 py-16">
+              <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <BookOpen className="h-8 w-8" />
+              </span>
+              <div>
+                <h3 className="font-heading text-xl font-semibold text-foreground">אין אתגרים עדיין</h3>
+                <p className="mt-1 text-muted-foreground">
+                  האתגרים יופיעו כאן כשתתחיל ללמוד בקורסים
                 </p>
-                <Button asChild>
-                  <Link to="/courses">עבור לקורסים</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Tasks by Module */}
-          <div className="space-y-8">
-            {Object.entries(tasksByModule).map(([moduleTitle, moduleTasks]) => (
-              <div key={moduleTitle}>
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <BookOpen className="w-5 h-5" />
-                  {moduleTitle}
-                </h2>
-
-                <div className="space-y-3">
-                  {moduleTasks.map((task: any) => {
-                    const lessonTitle = task.lessons?.title || 'שיעור לא ידוע';
-                    const chapterTitle = task.lessons?.chapters?.title || '';
-                    const lessonId = task.lessons?.id;
-                    const submissionDate = task.submission?.created_at 
-                      ? new Date(task.submission.created_at).toLocaleDateString('he-IL')
-                      : null;
-
-                    return (
-                      <Card key={task.id} className="hover:shadow-md transition-shadow">
-                        <CardContent className="py-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="font-medium">{lessonTitle}</span>
-                                {task.is_mandatory && (
-                                  <Badge variant="outline" className="text-xs">
-                                    חובה
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="text-sm text-muted-foreground">
-                                {chapterTitle}
-                              </div>
-                              {submissionDate && (
-                                <div className="text-xs text-muted-foreground mt-1">
-                                  הוגש: {submissionDate}
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="flex items-center gap-3">
-                              {getStatusBadge(task)}
-                              
-                              <Button variant="ghost" size="sm" asChild>
-                                <Link to={`/tasks/${task.id}`}>
-                                  עבור למשימה
-                                  <ArrowLeft className="w-4 h-4 mr-1" />
-                                </Link>
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
               </div>
-            ))}
-          </div>
+              <Button asChild className="button-glow">
+                <Link to="/courses">עבור לקורסים</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            {/* Summary stats */}
+            <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <StatTile
+                icon={CheckCircle}
+                label="אתגרים שאושרו"
+                value={approvedTasks.length}
+              />
+              <StatTile icon={Clock} label="ממתינים" value={pendingCount} />
+              <StatTile
+                icon={Zap}
+                label="XP מאתגרים"
+                value={xpFromChallenges.toLocaleString()}
+                accent
+              />
+              <StatTile icon={ListChecks} label="סך הכל אתגרים" value={tasks.length} />
+            </div>
 
-          {/* Summary Stats */}
-          {tasks.length > 0 && (
-            <Card className="mt-8 bg-muted/30">
-              <CardContent className="py-4">
-                <div className="flex items-center justify-around text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-green-600">
-                      {tasks.filter(t => getEffectiveStatus((t as any).submission) === 'approved').length}
-                    </div>
-                    <div className="text-sm text-muted-foreground">אושרו</div>
+            {/* Challenge cards grouped by module */}
+            <div className="space-y-8">
+              {Object.entries(tasksByModule).map(([moduleTitle, moduleTasks]) => (
+                <section key={moduleTitle}>
+                  <h2 className="mb-4 flex items-center gap-2 font-heading text-lg font-semibold text-foreground">
+                    <BookOpen className="h-5 w-5 text-primary" />
+                    {moduleTitle}
+                    <span className="text-sm font-normal text-muted-foreground">
+                      ({moduleTasks.length})
+                    </span>
+                  </h2>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {moduleTasks.map((task: any) => (
+                      <ChallengeCard
+                        key={task.id}
+                        taskId={task.id}
+                        lessonTitle={task.lessons?.title || 'שיעור לא ידוע'}
+                        chapterTitle={task.lessons?.chapters?.title || ''}
+                        moduleTitle={task.lessons?.chapters?.modules?.title || moduleTitle}
+                        xpReward={task.xp_reward ?? DEFAULT_XP}
+                        status={statusOf(task)}
+                        isMandatory={task.is_mandatory}
+                        submittedAt={task.submission?.created_at ?? null}
+                      />
+                    ))}
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-blue-600">
-                      {tasks.filter(t => getEffectiveStatus((t as any).submission) === 'pending').length}
-                    </div>
-                    <div className="text-sm text-muted-foreground">בבדיקה</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-red-600">
-                      {tasks.filter(t => getEffectiveStatus((t as any).submission) === 'rejected').length}
-                    </div>
-                    <div className="text-sm text-muted-foreground">נדחו</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-muted-foreground">
-                      {tasks.filter(t => getEffectiveStatus((t as any).submission) === 'none').length}
-                    </div>
-                    <div className="text-sm text-muted-foreground">לא הוגשו</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+                </section>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </AuthGuard>
   );

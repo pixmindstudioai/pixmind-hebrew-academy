@@ -11,6 +11,10 @@ export interface StudentWithDetails {
   last_login_at?: string;
   status: 'active' | 'blocked';
   device_count: number;
+  xp_total: number;
+  level: number;
+  current_streak: number;
+  longest_streak: number;
   enrolled_modules: Array<{
     module_id: string;
     module_title: string;
@@ -91,6 +95,10 @@ export const useStudents = (filters?: StudentFilters) => {
 
           return {
             ...user,
+            xp_total: (user as any).xp_total ?? 0,
+            level: (user as any).level ?? 1,
+            current_streak: (user as any).current_streak ?? 0,
+            longest_streak: (user as any).longest_streak ?? 0,
             enrolled_modules,
             progress_summary,
           } as StudentWithDetails;

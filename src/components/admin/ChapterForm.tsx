@@ -28,6 +28,7 @@ const chapterSchema = z.object({
   description: z.string().optional(),
   module_id: z.string().min(1, 'יש לבחור מודול'),
   order_index: z.number().min(0, 'מספר הסדר חייב להיות 0 או יותר'),
+  min_xp: z.coerce.number().min(0, 'ה-XP חייב להיות 0 או יותר').optional(),
   status: z.enum(['draft', 'active', 'archived']).default('draft'),
   visibility_mode: z.enum(['all', 'cohort']).default('all'),
   cohort_id: z.string().nullable().optional(),
@@ -53,6 +54,7 @@ interface Chapter {
   title: string;
   description?: string;
   order_index: number;
+  min_xp?: number;
   status: 'draft' | 'active' | 'archived';
   visibility_mode?: string;
   cohort_id?: string | null;
@@ -78,6 +80,7 @@ const ChapterForm = ({ chapter, modules, onSubmit, onCancel, isLoading, showActi
       description: chapter?.description || '',
       module_id: chapter?.module_id || '',
       order_index: chapter?.order_index ?? 0,
+      min_xp: chapter?.min_xp ?? 0,
       status: chapter?.status || 'draft',
       visibility_mode: (chapter?.visibility_mode as 'all' | 'cohort') || 'all',
       cohort_id: chapter?.cohort_id || null,
@@ -221,6 +224,31 @@ const ChapterForm = ({ chapter, modules, onSubmit, onCancel, isLoading, showActi
               </p>
             </div>
           )}
+
+          {/* XP requirement - editable for both new and existing chapters */}
+          <FormField
+            control={form.control}
+            name="min_xp"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>XP נדרש לפתיחת הפרק</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    {...field}
+                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                    disabled={isLoading}
+                  />
+                </FormControl>
+                <FormDescription>
+                  0 = פתוח לכולם
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {/* Visibility Section */}
           <div className="border rounded-lg p-4 space-y-4">

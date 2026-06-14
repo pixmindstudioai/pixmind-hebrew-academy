@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowRight, Mail, Calendar, Shield, Activity, BookOpen, RotateCcw, UserX, UserCheck, Plus } from 'lucide-react';
+import { ArrowRight, Mail, Calendar, Shield, Activity, BookOpen, RotateCcw, UserX, UserCheck, Plus, Sparkles, Award, Zap, TrendingUp, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -9,16 +9,32 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
 import { useStudentDetails, useUpdateUserStatus, useGrantModuleAccess, useRevokeModuleAccess, useResetModuleProgress } from '@/hooks/useStudentsData';
+import { useGrantXp, useAwardBadge, useUserXpLedger } from '@/hooks/useAdminGamification';
+import { useEarnedBadges } from '@/hooks/useGamification';
 import { useModules } from '@/hooks/useContentData';
 import AuthenticationGuard from '@/components/admin/AuthenticationGuard';
+import { StatTile, BadgeGrid, type BadgeItem } from '@/components/gamification';
+import { getLevelInfo, levelTitle } from '@/lib/levels';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
 const StudentProfilePage = () => {
   const { studentId } = useParams<{ studentId: string }>();
   const navigate = useNavigate();
   const [enrollDialogOpen, setEnrollDialogOpen] = useState(false);
   const [selectedModule, setSelectedModule] = useState('');
+
+  // Gamification grant dialogs
+  const [xpDialogOpen, setXpDialogOpen] = useState(false);
+  const [xpAmount, setXpAmount] = useState<string>('50');
+  const [xpReason, setXpReason] = useState('');
+  const [badgeDialogOpen, setBadgeDialogOpen] = useState(false);
+  const [selectedBadgeId, setSelectedBadgeId] = useState('');
 
   const { data, isLoading } = useStudentDetails(studentId!);
   const { data: allModules } = useModules('all');
@@ -27,11 +43,33 @@ const StudentProfilePage = () => {
   const revokeAccess = useRevokeModuleAccess();
   const resetProgress = useResetModuleProgress();
 
+  // Gamification hooks
+  const grantXp = useGrantXp();
+  const awardBadge = useAwardBadge();
+  const { data: earnedBadges } = useEarnedBadges(studentId);
+  const { data: xpLedger } = useUserXpLedger(studentId);
+  const { data: activeBadges } = useQuery({
+    queryKey: ['active-badges'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('badges')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order');
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 60_000,
+  });
+
   if (isLoading || !data) {
     return <div className="text-center py-8">טוען...</div>;
   }
 
   const { user, enrollments, progress, activity } = data;
+
+  const xpTotal = user.xp_total ?? 0;
+  const levelInfo = getLevelInfo(xpTotal);
 
   const handleGrantAccess = () => {
     if (selectedModule) {
@@ -41,6 +79,44 @@ const StudentProfilePage = () => {
       );
     }
   };
+
+  const handleGrantXp = () => {
+    const amount = parseInt(xpAmount, 10);
+    if (!amount || amount <= 0) return;
+    grantXp.mutate(
+      { userId: user.id, amount, reason: xpReason || undefined },
+      {
+        onSuccess: () => {
+          setXpDialogOpen(false);
+          setXpReason('');
+          setXpAmount('50');
+        },
+      }
+    );
+  };
+
+  const handleAwardBadge = () => {
+    if (!selectedBadgeId) return;
+    const badge = activeBadges?.find((b) => b.id === selectedBadgeId);
+    awardBadge.mutate(
+      { userId: user.id, badgeId: selectedBadgeId, xpBonus: badge?.xp_bonus ?? 0 },
+      {
+        onSuccess: () => {
+          setBadgeDialogOpen(false);
+          setSelectedBadgeId('');
+        },
+      }
+    );
+  };
+
+  const earnedBadgeItems: BadgeItem[] = (earnedBadges ?? []).map((b) => ({
+    code: b.code,
+    name: b.name,
+    description: b.description,
+    icon: b.icon,
+    tier: b.tier,
+    earned: true,
+  }));
 
   return (
     <AuthenticationGuard>
@@ -94,6 +170,20 @@ const StudentProfilePage = () => {
                     <p className="font-medium mt-1">{enrollments.length}</p>
                   </div>
                 </div>
+
+                {/* Gamification summary */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <StatTile icon={Zap} label="XP" value={xpTotal} accent />
+                  <StatTile
+                    icon={TrendingUp}
+                    label="רמה"
+                    value={levelInfo.level}
+                    sub={levelTitle(levelInfo.level)}
+                  />
+                  <StatTile icon={Flame} label="רצף נוכחי" value={user.current_streak ?? 0} sub="ימים" />
+                  <StatTile icon={Award} label="רצף שיא" value={user.longest_streak ?? 0} sub="ימים" />
+                </div>
+
                 <div className="flex gap-2 flex-wrap">
                   {user.status === 'active' ? (
                     <Button
@@ -141,6 +231,88 @@ const StudentProfilePage = () => {
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
+
+                  {/* Grant XP */}
+                  <Dialog open={xpDialogOpen} onOpenChange={setXpDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Zap className="w-4 h-4 ml-2 text-primary" />
+                        הענק XP
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>הענקת XP ידנית</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="xp-amount">כמות XP</Label>
+                          <Input
+                            id="xp-amount"
+                            type="number"
+                            min={1}
+                            value={xpAmount}
+                            onChange={(e) => setXpAmount(e.target.value)}
+                            placeholder="50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="xp-reason">סיבה (אופציונלי)</Label>
+                          <Textarea
+                            id="xp-reason"
+                            value={xpReason}
+                            onChange={(e) => setXpReason(e.target.value)}
+                            placeholder="למשל: השתתפות פעילה בקהילה"
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setXpDialogOpen(false)}>ביטול</Button>
+                        <Button
+                          onClick={handleGrantXp}
+                          disabled={!parseInt(xpAmount, 10) || parseInt(xpAmount, 10) <= 0 || grantXp.isPending}
+                        >
+                          הענק
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+
+                  {/* Award badge */}
+                  <Dialog open={badgeDialogOpen} onOpenChange={setBadgeDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Award className="w-4 h-4 ml-2 text-primary" />
+                        הענק תג
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>הענקת תג</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-2">
+                        <Label>בחר תג</Label>
+                        <Select value={selectedBadgeId} onValueChange={setSelectedBadgeId}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="בחר תג" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {activeBadges?.map((b) => (
+                              <SelectItem key={b.id} value={b.id}>
+                                {b.name}{b.xp_bonus ? ` (+${b.xp_bonus} XP)` : ''}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setBadgeDialogOpen(false)}>ביטול</Button>
+                        <Button onClick={handleAwardBadge} disabled={!selectedBadgeId || awardBadge.isPending}>
+                          הענק תג
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
             </div>
@@ -149,9 +321,10 @@ const StudentProfilePage = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="enrollments" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="enrollments">קורסים</TabsTrigger>
             <TabsTrigger value="progress">התקדמות</TabsTrigger>
+            <TabsTrigger value="achievements">הישגים</TabsTrigger>
             <TabsTrigger value="activity">פעילות</TabsTrigger>
           </TabsList>
 
@@ -236,6 +409,55 @@ const StudentProfilePage = () => {
                 </Card>
               ))
             )}
+          </TabsContent>
+
+          <TabsContent value="achievements" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Award className="w-5 h-5 text-primary" />
+                  תגים שהושגו
+                </CardTitle>
+                <CardDescription>{earnedBadgeItems.length} תגים</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <BadgeGrid badges={earnedBadgeItems} emptyText="התלמיד עדיין לא השיג תגים" />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  היסטוריית XP
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {!xpLedger || xpLedger.length === 0 ? (
+                  <p className="py-6 text-center text-sm text-muted-foreground">אין רשומות XP עדיין</p>
+                ) : (
+                  <div className="divide-y divide-border">
+                    {xpLedger.map((entry) => (
+                      <div key={entry.id} className="flex items-center justify-between gap-3 py-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{entry.reason || entry.source_type}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(entry.created_at), 'dd/MM/yyyy HH:mm')}
+                          </p>
+                        </div>
+                        <span
+                          className={`shrink-0 text-sm font-semibold ${
+                            entry.amount >= 0 ? 'text-primary' : 'text-destructive'
+                          }`}
+                        >
+                          {entry.amount >= 0 ? '+' : ''}{entry.amount} XP
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="activity" className="space-y-4">

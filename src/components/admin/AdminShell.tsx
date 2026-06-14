@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { 
   Menu, 
@@ -14,22 +14,31 @@ import {
   Bot,
   ChevronLeft,
   Package,
-  
+
   Users2,
   Megaphone,
   Calendar,
-  ClipboardCheck
+  ClipboardCheck,
+  LayoutDashboard,
+  Award,
+  Newspaper
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { cn } from '@/lib/utils';
 
-const AdminShell = () => {
+const AdminShell = ({ children }: { children?: ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { logout } = useAdminAuth();
   const location = useLocation();
 
   const menuItems = [
+    {
+      href: '/admin',
+      label: 'דשבורד',
+      icon: LayoutDashboard,
+      description: 'סקירת נתוני האקדמייה ומדדי גיימיפיקציה'
+    },
     {
       href: '/admin/moderation',
       label: 'ניהול תגובות',
@@ -55,6 +64,12 @@ const AdminShell = () => {
       description: 'ניהול קבוצות דיון ופורומים'
     },
     {
+      href: '/admin/feed-moderation',
+      label: 'ניהול פיד הקהילה',
+      icon: Newspaper,
+      description: 'הצמדה, מחיקה וניהול פוסטים ותגובות בקהילה'
+    },
+    {
       href: '/admin/announcements',
       label: 'הכרזות',
       icon: Megaphone,
@@ -76,7 +91,13 @@ const AdminShell = () => {
       href: '/admin/task-review',
       label: 'בדיקת ביצועי משימות',
       icon: ClipboardCheck,
-      description: 'סקירה ואישור ידני של הגשות משימות'
+      description: 'סקירה ואישור ידני של הגשות משימות (מעניק XP)'
+    },
+    {
+      href: '/admin/badges',
+      label: 'תגים והישגים',
+      icon: Award,
+      description: 'יצירה וניהול של תגים, רמות והענקה לתלמידים'
     },
     {
       href: '/admin/students',
@@ -122,7 +143,8 @@ const AdminShell = () => {
     }
   ];
 
-  const isActive = (path: string) => location.pathname.startsWith(path);
+  const isActive = (path: string) =>
+    path === '/admin' ? location.pathname === '/admin' : location.pathname.startsWith(path);
 
   return (
     <div className="min-h-screen bg-background text-foreground" dir="rtl">
@@ -231,7 +253,7 @@ const AdminShell = () => {
 
         {/* Main Content */}
         <main className="flex-1 p-4 md:p-6 overflow-x-hidden w-full min-h-[calc(100vh-4rem)]">
-          <Outlet />
+          {children ?? <Outlet />}
         </main>
       </div>
     </div>

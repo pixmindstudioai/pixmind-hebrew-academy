@@ -24,6 +24,7 @@ export interface Module {
   sale_end_date?: string | null;
   was_free_before?: boolean;
   became_paid_at?: string | null;
+  min_xp?: number;
   created_at: string;
   updated_at: string;
   published_at?: string;
@@ -39,6 +40,7 @@ export interface Chapter {
   status: 'draft' | 'active' | 'archived';
   visibility_mode?: string;
   cohort_id?: string | null;
+  min_xp?: number;
   created_at: string;
   updated_at: string;
   published_at?: string;

@@ -10,6 +10,7 @@ export interface LessonTask {
   allowed_types: string[];
   is_mandatory: boolean;
   is_active: boolean;
+  xp_reward: number;
   created_at: string;
   updated_at: string;
 }
@@ -268,6 +269,7 @@ export const useUpsertLessonTask = () => {
             allowed_types: task.allowed_types,
             is_mandatory: task.is_mandatory,
             is_active: task.is_active,
+            xp_reward: task.xp_reward ?? 50,
           })
           .eq('id', task.id)
           .select()
@@ -285,6 +287,7 @@ export const useUpsertLessonTask = () => {
             allowed_types: task.allowed_types,
             is_mandatory: task.is_mandatory,
             is_active: task.is_active,
+            xp_reward: task.xp_reward ?? 50,
           })
           .select()
           .single();
@@ -406,12 +409,23 @@ export const useOverrideSubmission = () => {
         .single();
 
       if (error) throw error;
+
+      // On approval, award the challenge's XP (server-authoritative, idempotent).
+      if (status === 'approved') {
+        const { error: xpError } = await supabase.rpc('approve_submission_xp', {
+          p_submission_id: submissionId,
+        });
+        if (xpError) console.error('approve_submission_xp failed:', xpError);
+      }
+
       return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['task-submission', data.task_id] });
       queryClient.invalidateQueries({ queryKey: ['task-submissions', data.task_id] });
       queryClient.invalidateQueries({ queryKey: ['user-tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
+      queryClient.invalidateQueries({ queryKey: ['my-profile'] });
     },
   });
 };

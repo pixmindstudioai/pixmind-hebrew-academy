@@ -127,6 +127,14 @@ export const useAdminOverrideSubmission = () => {
 
       if (updateError) throw updateError;
 
+      // On approval, award the challenge's XP (server-authoritative, idempotent).
+      if (newStatus === 'approved') {
+        const { error: xpError } = await supabase.rpc('approve_submission_xp', {
+          p_submission_id: submissionId,
+        });
+        if (xpError) console.error('approve_submission_xp failed:', xpError);
+      }
+
       // Log the admin action to audit log
       const { error: auditError } = await supabase
         .from('admin_audit_log')
@@ -154,6 +162,8 @@ export const useAdminOverrideSubmission = () => {
       queryClient.invalidateQueries({ queryKey: ['admin-all-task-submissions'] });
       queryClient.invalidateQueries({ queryKey: ['task-submission'] });
       queryClient.invalidateQueries({ queryKey: ['user-tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
+      queryClient.invalidateQueries({ queryKey: ['my-profile'] });
     },
   });
 };

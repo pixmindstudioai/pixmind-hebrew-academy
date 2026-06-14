@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Supabase CLI cache
+supabase/.temp/
+
+# Local reference artifacts
+claws-academy-platform-skill.zip
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

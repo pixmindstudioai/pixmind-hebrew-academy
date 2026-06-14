@@ -29,6 +29,7 @@ export const useCreateModule = () => {
       description: string;
       status: 'draft' | 'active' | 'archived';
       order_index?: number;
+      min_xp?: number;
       is_paid?: boolean;
       payment_url?: string;
     }) => {
@@ -107,11 +108,12 @@ export const useUpdateModule = () => {
       description?: string;
       status?: 'draft' | 'active' | 'archived';
       order_index?: number;
+      min_xp?: number;
       is_paid?: boolean;
       payment_url?: string;
     }) => {
       const updates: any = { ...updateData };
-      
+
       // Set published_at when status changes to active
       if (updateData.status === 'active') {
         updates.published_at = new Date().toISOString();
@@ -191,6 +193,7 @@ export const useCreateChapter = () => {
       description?: string;
       status: 'draft' | 'active' | 'archived';
       order_index?: number;
+      min_xp?: number;
     }) => {
       const { data, error } = await supabase
         .from('chapters')
@@ -221,9 +224,10 @@ export const useUpdateChapter = () => {
       description?: string;
       status?: 'draft' | 'active' | 'archived';
       order_index?: number;
+      min_xp?: number;
     }) => {
       const updates: any = { ...updateData };
-      
+
       if (updateData.status === 'active') {
         updates.published_at = new Date().toISOString();
       }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -71,6 +72,7 @@ const LessonTaskManager = ({ lessonId, disabled }: LessonTaskManagerProps) => {
   const [instructions, setInstructions] = useState('');
   const [allowedTypes, setAllowedTypes] = useState<string[]>(['text']);
   const [isMandatory, setIsMandatory] = useState(true);
+  const [xpReward, setXpReward] = useState(50);
   const [showSubmissions, setShowSubmissions] = useState(false);
 
   // Guard against infinite update loops with Radix UI Switch
@@ -85,6 +87,7 @@ const LessonTaskManager = ({ lessonId, disabled }: LessonTaskManagerProps) => {
       setInstructions(existingTask.instructions);
       setAllowedTypes(existingTask.allowed_types);
       setIsMandatory(existingTask.is_mandatory);
+      setXpReward(existingTask.xp_reward ?? 50);
     }
   }, [existingTask]);
 
@@ -107,6 +110,7 @@ const LessonTaskManager = ({ lessonId, disabled }: LessonTaskManagerProps) => {
         allowed_types: allowedTypes,
         is_mandatory: isMandatory,
         is_active: isEnabled,
+        xp_reward: xpReward,
       });
       toast.success('המשימה נשמרה בהצלחה');
     } catch (error) {
@@ -124,6 +128,7 @@ const LessonTaskManager = ({ lessonId, disabled }: LessonTaskManagerProps) => {
       setInstructions('');
       setAllowedTypes(['text']);
       setIsMandatory(true);
+      setXpReward(50);
       toast.success('המשימה נמחקה');
     } catch (error) {
       toast.error('שגיאה במחיקת המשימה');
@@ -283,6 +288,24 @@ const LessonTaskManager = ({ lessonId, disabled }: LessonTaskManagerProps) => {
                 אם מסומן, התלמיד לא יוכל להמשיך לשיעור הבא ללא אישור המשימה
               </p>
             </div>
+          </div>
+
+          {/* XP Reward */}
+          <div className="space-y-2">
+            <Label htmlFor="xp-reward">תגמול XP (נקודות)</Label>
+            <Input
+              id="xp-reward"
+              type="number"
+              min={0}
+              value={xpReward}
+              onChange={(e) => setXpReward(Number(e.target.value))}
+              disabled={disabled}
+              placeholder="50"
+              dir="rtl"
+            />
+            <p className="text-xs text-muted-foreground">
+              מספר נקודות ה-XP שהתלמיד יקבל עם אישור המשימה
+            </p>
           </div>
 
           <Separator />

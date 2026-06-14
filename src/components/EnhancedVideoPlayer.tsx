@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useLessonProgress, useUpdateProgress } from "@/hooks/useContentData";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import AcademyVideoPlayer from "@/components/AcademyVideoPlayer";
 
 interface EnhancedVideoPlayerProps {
   videoUrl?: string;
@@ -47,8 +48,8 @@ const getEmbedUrl = (url: string): string | null => {
       return url;
     }
 
-    // For direct video files (.mp4, .webm, etc.)
-    if (url.match(/\.(mp4|webm|ogg)(\?.*)?$/i)) {
+    // For direct video files (.mp4, .webm, .mov, etc.)
+    if (url.match(/\.(mp4|webm|ogg|mov)(\?.*)?$/i)) {
       return url;
     }
 
@@ -71,7 +72,7 @@ const getVideoProvider = (url: string): 'youtube' | 'vimeo' | 'file' | 'unknown'
     return 'vimeo';
   }
   
-  if (url.match(/\.(mp4|webm|ogg)(\?.*)?$/i)) {
+  if (url.match(/\.(mp4|webm|ogg|mov)(\?.*)?$/i)) {
     return 'file';
   }
   
@@ -234,69 +235,27 @@ const EnhancedVideoPlayer = ({
     );
   }
 
-  // For direct video files, use native video element with fallback to StandardCustomVideoPlayer
+  // For direct/uploaded video files, use the academy-branded custom player.
   if (provider === 'file') {
     return (
-      <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
-        <video
+      <div className={cn("relative w-full", className)}>
+        <AcademyVideoPlayer
           src={embedUrl}
-          controls
+          title={title}
           autoPlay
-          className="w-full h-full object-contain"
-          onLoadedData={() => setIsLoading(false)}
-          onError={() => {
-            setIsLoading(false);
-            setHasError(true);
-          }}
           onEnded={handleVideoEnd}
-          aria-label={title}
-        >
-          הדפדפן שלך אינו תומך בתגית וידאו.
-        </video>
-        
-        {isLoading && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <div className="text-center space-y-3">
-              <Loader2 className="w-8 h-8 animate-spin text-white mx-auto" />
-              <p className="text-white text-sm">טוען סרטון...</p>
-            </div>
-          </div>
-        )}
-        
-        {hasError && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <Alert className="max-w-md bg-black/80 border-red-500">
-              <AlertCircle className="h-4 w-4 text-red-400" />
-              <AlertDescription className="text-white">
-                <div className="space-y-2">
-                  <p>שגיאה בטעינת הסרטון</p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    asChild
-                    className="text-white border-white hover:bg-white hover:text-black"
-                  >
-                    <a href={videoUrl} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      פתח בחלון חדש
-                    </a>
-                  </Button>
-                </div>
-              </AlertDescription>
-            </Alert>
-          </div>
-        )}
-        
-        {/* Next lesson button that appears when video ends */}
+        />
+
+        {/* Next lesson overlay that appears when video ends */}
         {showNextButton && onNextLesson && (
-          <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-            <div className="text-center space-y-4 p-6 bg-background/90 rounded-lg backdrop-blur-sm max-w-md">
+          <div className="absolute inset-0 z-30 flex items-center justify-center rounded-xl bg-black/70">
+            <div className="max-w-md space-y-4 rounded-lg bg-background/90 p-6 text-center backdrop-blur-sm">
               <h3 className="text-xl font-bold">הסרטון הסתיים</h3>
               <p className="text-muted-foreground">השיעור סומן כהושלם!</p>
               {nextLessonTitle && (
                 <p className="text-sm">הבא: {nextLessonTitle}</p>
               )}
-              <div className="flex flex-col sm:flex-row gap-2 mt-4">
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                 <Button onClick={navigateToNext} className="flex items-center justify-center gap-2">
                   <SkipForward className="w-4 h-4" />
                   המשך לשיעור הבא ({timeLeft}s)

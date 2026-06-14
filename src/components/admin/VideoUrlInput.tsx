@@ -1,12 +1,15 @@
 
-import { useState, useEffect } from 'react';
-import { Play, ExternalLink, AlertCircle } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Play, ExternalLink, AlertCircle, Upload, Loader2, Film, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LessonVideo } from '@/types/admin';
 import { parseVideoUrl } from '@/lib/videoUtils';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface VideoUrlInputProps {
   video?: LessonVideo;
@@ -14,10 +17,15 @@ interface VideoUrlInputProps {
   disabled?: boolean;
 }
 
+const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
+const MAX_VIDEO_SIZE = 500 * 1024 * 1024; // 500MB
+
 const VideoUrlInput = ({ video, onChange, disabled }: VideoUrlInputProps) => {
-  const [url, setUrl] = useState(video?.url || '');
+  const [url, setUrl] = useState(video?.provider === 'file' ? '' : video?.url || '');
   const [error, setError] = useState<string>('');
   const [preview, setPreview] = useState<LessonVideo | undefined>(video);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateAndParseUrl = (inputUrl: string): LessonVideo | null => {
     if (!inputUrl.trim()) return null;
@@ -64,42 +72,151 @@ const VideoUrlInput = ({ video, onChange, disabled }: VideoUrlInputProps) => {
     setError('');
   };
 
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!ALLOWED_VIDEO_TYPES.includes(file.type)) {
+      toast.error('ניתן להעלות רק קבצי וידאו מסוג MP4, WebM או MOV');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    // Validate file size (500MB limit)
+    if (file.size > MAX_VIDEO_SIZE) {
+      toast.error('גודל הקובץ לא יכול לעבור 500MB');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    setUploading(true);
+    setError('');
+
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `${Date.now()}-${Math.round(Math.random() * 1e9)}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('lesson_videos')
+        .upload(path, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('lesson_videos')
+        .getPublicUrl(path);
+
+      const uploaded: LessonVideo = {
+        provider: 'file',
+        url: publicUrl,
+        videoId: '',
+        startTime: undefined,
+        thumbnail: undefined,
+      };
+
+      setPreview(uploaded);
+      onChange(uploaded);
+      toast.success('הסרטון הועלה בהצלחה');
+    } catch (err) {
+      console.error('Upload error:', err);
+      toast.error('שגיאה בהעלאת הסרטון. נסו שוב.');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleClearFile = () => {
+    setPreview(undefined);
+    onChange(undefined);
+    setError('');
+  };
+
   return (
-    <div className="space-y-4">
-      <div>
-        <label className="text-sm font-medium mb-2 block">קישור וידאו</label>
-        <div className="flex gap-2">
-          <Input
-            type="url"
-            placeholder="הדבק קישור YouTube או Vimeo..."
-            value={url}
-            onChange={(e) => handleUrlChange(e.target.value)}
-            disabled={disabled}
-            className={error ? 'border-destructive' : ''}
-          />
-          {url && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleClear}
+    <div className="space-y-4" dir="rtl">
+      <label className="text-sm font-medium block">וידאו לשיעור</label>
+
+      <Tabs defaultValue={video?.provider === 'file' ? 'upload' : 'url'} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="url" disabled={disabled}>קישור</TabsTrigger>
+          <TabsTrigger value="upload" disabled={disabled}>העלאת קובץ</TabsTrigger>
+        </TabsList>
+
+        {/* URL tab — existing YouTube/Vimeo paste behavior */}
+        <TabsContent value="url" className="space-y-3">
+          <div className="flex gap-2">
+            <Input
+              type="url"
+              placeholder="הדבק קישור YouTube או Vimeo..."
+              value={url}
+              onChange={(e) => handleUrlChange(e.target.value)}
               disabled={disabled}
-            >
-              ניקוי
-            </Button>
-          )}
-        </div>
-        <p className="text-xs text-muted-foreground mt-1">
-          תמיכה בקישורי YouTube, Vimeo, ו-mp4/webm. הקישור יומר אוטומטית לפורמט הטמעה.
-        </p>
-        <Alert className="mt-2">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="text-xs">
-            <strong>חשוב:</strong> עבור YouTube - הגדר את הוידאו כ-"Unlisted" והפעל "Allow embedding" בהגדרות הוידאו.
-            עבור Vimeo - הגדר את "Who can embed" ל-"Anywhere" בהגדרות הפרטיות.
-          </AlertDescription>
-        </Alert>
-      </div>
+              className={error ? 'border-destructive' : ''}
+            />
+            {url && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleClear}
+                disabled={disabled}
+              >
+                ניקוי
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            תמיכה בקישורי YouTube, Vimeo, ו-mp4/webm. הקישור יומר אוטומטית לפורמט הטמעה.
+          </p>
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="text-xs">
+              <strong>חשוב:</strong> עבור YouTube - הגדר את הוידאו כ-"Unlisted" והפעל "Allow embedding" בהגדרות הוידאו.
+              עבור Vimeo - הגדר את "Who can embed" ל-"Anywhere" בהגדרות הפרטיות.
+            </AlertDescription>
+          </Alert>
+        </TabsContent>
+
+        {/* Upload tab — upload a video file to the lesson_videos bucket */}
+        <TabsContent value="upload" className="space-y-3">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="video/mp4,video/webm,video/quicktime"
+            onChange={handleFileSelect}
+            disabled={disabled || uploading}
+            className="hidden"
+            id="lesson-video-upload"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={disabled || uploading}
+            className="w-full border-2 border-dashed border-border rounded-lg p-8 flex flex-col items-center justify-center gap-3 text-center transition-colors hover:border-primary hover:bg-primary/5 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {uploading ? (
+              <>
+                <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                <span className="text-sm text-muted-foreground">מעלה סרטון...</span>
+              </>
+            ) : (
+              <>
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Upload className="w-6 h-6 text-primary" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">לחץ לבחירת קובץ וידאו</p>
+                  <p className="text-xs text-muted-foreground">MP4, WebM או MOV עד 500MB</p>
+                </div>
+              </>
+            )}
+          </button>
+        </TabsContent>
+      </Tabs>
 
       {error && (
         <Alert variant="destructive">
@@ -108,7 +225,31 @@ const VideoUrlInput = ({ video, onChange, disabled }: VideoUrlInputProps) => {
         </Alert>
       )}
 
-      {preview && (
+      {/* Preview for uploaded file */}
+      {preview && preview.provider === 'file' && (
+        <div className="border rounded-lg p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Film className="w-4 h-4 text-primary" />
+            <span className="font-medium">תצוגה מקדימה</span>
+            <Badge>קובץ</Badge>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleClearFile}
+              disabled={disabled || uploading}
+              className="mr-auto h-7 px-2 text-muted-foreground hover:text-destructive"
+            >
+              <X className="w-4 h-4" />
+              הסר
+            </Button>
+          </div>
+          <video src={preview.url} controls className="w-full rounded-lg" />
+        </div>
+      )}
+
+      {/* Preview for YouTube/Vimeo */}
+      {preview && preview.provider !== 'file' && (
         <div className="border rounded-lg p-4 space-y-3">
           <div className="flex items-center gap-2">
             <Play className="w-4 h-4 text-primary" />
@@ -140,7 +281,7 @@ const VideoUrlInput = ({ video, onChange, disabled }: VideoUrlInputProps) => {
                 <span className="text-muted-foreground">מזהה וידאו: </span>
                 <span className="font-mono">{preview.videoId}</span>
               </div>
-              
+
               {preview.startTime && (
                 <div className="text-sm">
                   <span className="text-muted-foreground">זמן התחלה: </span>

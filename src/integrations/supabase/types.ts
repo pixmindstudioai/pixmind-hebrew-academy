@@ -343,6 +343,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          min_xp: number
           module_id: string
           order_index: number
           published_at: string | null
@@ -356,6 +357,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          min_xp?: number
           module_id: string
           order_index?: number
           published_at?: string | null
@@ -369,6 +371,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          min_xp?: number
           module_id?: string
           order_index?: number
           published_at?: string | null
@@ -985,6 +988,7 @@ export type Database = {
           is_mandatory: boolean
           lesson_id: string
           updated_at: string
+          xp_reward: number
         }
         Insert: {
           allowed_types?: string[]
@@ -995,6 +999,7 @@ export type Database = {
           is_mandatory?: boolean
           lesson_id: string
           updated_at?: string
+          xp_reward?: number
         }
         Update: {
           allowed_types?: string[]
@@ -1005,6 +1010,7 @@ export type Database = {
           is_mandatory?: boolean
           lesson_id?: string
           updated_at?: string
+          xp_reward?: number
         }
         Relationships: [
           {
@@ -1363,6 +1369,7 @@ export type Database = {
           is_hidden: boolean
           is_paid: boolean
           is_verified: boolean | null
+          min_xp: number
           order_index: number
           payment_url: string | null
           published_at: string | null
@@ -1387,6 +1394,7 @@ export type Database = {
           is_hidden?: boolean
           is_paid?: boolean
           is_verified?: boolean | null
+          min_xp?: number
           order_index?: number
           payment_url?: string | null
           published_at?: string | null
@@ -1411,6 +1419,7 @@ export type Database = {
           is_hidden?: boolean
           is_paid?: boolean
           is_verified?: boolean | null
+          min_xp?: number
           order_index?: number
           payment_url?: string | null
           published_at?: string | null
@@ -2104,43 +2113,321 @@ export type Database = {
       }
       users: {
         Row: {
+          bio: string | null
+          cover_image_url: string | null
           created_at: string
+          current_streak: number
           device_count: number | null
           email: string
           full_name: string
+          headline: string | null
           id: string
+          last_active_on: string | null
           last_login_at: string | null
+          level: number
+          links: Json
+          longest_streak: number
           preferences: Json | null
           profile_picture_url: string | null
           role: Database["public"]["Enums"]["user_role"]
           status: string | null
           updated_at: string
+          xp_total: number
         }
         Insert: {
+          bio?: string | null
+          cover_image_url?: string | null
           created_at?: string
+          current_streak?: number
           device_count?: number | null
           email: string
           full_name: string
+          headline?: string | null
           id?: string
+          last_active_on?: string | null
           last_login_at?: string | null
+          level?: number
+          links?: Json
+          longest_streak?: number
           preferences?: Json | null
           profile_picture_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           status?: string | null
           updated_at?: string
+          xp_total?: number
         }
         Update: {
+          bio?: string | null
+          cover_image_url?: string | null
           created_at?: string
+          current_streak?: number
           device_count?: number | null
           email?: string
           full_name?: string
+          headline?: string | null
           id?: string
+          last_active_on?: string | null
           last_login_at?: string | null
+          level?: number
+          links?: Json
+          longest_streak?: number
           preferences?: Json | null
           profile_picture_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           status?: string | null
           updated_at?: string
+          xp_total?: number
+        }
+        Relationships: []
+      }
+      badges: {
+        Row: {
+          code: string
+          created_at: string
+          criteria: Json | null
+          description: string | null
+          icon: string
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+          tier: string
+          xp_bonus: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          criteria?: Json | null
+          description?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          tier?: string
+          xp_bonus?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          criteria?: Json | null
+          description?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          tier?: string
+          xp_bonus?: number
+        }
+        Relationships: []
+      }
+      direct_messages: {
+        Row: {
+          attachment_name: string | null
+          attachment_type: string | null
+          attachment_url: string | null
+          content: string
+          created_at: string
+          id: string
+          read_at: string | null
+          recipient_id: string
+          sender_id: string
+        }
+        Insert: {
+          attachment_name?: string | null
+          attachment_type?: string | null
+          attachment_url?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          recipient_id: string
+          sender_id: string
+        }
+        Update: {
+          attachment_name?: string | null
+          attachment_type?: string | null
+          attachment_url?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          recipient_id?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
+      feed_comments: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          parent_comment_id: string | null
+          post_id: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          parent_comment_id?: string | null
+          post_id: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          parent_comment_id?: string | null
+          post_id?: string
+        }
+        Relationships: []
+      }
+      feed_post_likes: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      feed_posts: {
+        Row: {
+          author_id: string
+          comment_count: number
+          content: string
+          created_at: string
+          id: string
+          images: string[]
+          like_count: number
+          pinned: boolean
+          related_challenge_id: string | null
+          tags: string[]
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          comment_count?: number
+          content?: string
+          created_at?: string
+          id?: string
+          images?: string[]
+          like_count?: number
+          pinned?: boolean
+          related_challenge_id?: string | null
+          tags?: string[]
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          comment_count?: number
+          content?: string
+          created_at?: string
+          id?: string
+          images?: string[]
+          like_count?: number
+          pinned?: boolean
+          related_challenge_id?: string | null
+          tags?: string[]
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_badges: {
+        Row: {
+          badge_id: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      xp_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          reason: string | null
+          source_id: string | null
+          source_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          reason?: string | null
+          source_id?: string | null
+          source_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          reason?: string | null
+          source_id?: string | null
+          source_type?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -2231,8 +2518,47 @@ export type Database = {
           },
         ]
       }
+      public_profiles: {
+        Row: {
+          bio: string | null
+          cover_image_url: string | null
+          created_at: string | null
+          current_streak: number | null
+          full_name: string | null
+          headline: string | null
+          id: string | null
+          level: number | null
+          links: Json | null
+          longest_streak: number | null
+          profile_picture_url: string | null
+          xp_total: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      approve_submission_xp: {
+        Args: { p_submission_id: string }
+        Returns: Json
+      }
+      award_xp: {
+        Args: {
+          p_amount: number
+          p_reason?: string
+          p_source_id?: string
+          p_source_type: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      complete_lesson: {
+        Args: { p_done?: boolean; p_lesson_id: string }
+        Returns: Json
+      }
+      toggle_post_like: {
+        Args: { p_post_id: string }
+        Returns: Json
+      }
       assign_message: {
         Args: { p_assigned_to: string; p_message_id: string }
         Returns: undefined

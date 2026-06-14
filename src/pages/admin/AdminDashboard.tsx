@@ -2,6 +2,7 @@
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import AdminLoginComponent from '@/components/admin/AdminLogin';
 import AdminShell from '@/components/admin/AdminShell';
+import AdminHome from '@/pages/admin/AdminHome';
 
 const AdminDashboard = () => {
   const { isAuthenticated, isLoading } = useAdminAuth();
@@ -24,7 +25,11 @@ const AdminDashboard = () => {
   }
 
   // Show admin dashboard if authenticated
-  return <AdminShell />;
+  return (
+    <AdminShell>
+      <AdminHome />
+    </AdminShell>
+  );
 };
 
 export default AdminDashboard;

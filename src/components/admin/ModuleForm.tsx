@@ -30,6 +30,7 @@ const moduleSchema = z.object({
   description: z.string().min(1, 'תיאור המודול נדרש'),
   status: z.enum(['draft', 'active', 'archived']).default('draft'),
   order_index: z.number().min(0, 'מספר הסדר חייב להיות 0 או יותר').optional(),
+  min_xp: z.coerce.number().min(0, 'ה-XP חייב להיות 0 או יותר').optional(),
   is_paid: z.boolean().default(false),
   is_hidden: z.boolean().default(false),
   was_free_before: z.boolean().default(false),
@@ -68,6 +69,7 @@ interface Module {
   description: string;
   status: 'draft' | 'active' | 'archived';
   order_index: number;
+  min_xp?: number;
   is_paid: boolean;
   is_hidden: boolean;
   payment_url?: string;
@@ -100,6 +102,7 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading, showActions = true 
       description: module?.description || '',
       status: module?.status || 'draft',
       order_index: module?.order_index || 0,
+      min_xp: module?.min_xp ?? 0,
       is_paid: module?.is_paid || false,
       is_hidden: module?.is_hidden || false,
       was_free_before: module?.was_free_before || false,
@@ -220,6 +223,30 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading, showActions = true 
                 </FormControl>
                 <FormDescription>
                   קביעת סדר המודול באתר (0 = ראשון)
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="min_xp"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>XP נדרש לפתיחת המודול</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    {...field}
+                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                    disabled={isLoading}
+                  />
+                </FormControl>
+                <FormDescription>
+                  0 = פתוח לכולם
                 </FormDescription>
                 <FormMessage />
               </FormItem>

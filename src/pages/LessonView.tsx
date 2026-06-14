@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Download, FileText, ArrowRight, ArrowLeft, CheckCircle, Loader2, AlertCircle, ExternalLink, Paperclip, ClipboardCheck } from "lucide-react";
+import { Download, FileText, ArrowRight, ArrowLeft, CheckCircle, Loader2, AlertCircle, ExternalLink, Paperclip, ClipboardCheck, Lock, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,15 +15,17 @@ import AuthGuard from "@/components/AuthGuard";
 import ProgressToggle from "@/components/ProgressToggle";
 import MandatoryTaskBlocker from "@/components/MandatoryTaskBlocker";
 import { cn } from "@/lib/utils";
-import { 
-  useLesson, 
-  useLessonAttachments, 
+import {
+  useLesson,
+  useLessonAttachments,
   useLessonEmbeds,
-  useUpdateProgress,
   useLessons,
-  useLessonProgress
+  useLessonProgress,
+  useChapters,
+  useModules
 } from "@/hooks/useContentData";
 import { useAuth } from "@/hooks/useAuth";
+import { useMyProfile } from "@/hooks/useGamification";
 import { useCanProceedToLesson, useLessonTask, useUserTaskSubmission, getEffectiveStatus } from "@/hooks/useTasksData";
 import { toast } from "sonner";
 
@@ -38,6 +40,15 @@ const LessonView = () => {
   const { data: embeds = [] } = useLessonEmbeds(lessonId!);
   const { data: chapterLessons = [] } = useLessons(lesson?.chapter_id || '', 'active');
   const { data: userProgress } = useLessonProgress(lessonId!, user?.id);
+
+  // XP-gate data: useLesson() does not expose min_xp on the chapter/module relations,
+  // so we read the thresholds from the module's chapters + the module list, and the
+  // member's XP from their gamified profile.
+  const moduleId = lesson?.chapters?.module_id;
+  const { data: moduleChapters = [] } = useChapters(moduleId || '', 'active');
+  const { data: modules = [] } = useModules('active');
+  const { data: myProfile } = useMyProfile();
+  const xpTotal = myProfile?.xp_total ?? 0;
   
   // Task-related data
   const { data: canProceedData } = useCanProceedToLesson(lessonId!);
@@ -138,13 +149,19 @@ const LessonView = () => {
 
   // Check if this lesson is blocked due to previous incomplete task
   const isBlockedByPreviousTask = canProceedData && !canProceedData.canProceed;
-  
+
   // Check if THIS lesson has a mandatory task that is not yet approved
   const currentTaskStatus = getEffectiveStatus(currentSubmission);
   const isBlockedByCurrentTask = currentTask?.is_mandatory && currentTaskStatus !== 'approved';
-  
-  // Combined blocking - either blocked by previous task or current lesson's mandatory task
-  const isLessonBlocked = isBlockedByPreviousTask || isBlockedByCurrentTask;
+
+  // XP gate: the lesson inherits the higher of its chapter's and module's XP thresholds.
+  const lessonChapter = moduleChapters.find((c) => c.id === lesson.chapter_id);
+  const lessonModule = modules.find((m) => m.id === moduleId);
+  const effectiveMinXp = Math.max(lessonChapter?.min_xp ?? 0, lessonModule?.min_xp ?? 0);
+  const isBlockedByXp = effectiveMinXp > 0 && xpTotal < effectiveMinXp;
+
+  // Combined blocking - blocked by previous task, current lesson's mandatory task, or XP gate.
+  const isLessonBlocked = isBlockedByPreviousTask || isBlockedByCurrentTask || isBlockedByXp;
 
   return (
     <AuthGuard>
@@ -154,14 +171,50 @@ const LessonView = () => {
       paymentUrl={null}
       isPaid={false}
     >
-      {/* Mandatory Task Blocker Modal - Cannot be dismissed */}
+      {/* Mandatory Task Blocker Modal - Cannot be dismissed (task-based gating only) */}
       <MandatoryTaskBlocker
-        isBlocked={isLessonBlocked}
+        isBlocked={(isBlockedByPreviousTask || isBlockedByCurrentTask) && !isBlockedByXp}
         taskId={isBlockedByPreviousTask ? canProceedData?.blockedByTaskId : currentTask?.id}
         taskLessonId={isBlockedByPreviousTask ? canProceedData?.blockedByLessonId : lessonId}
         taskLessonTitle={isBlockedByPreviousTask ? undefined : lesson.title}
         isCurrentLessonTask={isBlockedByCurrentTask && !isBlockedByPreviousTask}
       />
+
+      {/* XP Lock Screen - shown when the lesson is gated behind an XP threshold */}
+      {isBlockedByXp && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+          dir="rtl"
+        >
+          <Card className="glass-card max-w-md w-full text-center border-primary/30">
+            <CardHeader className="items-center">
+              <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Lock className="w-10 h-10 text-primary" />
+              </div>
+              <CardTitle className="text-xl">השיעור ננעל</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <p className="text-base text-muted-foreground">
+                דרושים {effectiveMinXp} XP, יש לך {xpTotal} XP
+              </p>
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary">
+                <Sparkles className="h-4 w-4" />
+                צברו עוד {Math.max(0, effectiveMinXp - xpTotal)} XP כדי לפתוח
+              </div>
+              <div className="flex flex-col gap-2 pt-2">
+                <Button
+                  onClick={() => navigate(`/courses/${moduleId}`)}
+                  className="w-full gap-2"
+                  size="lg"
+                >
+                  <ArrowRight className="w-4 h-4" />
+                  חזרה לקורס
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <div className={cn(
         "min-h-screen transition-all duration-300",

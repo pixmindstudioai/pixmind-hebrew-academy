@@ -1,5 +1,5 @@
 
-import { ChevronDown, Play, CheckCircle, Edit, Trash2, Plus, Users, Eye } from "lucide-react";
+import { ChevronDown, Play, CheckCircle, Edit, Trash2, Plus, Users, Eye, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -9,7 +9,9 @@ import {
 } from "@/components/ui/collapsible";
 import { Progress } from "@/components/ui/progress";
 import { Chapter, Lesson } from "@/hooks/useContentData";
+import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface Cohort {
   id: string;
@@ -21,6 +23,10 @@ interface ChapterAccordionProps {
   lessons: (Lesson & { cohort?: Cohort | null })[];
   completedLessons?: string[];
   isAdminView?: boolean;
+  /** When true the chapter is gated behind an XP threshold the member hasn't reached. */
+  lockedByXp?: boolean;
+  /** The effective XP threshold required to open the chapter (for the lock badge copy). */
+  requiredXp?: number;
   onLessonClick?: (lesson: Lesson) => void;
   onEditChapter?: (chapter: Chapter) => void;
   onDeleteChapter?: (chapter: Chapter) => void;
@@ -34,6 +40,8 @@ const ChapterAccordion = ({
   lessons,
   completedLessons = [],
   isAdminView = false,
+  lockedByXp = false,
+  requiredXp = 0,
   onLessonClick,
   onEditChapter,
   onDeleteChapter,
@@ -42,11 +50,18 @@ const ChapterAccordion = ({
   onDeleteLesson,
 }: ChapterAccordionProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  
-  const completedCount = lessons.filter(lesson => 
+
+  // XP gating only applies to the member-facing view (never in the admin editor).
+  const isXpLocked = !isAdminView && lockedByXp;
+
+  const completedCount = lessons.filter(lesson =>
     completedLessons.includes(lesson.id)
   ).length;
   const progressPercentage = lessons.length > 0 ? (completedCount / lessons.length) * 100 : 0;
+
+  const handleLockedLessonAttempt = () => {
+    toast.error("צברו עוד XP כדי לפתוח את הפרק");
+  };
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -109,17 +124,41 @@ const ChapterAccordion = ({
   };
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <div className="border rounded-lg glass-card overflow-hidden">
+    <Collapsible
+      open={isXpLocked ? false : isOpen}
+      onOpenChange={(next) => {
+        if (isXpLocked) {
+          handleLockedLessonAttempt();
+          return;
+        }
+        setIsOpen(next);
+      }}
+    >
+      <div className={cn("border rounded-lg glass-card overflow-hidden", isXpLocked && "border-primary/30")}>
         <CollapsibleTrigger asChild>
-          <div className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors cursor-pointer">
+          <div
+            className={cn(
+              "flex items-center justify-between p-4 transition-colors",
+              isXpLocked ? "cursor-not-allowed hover:bg-transparent" : "hover:bg-muted/50 cursor-pointer"
+            )}
+          >
             <div className="flex items-center space-x-3 space-x-reverse flex-1">
-              <ChevronDown 
-                className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
-              />
+              {isXpLocked ? (
+                <Lock className="w-5 h-5 text-primary flex-shrink-0" />
+              ) : (
+                <ChevronDown
+                  className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                />
+              )}
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <h3 className="font-semibold text-lg">{chapter.title}</h3>
+                  <h3 className={cn("font-semibold text-lg", isXpLocked && "text-muted-foreground")}>{chapter.title}</h3>
+                  {isXpLocked && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                      <Lock className="h-3.5 w-3.5" />
+                      נדרשים {requiredXp} XP לפתיחה
+                    </span>
+                  )}
                   {isAdminView && getStatusBadge(chapter.status)}
                   {isAdminView && getVisibilityBadge(chapter.visibility_mode, chapter.cohort, chapter.cohort_id)}
                 </div>
@@ -203,9 +242,15 @@ const ChapterAccordion = ({
                       key={lesson.id}
                       className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors group"
                     >
-                      <div 
+                      <div
                         className="flex items-center space-x-3 space-x-reverse flex-1 cursor-pointer"
-                        onClick={() => onLessonClick?.(lesson)}
+                        onClick={() => {
+                          if (isXpLocked) {
+                            handleLockedLessonAttempt();
+                            return;
+                          }
+                          onLessonClick?.(lesson);
+                        }}
                       >
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                           {!isAdminView && isCompleted ? (

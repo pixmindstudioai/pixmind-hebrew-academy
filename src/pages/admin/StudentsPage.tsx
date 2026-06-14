@@ -22,7 +22,7 @@ const StudentsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFrom, setDateFrom] = useState<Date>();
   const [dateTo, setDateTo] = useState<Date>();
-  const [sortBy, setSortBy] = useState<'name' | 'email' | 'date' | 'courses'>('date');
+  const [sortBy, setSortBy] = useState<'name' | 'email' | 'date' | 'courses' | 'xp'>('date');
 
   const { data: students, isLoading, refetch } = useStudents({ ...filters, searchTerm });
   const { data: modules } = useModules('all');
@@ -70,6 +70,8 @@ const StudentsPage = () => {
         return a.email.localeCompare(b.email);
       case 'courses':
         return b.enrolled_modules.length - a.enrolled_modules.length;
+      case 'xp':
+        return (b.xp_total ?? 0) - (a.xp_total ?? 0);
       case 'date':
       default:
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
@@ -121,6 +123,7 @@ const StudentsPage = () => {
                 <SelectItem value="name">שם</SelectItem>
                 <SelectItem value="email">אימייל</SelectItem>
                 <SelectItem value="courses">מספר קורסים</SelectItem>
+                <SelectItem value="xp">XP</SelectItem>
               </SelectContent>
             </Select>
 
@@ -181,6 +184,9 @@ const StudentsPage = () => {
                 <TableHead>פרטים</TableHead>
                 <TableHead className="hidden lg:table-cell">קורסים</TableHead>
                 <TableHead className="hidden md:table-cell">התקדמות</TableHead>
+                <TableHead>XP</TableHead>
+                <TableHead>רמה</TableHead>
+                <TableHead className="hidden lg:table-cell">רצף</TableHead>
                 <TableHead className="hidden sm:table-cell">כניסה אחרונה</TableHead>
                 <TableHead>סטטוס</TableHead>
                 <TableHead className="text-center">פעולות</TableHead>
@@ -211,6 +217,15 @@ const StudentsPage = () => {
                     <div className="text-xs">
                       {student.progress_summary.completed_lessons}/{student.progress_summary.total_lessons} שיעורים
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm font-semibold text-primary">{student.xp_total ?? 0}</span>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className="text-xs">{student.level ?? 1}</Badge>
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell text-xs">
+                    {student.current_streak ?? 0} ימים
                   </TableCell>
                   <TableCell className="hidden sm:table-cell text-xs">
                     {student.last_login_at ? format(new Date(student.last_login_at), 'dd/MM HH:mm') : 'לא התחבר'}
