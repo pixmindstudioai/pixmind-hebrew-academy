@@ -124,30 +124,8 @@ Deno.serve(async (req) => {
       return json({ success: true, purchaseId: existing.id, transactionId, alreadyProcessed: true });
     }
 
-    // --- Record the purchase ---
-    const { data: purchase, error: purchaseErr } = await admin
-      .from('purchases')
-      .insert({
-        user_email: userEmail,
-        module_id: itemType === 'module' ? itemId : null,
-        bundle_id: itemType === 'bundle' ? itemId : null,
-        amount,
-        currency: 'ILS',
-        transaction_id: transactionId,
-        provider: 'sumit',
-        payment_date: new Date().toISOString(),
-        status: 'completed',
-        payment_desc: item.title,
-        full_name: fullName || null,
-      })
-      .select('id')
-      .single();
-
-    if (purchaseErr) {
-      return json({ success: false, error: `הרכישה חויבה אך נכשל תיעודה: ${purchaseErr.message}` }, 500);
-    }
-
-    // --- Grant access ---
+    // --- Grant access FIRST (idempotent) — a charged user must always get what they paid for,
+    //     even if recording the purchase row hiccups. ---
     const grantModule = (moduleId: string) =>
       admin.from('user_module_access').upsert(
         {
@@ -182,7 +160,40 @@ Deno.serve(async (req) => {
       }
     }
 
-    return json({ success: true, purchaseId: purchase.id, transactionId });
+    // --- Record the purchase (best-effort; tolerate the bundle_id column not existing yet,
+    //     e.g. before the migration is applied). Access is already granted above. ---
+    const baseRow: Record<string, unknown> = {
+      user_email: userEmail,
+      module_id: itemType === 'module' ? itemId : null,
+      amount,
+      currency: 'ILS',
+      transaction_id: transactionId,
+      provider: 'sumit',
+      payment_date: new Date().toISOString(),
+      status: 'completed',
+      payment_desc: item.title,
+      full_name: fullName || null,
+    };
+
+    let purchaseId: string | null = null;
+    let ins = await admin.from('purchases')
+      .insert({ ...baseRow, bundle_id: itemType === 'bundle' ? itemId : null })
+      .select('id').single();
+    if (ins.error) {
+      // Retry without bundle_id (column may not exist yet).
+      ins = await admin.from('purchases').insert(baseRow).select('id').single();
+    }
+    if (ins.error) {
+      await admin.from('webhook_logs').insert({
+        provider: 'sumit', event_type: 'purchase_record_failed',
+        payload: { transactionId, itemType, itemId, userEmail, amount },
+        processed: false, error_message: ins.error.message,
+      });
+    } else {
+      purchaseId = ins.data?.id ?? null;
+    }
+
+    return json({ success: true, purchaseId, transactionId });
   } catch (e) {
     console.error('sumit-charge error:', e);
     return json({ success: false, error: 'שגיאת שרת. נסה שוב.' }, 500);
