@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2, Lock, CreditCard, ShieldCheck, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -21,7 +21,8 @@ const FORM_ID = 'sumit-payment-form';
 const Checkout = () => {
   const { type, id } = useParams<{ type: ItemType; id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const queryClient = useQueryClient();
   const { ready, loadError, createToken } = useSumitCheckout();
 
   const [cardholder, setCardholder] = useState('');
@@ -66,7 +67,14 @@ const Checkout = () => {
         setSubmitting(false);
         return;
       }
-      toast.success('התשלום בוצע בהצלחה! הגישה נפתחה 🎉');
+      // Make the unlock deterministic instead of relying solely on the realtime subscription.
+      queryClient.invalidateQueries({ queryKey: ['user-module-access'] });
+      queryClient.invalidateQueries({ queryKey: ['user-bundle-access'] });
+      toast.success(
+        data.grantPending
+          ? 'התשלום התקבל! הגישה תיפתח תוך כמה רגעים. אם לא — פנה לתמיכה.'
+          : 'התשלום בוצע בהצלחה! הגישה נפתחה 🎉',
+      );
       navigate(itemType === 'module' ? `/courses/${id}` : '/courses');
     } catch {
       toast.error('שגיאה בעיבוד התשלום. נסה שוב.');
@@ -74,10 +82,20 @@ const Checkout = () => {
     }
   };
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // A purchase attaches to the signed-in user — don't show the card form to logged-out visitors.
+  if (!isAuthenticated) {
+    return (
+      <div className="mx-auto max-w-md p-4 text-center" dir="rtl">
+        <p className="text-muted-foreground">יש להתחבר כדי להשלים רכישה.</p>
+        <Button className="mt-4" onClick={() => navigate('/login')}>התחברות</Button>
       </div>
     );
   }
@@ -141,6 +159,8 @@ const Checkout = () => {
             // SUMIT's CreateToken reads these data-og inputs; card data is tokenized client-side
             // and never sent to our servers.
             <form id={FORM_ID} data-og="form" onSubmit={handleSubmit} className="space-y-4">
+              {/* SUMIT writes the SingleUseToken here; the hook clears it between retries. */}
+              <input type="hidden" name="og-token" />
               <div className="space-y-1.5">
                 <Label htmlFor="og-cardholder">שם בעל הכרטיס</Label>
                 <Input id="og-cardholder" value={cardholder} onChange={(e) => setCardholder(e.target.value)} placeholder="ישראל ישראלי" autoComplete="cc-name" required />

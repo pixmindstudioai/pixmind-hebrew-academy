@@ -87,7 +87,7 @@ Deno.serve(async (req) => {
     // --- Charge via SUMIT ---
     const chargeReq = {
       Credentials: { CompanyID: Number(COMPANY_ID), APIKey: API_KEY },
-      Customer: { Name: fullName || userEmail, EmailAddress: userEmail, Phone: body.phone ?? '', SearchMode: 'Automatic' },
+      Customer: { Name: fullName || userEmail, EmailAddress: userEmail, Phone: (body.phone ?? '').toString().trim(), SearchMode: 'Automatic' },
       Items: [{ Item: { Name: item.title, SearchMode: 'Automatic' }, Quantity: 1, UnitPrice: amount, Currency: 'ILS' }],
       SingleUseToken: token,
       VATIncluded: true,
@@ -117,15 +117,8 @@ Deno.serve(async (req) => {
       return json({ success: false, error: result?.UserErrorMessage || 'החיוב נכשל. בדוק את פרטי הכרטיס ונסה שוב.' }, 402);
     }
 
-    // --- Idempotency: if we already recorded this transaction, return success without re-granting ---
-    const { data: existing } = await admin
-      .from('purchases').select('id').eq('transaction_id', transactionId).maybeSingle();
-    if (existing) {
-      return json({ success: true, purchaseId: existing.id, transactionId, alreadyProcessed: true });
-    }
-
-    // --- Grant access FIRST (idempotent) — a charged user must always get what they paid for,
-    //     even if recording the purchase row hiccups. ---
+    // --- Access-grant helpers. Grants are idempotent upserts; a charged user MUST end up with
+    //     access, so we check every error and retry transient blips. ---
     const grantModule = (moduleId: string) =>
       admin.from('user_module_access').upsert(
         {
@@ -140,28 +133,61 @@ Deno.serve(async (req) => {
         { onConflict: 'user_email,module_id' },
       );
 
-    if (itemType === 'module') {
-      await grantModule(itemId);
-    } else {
-      // Bundle: grant the bundle itself + every module inside it (module gating checks user_module_access).
+    const withRetry = async (fn: () => PromiseLike<{ error: unknown }>, attempts = 3) => {
+      let lastErr: unknown = null;
+      for (let i = 0; i < attempts; i++) {
+        const { error } = await fn();
+        if (!error) return null;
+        lastErr = error;
+      }
+      return lastErr;
+    };
+
+    // Grants the purchased item; returns an error (truthy) if access could NOT be fully granted.
+    const grantAccess = async (): Promise<unknown> => {
+      if (itemType === 'module') {
+        return await withRetry(() => grantModule(itemId));
+      }
+      // Bundle: grant the bundle record + EVERY module in it (module gating reads user_module_access).
+      let err: unknown = null;
       const { data: existingBundle } = await admin
         .from('user_bundle_access').select('id').eq('user_email', userEmail).eq('bundle_id', itemId).maybeSingle();
       if (!existingBundle) {
-        await admin.from('user_bundle_access').insert({
+        err = await withRetry(() => admin.from('user_bundle_access').insert({
           user_email: userEmail, bundle_id: itemId, expires_at: null,
           transaction_id: transactionId, notes: `SUMIT charge ${transactionId}`,
           granted_at: new Date().toISOString(),
-        });
+        }));
       }
-      const { data: bundleModules } = await admin
+      const { data: bundleModules, error: bmError } = await admin
         .from('bundle_modules').select('module_id').eq('bundle_id', itemId);
-      for (const bm of bundleModules ?? []) {
-        if (bm.module_id) await grantModule(bm.module_id);
+      if (bmError) return err ?? bmError;
+      if (!bundleModules || bundleModules.length === 0) {
+        // A paid bundle with no linked modules grants nothing — treat as a grant failure, not success.
+        return err ?? new Error('bundle has no linked modules');
       }
+      for (const bm of bundleModules) {
+        if (bm.module_id) {
+          const e = await withRetry(() => grantModule(bm.module_id));
+          if (e && !err) err = e;
+        }
+      }
+      return err;
+    };
+
+    // --- Idempotency: dedupe on (provider, transaction_id). On a duplicate, RE-APPLY the grant
+    //     (idempotent) so a retry repairs any earlier partial grant instead of being short-circuited. ---
+    const { data: existing } = await admin
+      .from('purchases').select('id').eq('provider', 'sumit').eq('transaction_id', transactionId).maybeSingle();
+    if (existing) {
+      const repairErr = await grantAccess();
+      return json({ success: true, purchaseId: existing.id, transactionId, alreadyProcessed: true, grantPending: !!repairErr });
     }
 
-    // --- Record the purchase (best-effort; tolerate the bundle_id column not existing yet,
-    //     e.g. before the migration is applied). Access is already granted above. ---
+    // --- Grant access (gating step). ---
+    const grantError = await grantAccess();
+
+    // --- Record the purchase (best-effort anchor; tolerate bundle_id column absence). ---
     const baseRow: Record<string, unknown> = {
       user_email: userEmail,
       module_id: itemType === 'module' ? itemId : null,
@@ -180,7 +206,6 @@ Deno.serve(async (req) => {
       .insert({ ...baseRow, bundle_id: itemType === 'bundle' ? itemId : null })
       .select('id').single();
     if (ins.error) {
-      // Retry without bundle_id (column may not exist yet).
       ins = await admin.from('purchases').insert(baseRow).select('id').single();
     }
     if (ins.error) {
@@ -191,6 +216,19 @@ Deno.serve(async (req) => {
       });
     } else {
       purchaseId = ins.data?.id ?? null;
+    }
+
+    // The card was charged. If access couldn't be fully granted, do NOT tell the user it failed
+    // (and never double-charge) — flag it so the client shows "payment received, activating" and
+    // ops can reconcile from this critical log. The grant upserts are idempotent so it self-repairs
+    // on a retry / manual re-run.
+    if (grantError) {
+      await admin.from('webhook_logs').insert({
+        provider: 'sumit', event_type: 'grant_failed',
+        payload: { transactionId, itemType, itemId, userEmail, amount, purchaseId },
+        processed: false, error_message: String((grantError as { message?: string })?.message ?? grantError),
+      });
+      return json({ success: true, purchaseId, transactionId, grantPending: true });
     }
 
     return json({ success: true, purchaseId, transactionId });

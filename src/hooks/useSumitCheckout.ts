@@ -71,12 +71,23 @@ export function useSumitCheckout() {
       // Clear any token from a previous attempt so retries re-tokenize.
       const prev = document.querySelector(`${formSelector} [name="og-token"]`) as HTMLInputElement | null;
       if (prev) prev.value = '';
+      // Resolve at most once; fail closed if SUMIT never calls back (no charge has happened yet).
+      let settled = false;
+      const finish = (token: string | null) => {
+        if (settled) return;
+        settled = true;
+        resolve(token || null);
+      };
+      const timer = setTimeout(() => finish(null), 30000);
       og.CreateToken({
         FormSelector: formSelector,
         CompanyID: Number(SUMIT_COMPANY_ID),
         APIPublicKey: SUMIT_PUBLIC_KEY,
         ResponseLanguage: 'he',
-        Callback: (token: string | null) => resolve(token || null),
+        Callback: (token: string | null) => {
+          clearTimeout(timer);
+          finish(token);
+        },
       });
     });
   }, []);
