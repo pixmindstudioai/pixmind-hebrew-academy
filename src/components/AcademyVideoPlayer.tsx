@@ -155,13 +155,21 @@ const AcademyVideoPlayer = ({ src, title, poster, autoPlay, className, onEnded }
       dir="ltr"
       tabIndex={0}
       className={cn(
-        "group relative w-full overflow-hidden rounded-xl bg-black outline-none ring-1 ring-primary/20",
+        "group relative w-full overflow-hidden bg-black outline-none",
+        // In fullscreen the container fills the whole screen (no rounded corners
+        // or ring) and vertically centers the video; otherwise it keeps the
+        // 16:9 framed, rounded, branded look.
+        isFullscreen
+          ? "flex h-screen items-center justify-center rounded-none ring-0"
+          : "rounded-xl ring-1 ring-primary/20",
         className
       )}
       onMouseMove={nudgeControls}
       onMouseLeave={() => isPlaying && setShowControls(false)}
     >
-      <div className="relative aspect-video w-full">
+      {/* Fullscreen: fill the screen height so the video uses all available
+          space and stays centered. Windowed: lock to a 16:9 box. */}
+      <div className={cn("relative w-full", isFullscreen ? "h-full" : "aspect-video")}>
         <video
           ref={videoRef}
           src={src}
