@@ -35,7 +35,6 @@ const moduleSchema = z.object({
   is_hidden: z.boolean().default(false),
   was_free_before: z.boolean().default(false),
   payment_url: z.string().url('יש להזין כתובת URL תקינה').optional().or(z.literal('')),
-  apple_product_id: z.string().optional().or(z.literal('')),
   thumbnail_url: z.string().url('יש להזין כתובת URL תקינה לתמונה').optional().or(z.literal('')),
   regular_price: z.number().min(0, 'המחיר חייב להיות 0 או יותר').optional().nullable(),
   sale_price: z.number().min(0, 'מחיר המבצע חייב להיות 0 או יותר').optional().nullable(),
@@ -74,7 +73,6 @@ interface Module {
   is_paid: boolean;
   is_hidden: boolean;
   payment_url?: string;
-  apple_product_id?: string | null;
   thumbnail_url?: string;
   regular_price?: number | null;
   sale_price?: number | null;
@@ -109,7 +107,6 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading, showActions = true 
       is_hidden: module?.is_hidden || false,
       was_free_before: module?.was_free_before || false,
       payment_url: module?.payment_url || '',
-      apple_product_id: module?.apple_product_id || '',
       thumbnail_url: module?.thumbnail_url || '',
       regular_price: module?.regular_price || null,
       sale_price: module?.sale_price || null,
@@ -303,29 +300,6 @@ const ModuleForm = ({ module, onSubmit, onCancel, isLoading, showActions = true 
                     </FormControl>
                     <FormDescription>
                       הקישור שאליו יועברו המשתמשים כדי לרכוש את המודול
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="apple_product_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>מזהה מוצר Apple (IAP)</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="com.pixmind.academy.course.intro"
-                        dir="ltr"
-                        {...field}
-                        value={field.value ?? ''}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      ה-Product ID של המוצר ב-App Store Connect. דרוש כדי שרכישה באפליקציית ה-iOS תעבוד (In-App Purchase). השאר ריק אם המודול נמכר רק באתר.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

@@ -1,10 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { toast } from 'sonner';
 import { useModuleAccess } from '@/hooks/useUserModuleAccess';
 import { useAuth } from '@/hooks/useAuth';
 import { sumitConfigured } from '@/hooks/useSumitCheckout';
-import { useIapPurchase, isNativeIOSApp } from '@/hooks/useIapPurchase';
+import { isNativeIOSApp } from '@/lib/platform';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Lock, CreditCard } from 'lucide-react';
@@ -16,7 +15,6 @@ interface AccessGuardProps {
   isPaid?: boolean | null;
   wasFreeBefore?: boolean;
   becamePaidAt?: string | null;
-  appleProductId?: string | null;
   children: React.ReactNode;
 }
 
@@ -27,20 +25,10 @@ const AccessGuard: React.FC<AccessGuardProps> = ({
   isPaid = false,
   wasFreeBefore = false,
   becamePaidAt = null,
-  appleProductId = null,
   children
 }) => {
   const { isAuthenticated } = useAuth();
   const { hasAccess, isLoading, isLegacyFreeUser } = useModuleAccess();
-  const { purchase: iapPurchase, busy: iapBusy } = useIapPurchase();
-
-  const handleIapBuy = async () => {
-    if (!appleProductId) return;
-    const res = await iapPurchase(appleProductId);
-    if (res.ok) toast.success('הרכישה הושלמה! הגישה נפתחה 🎉');
-    else if (res.error === 'pending') toast.info('הרכישה ממתינה לאישור. הגישה תיפתח אוטומטית לאחר האישור.');
-    else if (res.error && res.error !== 'cancelled') toast.error('הרכישה לא הושלמה. נסה שוב.');
-  };
 
   // Check if current user is a legacy free user for this module
   const isLegacyFree = isLegacyFreeUser({ was_free_before: wasFreeBefore, became_paid_at: becamePaidAt });
@@ -101,30 +89,29 @@ const AccessGuard: React.FC<AccessGuardProps> = ({
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center space-y-3">
-          <p className="text-muted-foreground">
-            אין לך גישה עדיין למודול זה. אנא פנה למנהל המערכת או רכוש גישה.
-          </p>
           {isNativeIOSApp() ? (
-            appleProductId ? (
-              <Button className="w-full" disabled={iapBusy} onClick={handleIapBuy}>
-                {iapBusy ? 'מעבד...' : 'רכישת גישה למודול'}
-              </Button>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                לרכישת מודול זה, היכנס לאתר האקדמיה בדפדפן.
+            // App is view-only: no purchase button, link, or price — just a neutral note.
+            <p className="text-muted-foreground">
+              אין לך עדיין גישה למודול זה. אם כבר רכשת אותו, התחבר עם אותו חשבון.
+            </p>
+          ) : (
+            <>
+              <p className="text-muted-foreground">
+                אין לך גישה עדיין למודול זה. אנא פנה למנהל המערכת או רכוש גישה.
               </p>
-            )
-          ) : sumitConfigured ? (
-            <Button asChild className="w-full">
-              <Link to={`/checkout/module/${moduleId}`}>רכישת גישה למודול</Link>
-            </Button>
-          ) : paymentUrl ? (
-            <Button asChild className="w-full">
-              <a href={paymentUrl} target="_blank" rel="noopener noreferrer">
-                רכישת גישה למודול
-              </a>
-            </Button>
-          ) : null}
+              {sumitConfigured ? (
+                <Button asChild className="w-full">
+                  <Link to={`/checkout/module/${moduleId}`}>רכישת גישה למודול</Link>
+                </Button>
+              ) : paymentUrl ? (
+                <Button asChild className="w-full">
+                  <a href={paymentUrl} target="_blank" rel="noopener noreferrer">
+                    רכישת גישה למודול
+                  </a>
+                </Button>
+              ) : null}
+            </>
+          )}
           <Button variant="outline" asChild className="w-full">
             <a href="/">חזרה לעמוד הבית</a>
           </Button>

@@ -15,7 +15,3 @@ verify_jwt = false
 # Integrated SUMIT credit-card charge — requires a signed-in user (we grant access to their email).
 [functions.sumit-charge]
 verify_jwt = true
-
-# Apple In-App Purchase verification (iOS) — requires a signed-in user.
-[functions.apple-iap-verify]
-verify_jwt = true

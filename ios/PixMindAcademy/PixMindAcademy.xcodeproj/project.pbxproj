@@ -12,13 +12,11 @@
 		CCA117EFE60AA25FCA1E9F5D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 53D512F070EE8BDD387DA3D7 /* Assets.xcassets */; };
 		D17C17ECD92F70513868B49C /* WebShellConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05942CAD1DEDC52B00A3CAA1 /* WebShellConfig.swift */; };
 		F621E9C38DEC0F5F9112FD9E /* WebAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C562123F67308DD68C4DB2B /* WebAppView.swift */; };
-		0BAB12CD34EF567890ABCD02 /* StoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AAB12CD34EF567890ABCD01 /* StoreManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		05942CAD1DEDC52B00A3CAA1 /* WebShellConfig.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WebShellConfig.swift; sourceTree = "<group>"; };
 		0C562123F67308DD68C4DB2B /* WebAppView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WebAppView.swift; sourceTree = "<group>"; };
-		0AAB12CD34EF567890ABCD01 /* StoreManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreManager.swift; sourceTree = "<group>"; };
 		13E0C51674FE7ABC008893D2 /* PixMindAcademy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PixMindAcademy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		53D512F070EE8BDD387DA3D7 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8D196CADD7EEB16A11A1A157 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
@@ -43,7 +41,6 @@
 			children = (
 				C982CE28C91067D59A95CDBF /* PixMindAcademyApp.swift */,
 				0C562123F67308DD68C4DB2B /* WebAppView.swift */,
-				0AAB12CD34EF567890ABCD01 /* StoreManager.swift */,
 				05942CAD1DEDC52B00A3CAA1 /* WebShellConfig.swift */,
 				A4DDC4BBBB05F13FCC91716E /* Info.plist */,
 				53D512F070EE8BDD387DA3D7 /* Assets.xcassets */,
@@ -152,7 +149,6 @@
 			files = (
 				5DBAF5683651EB4AC7737E02 /* PixMindAcademyApp.swift in Sources */,
 				F621E9C38DEC0F5F9112FD9E /* WebAppView.swift in Sources */,
-				0BAB12CD34EF567890ABCD02 /* StoreManager.swift in Sources */,
 				D17C17ECD92F70513868B49C /* WebShellConfig.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

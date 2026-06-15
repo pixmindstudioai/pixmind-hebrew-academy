@@ -4,6 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import type { BundleWithModules, AccessState } from "@/types/bundle";
 import { cn } from "@/lib/utils";
+import { isNativeIOSApp } from "@/lib/platform";
 
 interface BundleCardProps {
   bundle: BundleWithModules;
@@ -28,7 +29,8 @@ const BundleCard = ({
   const isFree = accessState === 'free';
 
   const handleClick = () => {
-    if (isLocked) {
+    // App is view-only — a locked bundle just opens its (gated) content, never a purchase flow.
+    if (isLocked && !isNativeIOSApp()) {
       onPurchase();
     } else {
       onNavigate();
@@ -146,7 +148,7 @@ const BundleCard = ({
           {isLocked ? (
             <>
               <Lock className="w-4 h-4" />
-              לרכישת החבילה
+              {isNativeIOSApp() ? 'פרטים' : 'לרכישת החבילה'}
             </>
           ) : (
             <>

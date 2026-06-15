@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { SaleBadge } from "@/components/SaleBadge";
 import { PriceDisplay } from "@/components/PriceDisplay";
 import { useNavigate } from "react-router-dom";
+import { isNativeIOSApp } from "@/lib/platform";
 
 interface ModuleCardProps {
   module: Module;
@@ -71,7 +72,10 @@ const ModuleCard = ({
     }
 
     if (!moduleAccess) {
-      if (module.payment_url) {
+      // The iOS app is view-only — open the (gated) course page, never a purchase link.
+      if (isNativeIOSApp()) {
+        navigate(`/courses/${module.id}`);
+      } else if (module.payment_url) {
         window.open(module.payment_url, '_blank');
       } else {
         toast.error('מודול זה בתשלום. אין לך גישה.');
@@ -212,8 +216,8 @@ const ModuleCard = ({
           {module.description}
         </p>
 
-        {/* Sale badge and pricing */}
-        {!isAdminView && module.is_paid && !isLegacyFree && (
+        {/* Sale badge and pricing — hidden in the iOS app (no purchasing/prices shown there). */}
+        {!isAdminView && module.is_paid && !isLegacyFree && !isNativeIOSApp() && (
           <div className="mb-4 space-y-2">
             <SaleBadge module={module} size="sm" />
             <PriceDisplay module={module} size="sm" isLegacyFreeUser={isLegacyFree} />
@@ -272,11 +276,11 @@ const ModuleCard = ({
           variant={isStarted || isAdminView ? "default" : "outline"}
           onClick={() => handleModuleClick(module)}
         >
-          {isAdminView 
+          {isAdminView
             ? "ניהול מודול"
             : !moduleAccess
-              ? "רכישה"
-              : isCompleted 
+              ? (isNativeIOSApp() ? "פרטים" : "רכישה")
+              : isCompleted
                 ? "צפה שוב" 
                 : isStarted 
                   ? "המשך לימוד" 
