@@ -5,6 +5,7 @@ import { Loader2, Lock, CreditCard, ShieldCheck, ArrowRight } from 'lucide-react
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useSumitCheckout, sumitConfigured } from '@/hooks/useSumitCheckout';
+import { isNativeIOSApp } from '@/hooks/useIapPurchase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -86,6 +87,16 @@ const Checkout = () => {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Inside the iOS app, purchases must use Apple In-App Purchase — never show the web card form.
+  if (isNativeIOSApp()) {
+    return (
+      <div className="mx-auto max-w-md p-4 text-center" dir="rtl">
+        <p className="text-muted-foreground">לרכישה באפליקציה, השתמש בכפתור הרכישה במסך הקורס.</p>
+        <Button className="mt-4" onClick={() => navigate('/courses')}>לקורסים</Button>
       </div>
     );
   }

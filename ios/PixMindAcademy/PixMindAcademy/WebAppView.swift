@@ -1,6 +1,7 @@
 import SwiftUI
 import UIKit
 import WebKit
+import StoreKit
 
 struct WebAppView: UIViewRepresentable {
     let url: URL
@@ -23,6 +24,9 @@ struct WebAppView: UIViewRepresentable {
             configuration.preferences.isElementFullscreenEnabled = true
         }
 
+        // Bridge for Apple In-App Purchase: the web posts {action, productId, requestId} to "iap".
+        configuration.userContentController.add(context.coordinator, name: "iap")
+
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
@@ -38,6 +42,7 @@ struct WebAppView: UIViewRepresentable {
         refreshControl.addTarget(context.coordinator, action: #selector(Coordinator.refresh(_:)), for: .valueChanged)
         webView.scrollView.refreshControl = refreshControl
         context.coordinator.webView = webView
+        context.coordinator.startTransactionListener()
 
         var request = URLRequest(url: url)
         request.cachePolicy = .reloadRevalidatingCacheData
@@ -47,13 +52,82 @@ struct WebAppView: UIViewRepresentable {
 
     func updateUIView(_ webView: WKWebView, context: Context) {}
 
-    final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
+    final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
         @Binding private var isLoading: Bool
         weak var webView: WKWebView?
         private var didAttemptDebugAutoLogin = false
 
         init(isLoading: Binding<Bool>) {
             _isLoading = isLoading
+        }
+
+        // MARK: - In-App Purchase bridge (web ⇄ StoreKit)
+
+        func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+            guard message.name == "iap",
+                  let body = message.body as? [String: Any],
+                  let action = body["action"] as? String,
+                  let requestId = body["requestId"] as? String else { return }
+
+            switch action {
+            case "purchase":
+                guard let productId = body["productId"] as? String else {
+                    sendIapCallback(["requestId": requestId, "ok": false, "error": "missing_product"])
+                    return
+                }
+                let appAccountToken = body["appAccountToken"] as? String
+                Task { @MainActor in
+                    let r = await StoreManager.shared.purchase(productId: productId, appAccountToken: appAccountToken)
+                    var payload: [String: Any] = ["requestId": requestId, "ok": r.ok]
+                    if let t = r.transactionId { payload["transactionId"] = t }
+                    if let e = r.environment { payload["environment"] = e }
+                    if let err = r.error { payload["error"] = err }
+                    self.sendIapCallback(payload)
+                }
+            case "restore":
+                Task { @MainActor in
+                    let txns = await StoreManager.shared.restore()
+                    self.sendIapCallback(["requestId": requestId, "ok": true, "transactions": txns])
+                }
+            default:
+                break
+            }
+        }
+
+        private func sendIapCallback(_ payload: [String: Any]) {
+            guard let webView = webView,
+                  let data = try? JSONSerialization.data(withJSONObject: payload),
+                  let json = String(data: data, encoding: .utf8) else { return }
+            webView.evaluateJavaScript("window.__iapCallback && window.__iapCallback(\(json));")
+        }
+
+        // Deliver transactions that arrive outside a purchase() call — deferred Ask-to-Buy
+        // approvals, renewals/refunds, or completions after the web timed out — so they still grant.
+        private var transactionListener: Task<Void, Never>?
+
+        func startTransactionListener() {
+            guard transactionListener == nil else { return }
+            transactionListener = Task { [weak self] in
+                for await update in Transaction.updates {
+                    if case .verified(let transaction) = update {
+                        await transaction.finish()
+                        await self?.deliverTransaction(transaction)
+                    }
+                }
+            }
+        }
+
+        @MainActor
+        private func deliverTransaction(_ transaction: Transaction) {
+            var payload: [String: Any] = [
+                "transactionId": String(transaction.id),
+                "productId": transaction.productID,
+            ]
+            if let env = StoreManager.environmentString(transaction) { payload["environment"] = env }
+            guard let webView = webView,
+                  let data = try? JSONSerialization.data(withJSONObject: payload),
+                  let json = String(data: data, encoding: .utf8) else { return }
+            webView.evaluateJavaScript("window.__iapDeliver && window.__iapDeliver(\(json));")
         }
 
         @objc func refresh(_ sender: UIRefreshControl) {

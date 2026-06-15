@@ -13,6 +13,7 @@ export interface Bundle {
   sale_start_date: string | null;
   sale_end_date: string | null;
   payment_url: string | null;
+  apple_product_id?: string | null;
   order_index: number;
   created_at: string;
   updated_at: string;

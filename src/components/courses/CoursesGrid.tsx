@@ -22,6 +22,7 @@ import { useModuleAccess } from "@/hooks/useUserModuleAccess";
 import { useBundles, useBundleAccess } from "@/hooks/useBundlesData";
 import { useAuth } from "@/hooks/useAuth";
 import { sumitConfigured } from "@/hooks/useSumitCheckout";
+import { useIapPurchase, isNativeIOSApp } from "@/hooks/useIapPurchase";
 
 import type { Module } from "@/hooks/useContentData";
 import type { BundleWithModules, AccessState } from "@/types/bundle";
@@ -33,6 +34,7 @@ const CoursesGrid = () => {
   const { user, isAuthenticated } = useAuth();
   const { canAccessModule, userAccess, isLegacyFreeUser } = useModuleAccess();
   const { canAccessBundle } = useBundleAccess();
+  const { purchase: iapPurchase } = useIapPurchase();
 
   // Real-time module-access updates are already provided by useModuleAccess()
   // above (via the shared, ref-counted subscription in useUserModuleAccess),
@@ -124,7 +126,25 @@ const CoursesGrid = () => {
     navigate(`/courses/${module.id}`);
   };
 
+  // In the iOS app, purchasing must go through Apple In-App Purchase (App Store policy).
+  const purchaseViaIap = async (appleProductId?: string | null) => {
+    if (!appleProductId) {
+      toast.error('רכישה זו אינה זמינה באפליקציה כרגע. ניתן לרכוש באתר.');
+      return;
+    }
+    const tid = toast.loading('פותח את התשלום...');
+    const res = await iapPurchase(appleProductId);
+    toast.dismiss(tid);
+    if (res.ok) toast.success('הרכישה הושלמה! הגישה נפתחה 🎉');
+    else if (res.error === 'pending') toast.info('הרכישה ממתינה לאישור. הגישה תיפתח אוטומטית לאחר האישור.');
+    else if (res.error && res.error !== 'cancelled') toast.error('הרכישה לא הושלמה. נסה שוב.');
+  };
+
   const handleModulePurchase = (module: Module) => {
+    if (isNativeIOSApp()) {
+      void purchaseViaIap(module.apple_product_id);
+      return;
+    }
     if (sumitConfigured) {
       navigate(`/checkout/module/${module.id}`);
     } else if (module.payment_url) {
@@ -142,6 +162,10 @@ const CoursesGrid = () => {
   };
 
   const handleBundlePurchase = (bundle: BundleWithModules) => {
+    if (isNativeIOSApp()) {
+      void purchaseViaIap(bundle.apple_product_id);
+      return;
+    }
     if (sumitConfigured) {
       navigate(`/checkout/bundle/${bundle.id}`);
     } else if (bundle.payment_url) {

@@ -157,6 +157,7 @@ const CourseDetail = () => {
       isPaid={module?.is_paid}
       wasFreeBefore={module?.was_free_before}
       becamePaidAt={module?.became_paid_at}
+      appleProductId={module?.apple_product_id}
     >
       <div className="min-h-screen bg-background" dir="rtl">
         {/* Hero Section */}

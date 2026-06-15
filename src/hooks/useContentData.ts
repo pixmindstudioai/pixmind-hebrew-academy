@@ -16,6 +16,7 @@ export interface Module {
   is_paid: boolean;
   is_hidden: boolean;
   payment_url?: string;
+  apple_product_id?: string | null;
   is_verified: boolean;
   regular_price?: number | null;
   sale_price?: number | null;

@@ -34,6 +34,7 @@ const bundleSchema = z.object({
   order_index: z.number().min(0, 'מספר הסדר חייב להיות 0 או יותר').optional(),
   is_paid: z.boolean().default(false),
   payment_url: z.string().url('יש להזין כתובת URL תקינה').optional().or(z.literal('')),
+  apple_product_id: z.string().optional().or(z.literal('')),
   thumbnail_url: z.string().url('יש להזין כתובת URL תקינה לתמונה').optional().or(z.literal('')),
   regular_price: z.number().min(0, 'המחיר חייב להיות 0 או יותר').optional().nullable(),
   sale_price: z.number().min(0, 'מחיר המבצע חייב להיות 0 או יותר').optional().nullable(),
@@ -80,6 +81,7 @@ const BundleForm = ({ bundle, onSubmit, onCancel, isLoading }: BundleFormProps) 
       order_index: bundle?.order_index || 0,
       is_paid: bundle?.is_paid || false,
       payment_url: bundle?.payment_url || '',
+      apple_product_id: bundle?.apple_product_id || '',
       thumbnail_url: bundle?.thumbnail_url || '',
       regular_price: bundle?.regular_price || null,
       sale_price: bundle?.sale_price || null,
@@ -359,12 +361,35 @@ const BundleForm = ({ bundle, onSubmit, onCancel, isLoading }: BundleFormProps) 
                   <FormItem>
                     <FormLabel>קישור לעמוד תשלום *</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="https://checkout.mysite.com/bundle123" 
-                        {...field} 
+                      <Input
+                        placeholder="https://checkout.mysite.com/bundle123"
+                        {...field}
                         disabled={isLoading}
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="apple_product_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>מזהה מוצר Apple (IAP)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="com.pixmind.academy.bundle.pro"
+                        dir="ltr"
+                        {...field}
+                        value={field.value ?? ''}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      ה-Product ID של החבילה ב-App Store Connect — דרוש לרכישה באפליקציית ה-iOS. השאר ריק אם נמכרת רק באתר.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
