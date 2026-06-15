@@ -26,6 +26,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { cn } from '@/lib/utils';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const AdminShell = ({ children }: { children?: ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -253,7 +254,9 @@ const AdminShell = ({ children }: { children?: ReactNode }) => {
 
         {/* Main Content */}
         <main className="flex-1 p-4 md:p-6 overflow-x-hidden w-full min-h-[calc(100vh-4rem)]">
-          {children ?? <Outlet />}
+          <ErrorBoundary label="טעינת העמוד">
+            {children ?? <Outlet />}
+          </ErrorBoundary>
         </main>
       </div>
     </div>

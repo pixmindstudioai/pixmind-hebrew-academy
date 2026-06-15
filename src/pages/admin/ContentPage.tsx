@@ -483,17 +483,18 @@ const ContentPage = () => {
     }
   };
 
-  // Filter functions
-  const filteredModules = modules.filter(module => 
-    module.title.includes(searchTerm) || module.description.includes(searchTerm)
+  // Filter functions — guard against null/undefined title & description
+  // (DB rows from `select('*')` can have null description, which would crash `.includes`)
+  const filteredModules = modules.filter(module =>
+    (module.title || '').includes(searchTerm) || (module.description || '').includes(searchTerm)
   );
 
-  const filteredChapters = chapters.filter(chapter => 
-    chapter.title.includes(searchTerm) || (chapter.description && chapter.description.includes(searchTerm))
+  const filteredChapters = chapters.filter(chapter =>
+    (chapter.title || '').includes(searchTerm) || (chapter.description || '').includes(searchTerm)
   );
 
-  const filteredLessons = lessons.filter(lesson => 
-    lesson.title.includes(searchTerm) || lesson.description.includes(searchTerm)
+  const filteredLessons = lessons.filter(lesson =>
+    (lesson.title || '').includes(searchTerm) || (lesson.description || '').includes(searchTerm)
   );
 
   return (
