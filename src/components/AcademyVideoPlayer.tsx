@@ -94,10 +94,32 @@ const AcademyVideoPlayer = ({ src, title, poster, autoPlay, className, onEnded }
   };
 
   const toggleFullscreen = useCallback(() => {
-    if (!document.fullscreenElement) {
-      containerRef.current?.requestFullscreen?.().catch(() => {});
-    } else {
-      document.exitFullscreen?.().catch(() => {});
+    const v = videoRef.current as any;
+    const container = containerRef.current as any;
+    const doc = document as any;
+    const fsEl = document.fullscreenElement || doc.webkitFullscreenElement;
+
+    // Already fullscreen → exit (standard or webkit).
+    if (fsEl) {
+      if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+      else if (doc.webkitExitFullscreen) doc.webkitExitFullscreen();
+      return;
+    }
+    // iPhone Safari / WKWebView is currently in native <video> fullscreen.
+    if (v?.webkitDisplayingFullscreen) {
+      v.webkitExitFullscreen?.();
+      return;
+    }
+
+    // Prefer fullscreening the container (keeps our custom chrome) where supported,
+    // and fall back to the video element's native fullscreen on iPhone — the only
+    // method iOS Safari / WKWebView supports (requestFullscreen on a <div> is a no-op there).
+    if (container?.requestFullscreen) {
+      container.requestFullscreen().catch(() => v?.webkitEnterFullscreen?.());
+    } else if (container?.webkitRequestFullscreen) {
+      container.webkitRequestFullscreen();
+    } else if (v?.webkitEnterFullscreen) {
+      v.webkitEnterFullscreen();
     }
   }, []);
 
@@ -111,9 +133,22 @@ const AcademyVideoPlayer = ({ src, title, poster, autoPlay, className, onEnded }
   }, []);
 
   useEffect(() => {
-    const onFs = () => setIsFullscreen(!!document.fullscreenElement);
+    const doc = document as any;
+    const onFs = () => setIsFullscreen(!!(document.fullscreenElement || doc.webkitFullscreenElement));
     document.addEventListener("fullscreenchange", onFs);
-    return () => document.removeEventListener("fullscreenchange", onFs);
+    document.addEventListener("webkitfullscreenchange", onFs);
+    // iPhone fires these on the <video> element when entering/leaving native fullscreen.
+    const v = videoRef.current as any;
+    const onBegin = () => setIsFullscreen(true);
+    const onEnd = () => setIsFullscreen(false);
+    v?.addEventListener?.("webkitbeginfullscreen", onBegin);
+    v?.addEventListener?.("webkitendfullscreen", onEnd);
+    return () => {
+      document.removeEventListener("fullscreenchange", onFs);
+      document.removeEventListener("webkitfullscreenchange", onFs);
+      v?.removeEventListener?.("webkitbeginfullscreen", onBegin);
+      v?.removeEventListener?.("webkitendfullscreen", onEnd);
+    };
   }, []);
 
   // keyboard shortcuts (only when this player has focus/hover)

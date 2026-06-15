@@ -11,3 +11,7 @@ verify_jwt = false
 
 [functions.notebook-chat]
 verify_jwt = false
+
+# Integrated SUMIT credit-card charge — requires a signed-in user (we grant access to their email).
+[functions.sumit-charge]
+verify_jwt = true

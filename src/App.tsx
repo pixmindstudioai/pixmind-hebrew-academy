@@ -46,6 +46,7 @@ import Messages from "./pages/Messages";
 import Leaderboard from "./pages/Leaderboard";
 import BadgesPage from "./pages/admin/BadgesPage";
 import FeedModerationPage from "./pages/admin/FeedModerationPage";
+import Checkout from "./pages/Checkout";
 
 const queryClient = new QueryClient();
 
@@ -145,6 +146,7 @@ const App = () => (
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/profile/:userId" element={<Profile />} />
+              <Route path="/checkout/:type/:id" element={<Checkout />} />
             </Route>
 
             {/* Catch-all route */}

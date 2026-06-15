@@ -21,6 +21,7 @@ import { useModules, useUserProgress } from "@/hooks/useContentData";
 import { useModuleAccess } from "@/hooks/useUserModuleAccess";
 import { useBundles, useBundleAccess } from "@/hooks/useBundlesData";
 import { useAuth } from "@/hooks/useAuth";
+import { sumitConfigured } from "@/hooks/useSumitCheckout";
 
 import type { Module } from "@/hooks/useContentData";
 import type { BundleWithModules, AccessState } from "@/types/bundle";
@@ -124,7 +125,9 @@ const CoursesGrid = () => {
   };
 
   const handleModulePurchase = (module: Module) => {
-    if (module.payment_url) {
+    if (sumitConfigured) {
+      navigate(`/checkout/module/${module.id}`);
+    } else if (module.payment_url) {
       window.open(module.payment_url, '_blank');
     } else {
       toast.error('לא ניתן לרכוש קורס זה כרגע');
@@ -139,7 +142,9 @@ const CoursesGrid = () => {
   };
 
   const handleBundlePurchase = (bundle: BundleWithModules) => {
-    if (bundle.payment_url) {
+    if (sumitConfigured) {
+      navigate(`/checkout/bundle/${bundle.id}`);
+    } else if (bundle.payment_url) {
       window.open(bundle.payment_url, '_blank');
     } else {
       toast.error('לא ניתן לרכוש חבילה זו כרגע');

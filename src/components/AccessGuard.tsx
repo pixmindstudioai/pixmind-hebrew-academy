@@ -1,6 +1,8 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useModuleAccess } from '@/hooks/useUserModuleAccess';
 import { useAuth } from '@/hooks/useAuth';
+import { sumitConfigured } from '@/hooks/useSumitCheckout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Lock, CreditCard } from 'lucide-react';
@@ -89,13 +91,17 @@ const AccessGuard: React.FC<AccessGuardProps> = ({
           <p className="text-muted-foreground">
             אין לך גישה עדיין למודול זה. אנא פנה למנהל המערכת או רכוש גישה.
           </p>
-          {paymentUrl && (
+          {sumitConfigured ? (
+            <Button asChild className="w-full">
+              <Link to={`/checkout/module/${moduleId}`}>רכישת גישה למודול</Link>
+            </Button>
+          ) : paymentUrl ? (
             <Button asChild className="w-full">
               <a href={paymentUrl} target="_blank" rel="noopener noreferrer">
                 רכישת גישה למודול
               </a>
             </Button>
-          )}
+          ) : null}
           <Button variant="outline" asChild className="w-full">
             <a href="/">חזרה לעמוד הבית</a>
           </Button>
