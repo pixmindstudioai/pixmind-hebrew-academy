@@ -171,7 +171,7 @@ const ModerationPage = () => {
             </Popover>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Input
               placeholder="חיפוש בתוכן התגובה, שם משתמש, או כותרת שיעור..."
               value={searchTerm}

@@ -104,17 +104,17 @@ export default function MCPToolsPage() {
   return (
     <div className="space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-3">
-              <Bot className="w-8 h-8 text-primary" />
+            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
+              <Bot className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
               כלי MCP
             </h1>
             <p className="text-muted-foreground mt-1">
               ניהול כלי AI עבור תלמידים ומנהלים
             </p>
           </div>
-          <Button onClick={() => { refetchSettings(); refetchLogs(); }} variant="outline" size="sm">
+          <Button onClick={() => { refetchSettings(); refetchLogs(); }} variant="outline" size="sm" className="self-start sm:self-auto h-10 sm:h-9">
             <RefreshCw className="w-4 h-4 ml-2" />
             רענן
           </Button>
@@ -178,7 +178,7 @@ export default function MCPToolsPage() {
 
         {/* Main Content */}
         <Tabs defaultValue="tools" className="space-y-4">
-          <TabsList>
+          <TabsList className="w-full overflow-x-auto sm:w-auto">
             <TabsTrigger value="tools" className="gap-2">
               <Settings className="w-4 h-4" />
               הגדרות כלים
@@ -211,7 +211,7 @@ export default function MCPToolsPage() {
                     </div>
                   </div>
                   <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                    <SelectTrigger className="w-48">
+                    <SelectTrigger className="w-full sm:w-48">
                       <Filter className="w-4 h-4 ml-2" />
                       <SelectValue placeholder="קטגוריה" />
                     </SelectTrigger>
@@ -245,24 +245,25 @@ export default function MCPToolsPage() {
                     <CardContent className="pt-0">
                       <div className="divide-y">
                         {tools.map(tool => (
-                          <div key={tool.tool_name} className="py-4 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
+                          <div key={tool.tool_name} className="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <div className="flex items-center gap-3 min-w-0">
                               <span className="text-2xl">{TOOL_ICONS[tool.tool_name] || '🔧'}</span>
-                              <div>
-                                <div className="font-medium flex items-center gap-2">
-                                  {tool.tool_name}
+                              <div className="min-w-0">
+                                <div className="font-medium flex items-center gap-2 min-w-0">
+                                  <span className="truncate">{tool.tool_name}</span>
                                   {tool.allowed_roles.includes('admin') && !tool.allowed_roles.includes('student') && (
-                                    <Badge variant="secondary" className="text-xs">מנהל בלבד</Badge>
+                                    <Badge variant="secondary" className="text-xs shrink-0">מנהל בלבד</Badge>
                                   )}
                                 </div>
                                 <p className="text-sm text-muted-foreground">{tool.description_he}</p>
                               </div>
                             </div>
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 self-start sm:self-auto shrink-0">
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => openTestDialog(tool.tool_name)}
+                                className="h-10 sm:h-9"
                               >
                                 <Play className="w-3 h-3 ml-1" />
                                 בדיקה
@@ -300,7 +301,7 @@ export default function MCPToolsPage() {
                     </div>
                   </div>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-40">
+                    <SelectTrigger className="w-full sm:w-40">
                       <SelectValue placeholder="סטטוס" />
                     </SelectTrigger>
                     <SelectContent>
@@ -316,8 +317,9 @@ export default function MCPToolsPage() {
             {/* Logs Table */}
             <Card>
               <CardContent className="p-0">
-                <ScrollArea className="h-[500px]">
-                  <Table>
+                <ScrollArea className="h-[400px] sm:h-[500px]">
+                  <div className="overflow-x-auto">
+                  <Table className="min-w-[640px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead className="text-right">כלי</TableHead>
@@ -370,6 +372,7 @@ export default function MCPToolsPage() {
                       )}
                     </TableBody>
                   </Table>
+                  </div>
                 </ScrollArea>
               </CardContent>
             </Card>
@@ -413,7 +416,7 @@ export default function MCPToolsPage() {
 
         {/* Test Tool Dialog */}
         <Dialog open={testDialogOpen} onOpenChange={setTestDialogOpen}>
-          <DialogContent className="max-w-lg" dir="rtl">
+          <DialogContent className="w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto" dir="rtl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Play className="w-5 h-5" />

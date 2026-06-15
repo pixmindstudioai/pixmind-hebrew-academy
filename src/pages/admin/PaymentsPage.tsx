@@ -160,9 +160,9 @@ const PaymentsPage = () => {
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">30 יום אחרונים</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium">30 יום אחרונים</CardTitle>
+              <TrendingUp className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.last30Days}</div>
@@ -171,9 +171,9 @@ const PaymentsPage = () => {
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">7 יום אחרונים</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium">7 יום אחרונים</CardTitle>
+              <Users className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.last7Days}</div>
@@ -245,8 +245,8 @@ const PaymentsPage = () => {
 
             {/* Search */}
             <div>
-              <Label htmlFor="search" className="flex items-center gap-2">
-                <Search className="h-4 w-4" />
+              <Label htmlFor="search" className="flex items-center gap-2 text-sm mb-1">
+                <Search className="h-3 w-3 md:h-4 md:w-4" />
                 חיפוש
               </Label>
               <Input
@@ -255,12 +255,12 @@ const PaymentsPage = () => {
                 placeholder="אימייל, מזהה עסקה..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="mt-1"
+                className="h-9 md:h-10 text-sm md:text-base"
               />
             </div>
           </div>
 
-          <div className="mt-4 flex justify-between items-center">
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
               מוצגות {enrollments.length} עסקאות
             </p>
@@ -358,7 +358,7 @@ const PaymentsPage = () => {
                                   <Eye className="w-3 h-3 md:w-4 md:h-4" />
                                 </Button>
                               </DialogTrigger>
-                              <DialogContent>
+                              <DialogContent className="w-[95vw] sm:w-full max-w-lg max-h-[90vh] overflow-y-auto">
                                 <DialogHeader>
                                   <DialogTitle>פרטי עסקה מלאים</DialogTitle>
                                   <DialogDescription>

@@ -43,9 +43,9 @@ const Announcements = () => {
   }
   
   return (
-    <div className="container mx-auto px-4 py-8" dir="rtl">
+    <div className="container mx-auto px-4 py-6 sm:py-8" dir="rtl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">הכרזות</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">הכרזות</h1>
         <p className="text-muted-foreground">
           עדכונים והודעות חשובות מהאקדמיה
         </p>
@@ -99,9 +99,9 @@ const AnnouncementCard = ({ announcement, onClick }: AnnouncementCardProps) => {
       onClick={onClick}
     >
       <CardContent className="pt-6">
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-3 sm:gap-4">
           {announcement.image_url && (
-            <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
               <img 
                 src={announcement.image_url} 
                 alt={announcement.title}
@@ -150,7 +150,7 @@ const AnnouncementDetailDialog = ({ announcementId, onClose }: AnnouncementDetai
   
   return (
     <Dialog open={!!announcementId} onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
+      <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
         {isLoading ? (
           <div className="space-y-4">
             <Skeleton className="h-8 w-3/4" />
@@ -182,7 +182,7 @@ const AnnouncementDetailDialog = ({ announcementId, onClose }: AnnouncementDetai
                 <img 
                   src={announcement.image_url} 
                   alt={announcement.title}
-                  className="w-full object-cover max-h-80"
+                  className="w-full max-w-full object-cover max-h-80"
                 />
               </div>
             )}

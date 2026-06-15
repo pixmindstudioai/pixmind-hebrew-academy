@@ -87,7 +87,7 @@ const SignUp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gradient-hero flex items-center justify-center px-4 py-8 sm:py-12">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -103,7 +103,7 @@ const SignUp = () => {
         {/* Sign Up Card */}
         <Card className="border-border/50">
           <CardHeader className="text-center pb-4">
-            <CardTitle className="text-2xl">הרשמה</CardTitle>
+            <CardTitle className="text-xl sm:text-2xl">הרשמה</CardTitle>
             <CardDescription>צור חשבון חדש כדי להתחיל ללמוד</CardDescription>
           </CardHeader>
           
@@ -169,7 +169,7 @@ const SignUp = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 p-2 -m-2 text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -194,7 +194,7 @@ const SignUp = () => {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 p-2 -m-2 text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>

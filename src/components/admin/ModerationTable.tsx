@@ -109,13 +109,13 @@ const ModerationTable = ({ comments, onApprove, onHide, onFlag, onDelete, onEdit
                     {format(new Date(comment.created_at), 'dd/MM/yy')}
                   </TableCell>
                   <TableCell>
-                    <div className="flex gap-0.5 md:gap-1 justify-center flex-wrap">
+                    <div className="flex gap-1 md:gap-1 justify-center flex-wrap">
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => onView(comment)}
                         title="צפייה"
-                        className="h-7 w-7 md:h-8 md:w-8 p-0"
+                        className="h-9 w-9 md:h-8 md:w-8 p-0"
                       >
                         <Eye className="w-3 h-3 md:w-4 md:h-4" />
                       </Button>
@@ -125,7 +125,7 @@ const ModerationTable = ({ comments, onApprove, onHide, onFlag, onDelete, onEdit
                           variant="ghost"
                           onClick={() => onApprove(comment.id)}
                           title="אישור"
-                          className="h-7 w-7 md:h-8 md:w-8 p-0"
+                          className="h-9 w-9 md:h-8 md:w-8 p-0"
                         >
                           <Check className="w-3 h-3 md:w-4 md:h-4 text-green-500" />
                         </Button>
@@ -136,7 +136,7 @@ const ModerationTable = ({ comments, onApprove, onHide, onFlag, onDelete, onEdit
                           variant="ghost"
                           onClick={() => onHide(comment.id)}
                           title="הסתרה"
-                          className="h-7 w-7 md:h-8 md:w-8 p-0"
+                          className="h-9 w-9 md:h-8 md:w-8 p-0"
                         >
                           <EyeOff className="w-3 h-3 md:w-4 md:h-4 text-orange-500" />
                         </Button>
@@ -146,7 +146,7 @@ const ModerationTable = ({ comments, onApprove, onHide, onFlag, onDelete, onEdit
                         variant="ghost"
                         onClick={() => setEditingComment({ id: comment.id, content: comment.content })}
                         title="עריכה"
-                        className="h-7 w-7 md:h-8 md:w-8 p-0"
+                        className="h-9 w-9 md:h-8 md:w-8 p-0"
                       >
                         <Edit2 className="w-3 h-3 md:w-4 md:h-4 text-blue-500" />
                       </Button>
@@ -155,7 +155,7 @@ const ModerationTable = ({ comments, onApprove, onHide, onFlag, onDelete, onEdit
                         variant="ghost"
                         onClick={() => onDelete(comment.id)}
                         title="מחיקה"
-                        className="h-7 w-7 md:h-8 md:w-8 p-0"
+                        className="h-9 w-9 md:h-8 md:w-8 p-0"
                       >
                         <Trash2 className="w-3 h-3 md:w-4 md:h-4 text-red-500" />
                       </Button>
@@ -169,7 +169,7 @@ const ModerationTable = ({ comments, onApprove, onHide, onFlag, onDelete, onEdit
       </div>
 
       <Dialog open={!!editingComment} onOpenChange={() => setEditingComment(null)}>
-        <DialogContent>
+        <DialogContent dir="rtl" className="w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>עריכת תגובה</DialogTitle>
           </DialogHeader>

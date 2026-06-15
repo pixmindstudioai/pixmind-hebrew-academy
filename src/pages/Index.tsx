@@ -437,19 +437,19 @@ const MarketingLanding = () => {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section
-        className="relative min-h-[85vh] flex items-center justify-center bg-cover bg-center bg-no-repeat"
+        className="relative min-h-[70vh] sm:min-h-[85vh] flex items-center justify-center bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${heroBackground})` }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background/70 to-background" />
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl md:text-7xl font-bold mb-8 animate-fade-in text-balance">
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold mb-8 animate-fade-in text-balance">
             <span className="gradient-text">אקדמיית</span>
             <br />
             <span className="text-foreground">PixMind Studio</span>
           </h1>
 
-          <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed animate-fade-in">
+          <p className="text-base sm:text-xl md:text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed animate-fade-in">
             {isAuthenticated ? (
               <>
                 שלום {user?.user_metadata?.full_name ? user.user_metadata.full_name.split(" ")[0] : "חבר"}!
@@ -501,14 +501,14 @@ const MarketingLanding = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 bg-card border-y border-border/30">
+      <section className="py-12 sm:py-16 lg:py-20 bg-card border-y border-border/30">
         <div className="section-container">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             {stats.map((stat, index) => {
               const Icon = stat.icon;
               return (
                 <Card key={index} className="text-center interactive-card border-border/40">
-                  <CardContent className="p-6">
+                  <CardContent className="p-4 sm:p-6">
                     <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
                       <Icon className="w-6 h-6 text-primary" />
                     </div>
@@ -525,13 +525,13 @@ const MarketingLanding = () => {
       </section>
 
       {/* Featured Courses */}
-      <section className="py-24">
+      <section className="py-14 sm:py-20 lg:py-24">
         <div className="section-container">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 gradient-text">
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-6 gradient-text">
               הקורסים הפופולריים
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-base sm:text-xl text-muted-foreground max-w-3xl mx-auto">
               בחר מבין הקורסים המובילים שלנו והתחל את המסע שלך
             </p>
           </div>
@@ -573,20 +573,20 @@ const MarketingLanding = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 bg-card border-y border-border/30">
+      <section className="py-14 sm:py-20 lg:py-24 bg-card border-y border-border/30">
         <div className="section-container">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 gradient-text">
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-6 gradient-text">
               למה לבחור בנו?
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-base sm:text-xl text-muted-foreground max-w-3xl mx-auto">
               הטכנולוגיה המתקדמת ביותר לשירותך
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <Card className="interactive-card">
-              <CardContent className="p-8">
+              <CardContent className="p-5 sm:p-8">
                 <div className="w-14 h-14 rounded-xl bg-gradient-primary flex items-center justify-center mb-6">
                   <BookOpen className="w-7 h-7 text-primary-foreground" />
                 </div>
@@ -598,7 +598,7 @@ const MarketingLanding = () => {
             </Card>
 
             <Card className="interactive-card">
-              <CardContent className="p-8">
+              <CardContent className="p-5 sm:p-8">
                 <div className="w-14 h-14 rounded-xl bg-gradient-primary flex items-center justify-center mb-6">
                   <Play className="w-7 h-7 text-primary-foreground" />
                 </div>
@@ -610,7 +610,7 @@ const MarketingLanding = () => {
             </Card>
 
             <Card className="interactive-card">
-              <CardContent className="p-8">
+              <CardContent className="p-5 sm:p-8">
                 <div className="w-14 h-14 rounded-xl bg-gradient-primary flex items-center justify-center mb-6">
                   <Star className="w-7 h-7 text-primary-foreground" />
                 </div>

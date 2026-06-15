@@ -239,9 +239,9 @@ const TaskView = () => {
   if (taskLoading || submissionLoading) {
     return (
       <AuthGuard>
-        <div className="min-h-screen py-8">
+        <div className="min-h-screen py-6 sm:py-8">
           <div className="max-w-3xl mx-auto px-4">
-            <Skeleton className="h-6 w-64 mb-8" />
+            <Skeleton className="h-6 w-64 mb-6 sm:mb-8" />
             <Skeleton className="h-48 w-full mb-6" />
             <Skeleton className="h-32 w-full" />
           </div>
@@ -273,10 +273,10 @@ const TaskView = () => {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen py-8">
+      <div className="min-h-screen py-6 sm:py-8">
         <div className="max-w-3xl mx-auto px-4">
           {/* Breadcrumb */}
-          <div className="flex items-center space-x-2 space-x-reverse text-sm text-muted-foreground mb-8">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground mb-6 sm:mb-8">
             <Link to="/courses" className="hover:text-foreground transition-colors">
               הקורסים
             </Link>
@@ -309,10 +309,10 @@ const TaskView = () => {
           {/* Task Header Card */}
           <Card className="mb-6 border-orange-200 bg-gradient-to-br from-orange-50/80 to-amber-50/50 dark:from-orange-950/20 dark:to-amber-950/10">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <ClipboardCheck className="w-6 h-6 text-orange-600" />
-                  <CardTitle className="text-xl">משימת שיעור: "{lessonTitle}"</CardTitle>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <ClipboardCheck className="w-6 h-6 text-orange-600 shrink-0" />
+                  <CardTitle className="text-lg sm:text-xl break-words">משימת שיעור: "{lessonTitle}"</CardTitle>
                 </div>
                 <div className="flex items-center gap-2">
                   {task.is_mandatory && (
@@ -323,7 +323,7 @@ const TaskView = () => {
                   {getStatusBadge()}
                 </div>
               </div>
-              <CardDescription className="flex items-center gap-2 mt-2">
+              <CardDescription className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2">
                 <BookOpen className="w-4 h-4" />
                 {chapterTitle && <span>{chapterTitle}</span>}
                 {moduleTitle && (
@@ -387,7 +387,7 @@ const TaskView = () => {
                 {(task.allowed_types.includes('file') || task.allowed_types.includes('image')) && (
                   <div className="space-y-2">
                     <Label>העלאת קובץ:</Label>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                       <input
                         type="file"
                         id="task-file"
@@ -403,16 +403,17 @@ const TaskView = () => {
                         <span className="text-sm">בחר קובץ</span>
                       </label>
                       {selectedFile && (
-                        <div className="flex items-center gap-2 text-sm">
+                        <div className="flex items-center gap-2 text-sm min-w-0">
                           {selectedFile.type.startsWith('image/') ? (
-                            <ImageIcon className="w-4 h-4" />
+                            <ImageIcon className="w-4 h-4 shrink-0" />
                           ) : (
-                            <FileText className="w-4 h-4" />
+                            <FileText className="w-4 h-4 shrink-0" />
                           )}
-                          <span>{selectedFile.name}</span>
+                          <span className="truncate max-w-[200px]">{selectedFile.name}</span>
                           <Button
                             variant="ghost"
-                            size="sm"
+                            size="icon"
+                            className="h-10 w-10 shrink-0"
                             onClick={() => setSelectedFile(null)}
                           >
                             ✕
@@ -447,7 +448,7 @@ const TaskView = () => {
           )}
 
           {/* Back to Lesson Button */}
-          <div className="mt-8 flex justify-center">
+          <div className="mt-6 sm:mt-8 flex justify-center">
             <Button variant="outline" onClick={handleGoToLesson} className="gap-2">
               <ArrowRight className="w-4 h-4" />
               חזרה לשיעור
@@ -456,7 +457,7 @@ const TaskView = () => {
 
           {/* Success Dialog */}
           <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-            <DialogContent className="max-w-md text-center">
+            <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto text-center">
               <DialogHeader className="items-center">
                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <CheckCircle className="w-10 h-10 text-green-600" />
@@ -475,7 +476,7 @@ const TaskView = () => {
 
           {/* Rejected Dialog */}
           <Dialog open={showRejectedDialog} onOpenChange={setShowRejectedDialog}>
-            <DialogContent className="max-w-md text-center">
+            <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto text-center">
               <DialogHeader className="items-center">
                 <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <AlertTriangle className="w-10 h-10 text-red-600" />

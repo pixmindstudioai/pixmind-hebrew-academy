@@ -210,7 +210,7 @@ const CRMInboxPage = () => {
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               className="text-sm"
             />
-            <Button onClick={handleSearch} size="sm" className="shrink-0">
+            <Button onClick={handleSearch} size="sm" className="shrink-0 min-h-10">
               <Search className="h-4 w-4 ml-1" />
               <span className="hidden sm:inline">חפש</span>
             </Button>
@@ -244,9 +244,9 @@ const CRMInboxPage = () => {
                     </Avatar>
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">{message.user_name || 'ללא שם'}</p>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-1">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <p className="font-medium truncate">{message.user_name || 'ללא שם'}</p>
                           <Badge variant="outline" className="text-xs">
                             {messageTypeLabels[message.message_type]}
                           </Badge>
@@ -277,7 +277,7 @@ const CRMInboxPage = () => {
                         </p>
                       )}
                       {message.tags && message.tags.length > 0 && (
-                        <div className="flex gap-1 mt-2">
+                        <div className="flex flex-wrap gap-1 mt-2">
                           {message.tags.map((tag) => (
                             <Badge key={tag} variant="secondary" className="text-xs">
                               {tag}

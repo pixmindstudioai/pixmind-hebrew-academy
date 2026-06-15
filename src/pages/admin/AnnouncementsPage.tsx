@@ -141,7 +141,7 @@ const AnnouncementsPage = () => {
   
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">הכרזות</h1>
           <p className="text-muted-foreground">ניהול הכרזות והודעות למשתמשים</p>
@@ -157,7 +157,7 @@ const AnnouncementsPage = () => {
               הכרזה חדשה
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
+          <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
             <DialogHeader>
               <DialogTitle>
                 {editingAnnouncement ? 'עריכת הכרזה' : 'הכרזה חדשה'}
@@ -196,7 +196,7 @@ const AnnouncementsPage = () => {
                 />
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>תאריך פרסום</Label>
                   <Input
@@ -300,7 +300,7 @@ const AnnouncementsPage = () => {
           {announcements?.map((announcement) => (
             <Card key={announcement.id} className={!announcement.is_active ? 'opacity-60' : ''}>
               <CardContent className="pt-6">
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
                       <h3 className="font-semibold text-lg">{announcement.title}</h3>
@@ -332,7 +332,7 @@ const AnnouncementsPage = () => {
                       {announcement.content}
                     </p>
                     
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         פרסום: {format(new Date(announcement.publish_date), 'dd/MM/yyyy HH:mm', { locale: he })}
@@ -449,15 +449,15 @@ const VisibilityDialog = ({ announcementId, onClose, modules, bundles }: Visibil
   
   return (
     <Dialog open={!!announcementId} onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-lg" dir="rtl">
+      <DialogContent className="w-[95vw] max-w-lg" dir="rtl">
         <DialogHeader>
           <DialogTitle>ניהול הרשאות צפייה</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <Select value={accessType} onValueChange={(v: 'module' | 'bundle') => setAccessType(v)}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-full sm:w-32">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

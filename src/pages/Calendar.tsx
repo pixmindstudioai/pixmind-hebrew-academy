@@ -76,7 +76,7 @@ const Calendar = () => {
 
   if (authLoading || userEventsLoading) {
     return (
-      <div className="container mx-auto px-4 py-8" dir="rtl">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8" dir="rtl">
         <Skeleton className="h-10 w-48 mb-6" />
         <Skeleton className="h-[500px] w-full" />
       </div>
@@ -84,10 +84,10 @@ const Calendar = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8" dir="rtl">
+    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8" dir="rtl">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold">יומן</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">יומן</h1>
           <p className="text-muted-foreground">אירועים, מפגשים ודדליינים</p>
         </div>
 
@@ -113,7 +113,7 @@ const Calendar = () => {
               <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
                 <ChevronRight className="w-5 h-5" />
               </Button>
-              <h2 className="text-xl font-semibold">
+              <h2 className="text-base sm:text-xl font-semibold">
                 {format(currentMonth, 'MMMM yyyy', { locale: he })}
               </h2>
               <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
@@ -122,7 +122,7 @@ const Calendar = () => {
             </div>
 
             {/* Calendar Grid */}
-            <div className="grid grid-cols-7 gap-1 mb-2">
+            <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-2">
               {['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'].map(day => (
                 <div key={day} className="text-center text-sm font-medium text-muted-foreground py-2">
                   {day}
@@ -130,10 +130,10 @@ const Calendar = () => {
               ))}
             </div>
 
-            <div className="grid grid-cols-7 gap-1">
+            <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
               {/* Empty cells for days before month starts */}
               {Array.from({ length: calendarDays[0].getDay() }).map((_, i) => (
-                <div key={`empty-${i}`} className="min-h-[80px] md:min-h-[100px] bg-muted/30 rounded-lg" />
+                <div key={`empty-${i}`} className="min-h-[64px] sm:min-h-[80px] md:min-h-[100px] bg-muted/30 rounded-lg" />
               ))}
 
               {calendarDays.map(day => {
@@ -145,7 +145,7 @@ const Calendar = () => {
                   <div
                     key={dateKey}
                     className={cn(
-                      "min-h-[80px] md:min-h-[100px] p-1 md:p-2 rounded-lg border transition-colors",
+                      "min-h-[64px] sm:min-h-[80px] md:min-h-[100px] p-0.5 sm:p-1 md:p-2 rounded-lg border transition-colors",
                       isCurrentDay ? "border-primary bg-primary/5" : "border-border/50 hover:bg-muted/50"
                     )}
                   >
@@ -204,12 +204,12 @@ const Calendar = () => {
                       getEventTypeColor(event.event_type)
                     )} />
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
                         <h3 className="font-semibold">{event.title}</h3>
                         <Badge variant="outline">{getEventTypeLabel(event.event_type)}</Badge>
                       </div>
-                      
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <CalendarIcon className="w-4 h-4" />
                           {format(new Date(event.start_datetime), 'EEEE, dd בMMMM yyyy', { locale: he })}
@@ -233,9 +233,9 @@ const Calendar = () => {
 
       {/* Event Detail Dialog */}
       <Dialog open={!!selectedEvent} onOpenChange={() => setSelectedEvent(null)}>
-        <DialogContent className="max-w-lg" dir="rtl">
+        <DialogContent className="max-w-lg w-[95vw] max-h-[90vh] overflow-y-auto" dir="rtl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex flex-wrap items-center gap-2">
               <span>{selectedEvent?.title}</span>
               <Badge variant="outline">{selectedEvent && getEventTypeLabel(selectedEvent.event_type)}</Badge>
             </DialogTitle>
@@ -243,7 +243,7 @@ const Calendar = () => {
 
           {selectedEvent && (
             <div className="space-y-4">
-              <div className="flex flex-wrap items-center gap-4 text-sm">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <CalendarIcon className="w-4 h-4 text-muted-foreground" />
                   {format(new Date(selectedEvent.start_datetime), 'EEEE, dd בMMMM yyyy', { locale: he })}

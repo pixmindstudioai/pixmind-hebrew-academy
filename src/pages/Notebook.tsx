@@ -49,7 +49,7 @@ const NotebookPage = () => {
       <div className="min-h-screen bg-background" dir="rtl">
         {/* Header */}
         <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
-          <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
             <div className="flex items-center gap-3">
               <BookOpen className="w-6 h-6 text-primary" />
               <h1 className="text-xl font-bold">המחברת החכמה</h1>
@@ -59,7 +59,7 @@ const NotebookPage = () => {
 
         {/* Main Content */}
         <div className="max-w-7xl mx-auto">
-          <div className="flex h-[calc(100vh-73px)]">
+          <div className="flex h-[calc(100svh-73px)]">
             {/* Sidebar - Notebooks List */}
             <div className="hidden md:block w-64 shrink-0">
               <NotebookSidebar
@@ -71,7 +71,7 @@ const NotebookPage = () => {
             </div>
 
             {/* Mobile Sidebar Toggle */}
-            <div className="md:hidden fixed bottom-4 right-4 z-50">
+            <div className="md:hidden fixed bottom-20 right-4 z-30">
               <button
                 onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
                 className="bg-primary text-primary-foreground p-3 rounded-full shadow-lg"
@@ -87,7 +87,7 @@ const NotebookPage = () => {
                   className="absolute inset-0 bg-black/50"
                   onClick={() => setIsMobileSidebarOpen(false)}
                 />
-                <div className="absolute right-0 top-0 h-full w-64 bg-background">
+                <div className="absolute right-0 top-0 h-full w-[85vw] max-w-xs bg-background">
                   <NotebookSidebar
                     notebooks={notebooks}
                     selectedNotebookId={selectedNotebookId}

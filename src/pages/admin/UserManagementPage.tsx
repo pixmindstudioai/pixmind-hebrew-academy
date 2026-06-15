@@ -210,14 +210,14 @@ const UserManagementPage = () => {
 
       {/* Bulk Grant Section */}
       {showBulkGrant && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>מתן הרשאות מרובות</CardTitle>
+        <Card className="mb-4 md:mb-6">
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-lg md:text-xl">מתן הרשאות מרובות</CardTitle>
             <CardDescription>
               הזן מספר כתובות אימייל (מופרדות בפסיק או בשורות חדשות) ובחר מודולים
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-4 md:p-6">
             <div>
               <Label htmlFor="bulk-emails">כתובות אימייל</Label>
               <Textarea
@@ -231,7 +231,7 @@ const UserManagementPage = () => {
 
             <div>
               <Label>מודולים</Label>
-              <div className="grid grid-cols-2 gap-2 mt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
                 {modules.map((module) => (
                   <div key={module.id} className="flex items-center space-x-2 space-x-reverse">
                     <Checkbox
@@ -254,7 +254,7 @@ const UserManagementPage = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="bulk-expiry">תאריך תפוגה (אופציונלי)</Label>
                 <Input
@@ -295,13 +295,13 @@ const UserManagementPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Current Access */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="p-4 md:p-6">
+              <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
                 <Mail className="h-5 w-5" />
                 הרשאות עבור: {selectedEmail}
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 md:p-6">
               {isLoadingAccess ? (
                 <div className="text-center py-4">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
@@ -312,7 +312,7 @@ const UserManagementPage = () => {
               ) : (
                 <div className="space-y-3">
                   {userAccess.map((access) => (
-                    <div key={access.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div key={access.id} className="flex items-start sm:items-center justify-between gap-2 p-3 border rounded-lg">
                       <div className="flex-1">
                         <h4 className="font-medium">{access.module?.title}</h4>
                         {access.module?.is_paid && (
@@ -331,9 +331,9 @@ const UserManagementPage = () => {
                       </div>
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="icon"
                         onClick={() => handleDeleteAccess(access.id)}
-                        className="text-destructive hover:text-destructive"
+                        className="h-10 w-10 shrink-0 text-destructive hover:text-destructive"
                         disabled={deleteAccess.isPending}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -347,13 +347,13 @@ const UserManagementPage = () => {
 
           {/* Grant New Access */}
           <Card>
-            <CardHeader>
-              <CardTitle>מתן הרשאות חדשות</CardTitle>
+            <CardHeader className="p-4 md:p-6">
+              <CardTitle className="text-lg md:text-xl">מתן הרשאות חדשות</CardTitle>
               <CardDescription>
                 בחר מודולים להענקת גישה למשתמש זה
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 md:p-6">
               <div>
                 <Label>מודולים זמינים</Label>
                 <div className="space-y-2 mt-2 max-h-60 overflow-y-auto">

@@ -106,7 +106,7 @@ const Login = () => {
         {/* Login Card */}
         <Card className="border-border/50">
           <CardHeader className="text-center pb-4">
-            <CardTitle className="text-2xl">התחברות</CardTitle>
+            <CardTitle className="text-xl sm:text-2xl">התחברות</CardTitle>
             <CardDescription>התחבר לחשבון שלך כדי להמשיך ללמוד</CardDescription>
           </CardHeader>
           
@@ -154,7 +154,7 @@ const Login = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute left-1 top-1/2 -translate-y-1/2 flex items-center justify-center h-10 w-10 text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -166,7 +166,7 @@ const Login = () => {
                 <button
                   type="button"
                   onClick={handleForgotPassword}
-                  className="text-sm text-primary hover:text-primary-glow transition-colors"
+                  className="inline-flex items-center min-h-[40px] py-2 text-sm text-primary hover:text-primary-glow transition-colors"
                 >
                   שכחת סיסמה?
                 </button>

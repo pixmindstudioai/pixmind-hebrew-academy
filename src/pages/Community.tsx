@@ -67,9 +67,9 @@ const Community = () => {
   
   // Show groups list
   return (
-    <div className="container mx-auto px-4 py-8" dir="rtl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">קהילה</h1>
+    <div className="container mx-auto px-4 py-6 sm:py-8" dir="rtl">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">קהילה</h1>
         <p className="text-muted-foreground">
           הצטרף לדיונים ושתף את הידע שלך
         </p>
@@ -192,7 +192,7 @@ const GroupChatView = ({ group, onBack }: GroupChatViewProps) => {
   });
   
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col" dir="rtl">
+    <div className="h-[calc(100dvh-4rem)] flex flex-col" dir="rtl">
       {/* Chat Header */}
       <div className="bg-card border-b px-4 py-3 flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={onBack}>
@@ -263,7 +263,7 @@ const GroupChatView = ({ group, onBack }: GroupChatViewProps) => {
       
       {/* Input Area */}
       {group.allow_posting ? (
-        <form onSubmit={handleSendMessage} className="p-4 border-t bg-card">
+        <form onSubmit={handleSendMessage} className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] border-t bg-card">
           <div className="flex gap-2">
             <Input
               ref={inputRef}
@@ -339,7 +339,7 @@ const ChatMessage = ({ post, group, isAdmin, onReply }: ChatMessageProps) => {
         </AvatarFallback>
       </Avatar>
       
-      <div className={cn("max-w-[75%] min-w-[200px]", isOwnMessage && "items-end")}>
+      <div className={cn("max-w-[85%] sm:max-w-[75%] min-w-0 sm:min-w-[200px]", isOwnMessage && "items-end")}>
         {/* Message Bubble */}
         <div 
           className={cn(
@@ -385,12 +385,12 @@ const ChatMessage = ({ post, group, isAdmin, onReply }: ChatMessageProps) => {
           
           {/* Actions */}
           <div className={cn(
-            "absolute top-1 opacity-0 group-hover:opacity-100 transition-opacity",
+            "absolute top-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity",
             isOwnMessage ? "left-1" : "right-1"
           )}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-6 w-6">
+                <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-6 sm:w-6">
                   <MoreVertical className="w-3 h-3" />
                 </Button>
               </DropdownMenuTrigger>
@@ -420,7 +420,7 @@ const ChatMessage = ({ post, group, isAdmin, onReply }: ChatMessageProps) => {
         
         {/* Replies */}
         {showReplies && (
-          <div className="mt-2 mr-4 space-y-2">
+          <div className="mt-2 mr-2 sm:mr-4 space-y-2">
             {comments.map(comment => (
               <div key={comment.id} className="flex gap-2">
                 <Avatar className="w-6 h-6">
@@ -448,12 +448,12 @@ const ChatMessage = ({ post, group, isAdmin, onReply }: ChatMessageProps) => {
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
                   placeholder="הוסף תגובה..."
-                  className="flex-1 h-8 text-sm"
+                  className="flex-1 h-10 sm:h-8 text-sm"
                 />
-                <Button 
-                  type="submit" 
-                  size="sm" 
-                  className="h-8"
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="h-10 sm:h-8"
                   disabled={!replyText.trim() || createComment.isPending}
                 >
                   <Send className="w-3 h-3" />

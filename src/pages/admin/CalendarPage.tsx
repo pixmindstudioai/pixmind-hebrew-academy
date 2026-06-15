@@ -197,7 +197,7 @@ const CalendarPage = () => {
   if (eventsLoading) {
     return (
       <div className="space-y-4" dir="rtl">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-10 w-32" />
         </div>
@@ -210,12 +210,12 @@ const CalendarPage = () => {
 
   return (
     <div className="space-y-6" dir="rtl">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <div>
           <h1 className="text-2xl font-bold">יומן</h1>
           <p className="text-muted-foreground">ניהול אירועים, מפגשים ודדליינים</p>
         </div>
-        <Button onClick={openCreateDialog} className="gap-2">
+        <Button onClick={openCreateDialog} className="gap-2 w-full sm:w-auto">
           <Plus className="w-4 h-4" />
           אירוע חדש
         </Button>
@@ -234,9 +234,9 @@ const CalendarPage = () => {
           {allEvents.map(event => (
             <Card key={event.id} className={!event.is_active ? 'opacity-60' : ''}>
               <CardContent className="py-4">
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start justify-between gap-2 sm:gap-4">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
                       <h3 className="font-semibold truncate">{event.title}</h3>
                       <Badge variant="outline">{getEventTypeLabel(event.event_type)}</Badge>
                       {!event.is_active && (
@@ -315,7 +315,7 @@ const CalendarPage = () => {
 
       {/* Create/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
           <DialogHeader>
             <DialogTitle>{editingId ? 'עריכת אירוע' : 'יצירת אירוע חדש'}</DialogTitle>
           </DialogHeader>
@@ -361,7 +361,7 @@ const CalendarPage = () => {
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="start_datetime">תאריך ושעת התחלה *</Label>
                 <Input

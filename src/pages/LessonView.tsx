@@ -220,9 +220,9 @@ const LessonView = () => {
         "min-h-screen transition-all duration-300",
         isLessonBlocked && "blur-sm pointer-events-none select-none"
       )}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
           {/* Breadcrumb */}
-          <div className="flex items-center space-x-2 space-x-reverse text-sm text-muted-foreground mb-8">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground mb-6 sm:mb-8">
             <Link to="/courses" className="hover:text-foreground transition-colors">
               הקורסים
             </Link>
@@ -238,12 +238,12 @@ const LessonView = () => {
               {lesson.chapters?.title}
             </span>
             <ArrowLeft className="w-4 h-4" />
-            <span className="text-foreground">{lesson.title}</span>
+            <span className="text-foreground truncate max-w-[60vw] sm:max-w-none">{lesson.title}</span>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             {/* Main Content */}
-            <div className="lg:col-span-2 space-y-8">
+            <div className="lg:col-span-2 space-y-6 sm:space-y-8">
               {/* Lesson Thumbnail - only show for text lessons without video */}
               {lesson.thumbnail_url && !lesson.video_url && lesson.lesson_type !== 'video' && (
                 <div className="aspect-video w-full rounded-lg overflow-hidden bg-muted">
@@ -276,8 +276,8 @@ const LessonView = () => {
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <CardTitle className="text-2xl">{lesson.title}</CardTitle>
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <CardTitle className="text-xl sm:text-2xl">{lesson.title}</CardTitle>
                         <Badge variant="outline" className="text-xs">
                           {lesson.lesson_type === 'video' && 'וידאו'}
                           {lesson.lesson_type === 'text_with_images' && 'טקסט + תמונות'}
@@ -290,7 +290,7 @@ const LessonView = () => {
                 </CardHeader>
                 
                 <CardContent>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="text-sm text-muted-foreground">
                       {lesson.duration_sec ? `משך השיעור: ${Math.ceil(lesson.duration_sec / 60)} דקות` : 'משך לא צוין'}
                     </div>
@@ -334,26 +334,26 @@ const LessonView = () => {
                           key={index}
                           className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors border border-border/10"
                         >
-                          <div className="flex items-center space-x-3 space-x-reverse">
-                            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                          <div className="flex items-center space-x-3 space-x-reverse min-w-0 flex-1">
+                            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
                               <ExternalLink className="w-5 h-5 text-primary" />
                             </div>
-                            <div>
-                              <div className="text-sm font-medium">
+                            <div className="min-w-0">
+                              <div className="text-sm font-medium truncate">
                                 {link.label || 'קישור'}
                               </div>
-                              <div className="text-xs text-muted-foreground truncate max-w-xs">
+                              <div className="text-xs text-muted-foreground truncate max-w-[55vw] sm:max-w-xs">
                                 {link.url}
                               </div>
                             </div>
                           </div>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
+                          <Button
+                            size="sm"
+                            variant="outline"
                             asChild
-                            className="hover:bg-primary hover:text-primary-foreground"
+                            className="hover:bg-primary hover:text-primary-foreground shrink-0"
                           >
-                            <a 
+                            <a
                               href={link.url}
                               target="_blank" 
                               rel="noopener noreferrer"
@@ -402,12 +402,12 @@ const LessonView = () => {
                         key={index}
                         className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors border border-border/10"
                       >
-                        <div className="flex items-center space-x-3 space-x-reverse">
-                          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <div className="flex items-center space-x-3 space-x-reverse min-w-0 flex-1">
+                          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
                             <span className="text-lg">{getFileIcon(attachment.type)}</span>
                           </div>
-                          <div>
-                            <div className="text-sm font-medium">
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium truncate">
                               {attachment.name}
                             </div>
                             <div className="text-xs text-muted-foreground">
@@ -415,14 +415,14 @@ const LessonView = () => {
                             </div>
                           </div>
                         </div>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
+                        <Button
+                          size="sm"
+                          variant="outline"
                           asChild
-                          className="hover:bg-primary hover:text-primary-foreground"
+                          className="hover:bg-primary hover:text-primary-foreground shrink-0"
                         >
-                          <a 
-                            href={attachment.url} 
+                          <a
+                            href={attachment.url}
                             download={attachment.name} 
                             target="_blank" 
                             rel="noopener noreferrer"
@@ -450,12 +450,12 @@ const LessonView = () => {
               {currentTask && currentTask.is_active && (
                 <Card className="border-orange-200 bg-gradient-to-br from-orange-50/80 to-amber-50/50 dark:from-orange-950/20 dark:to-amber-950/10">
                   <CardContent className="py-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center shrink-0">
                           <ClipboardCheck className="w-5 h-5 text-orange-600" />
                         </div>
-                        <div>
+                        <div className="min-w-0">
                           <div className="font-medium flex items-center gap-2">
                             משימת שיעור
                             {currentTask.is_mandatory && (
@@ -469,7 +469,7 @@ const LessonView = () => {
                           </div>
                         </div>
                       </div>
-                      <Button asChild variant="outline" className="border-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/30">
+                      <Button asChild variant="outline" className="border-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/30 w-full sm:w-auto shrink-0">
                         <Link to={`/tasks/${currentTask.id}`}>
                           עבור למשימה
                           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -497,7 +497,7 @@ const LessonView = () => {
                           <iframe
                             src={embed.url}
                             title={embed.title || 'Embedded content'}
-                            className="w-full h-64 rounded border"
+                            className="w-full h-56 sm:h-64 rounded border"
                             allowFullScreen
                           />
                         ) : (
@@ -521,7 +521,7 @@ const LessonView = () => {
             </div>
 
             {/* Sidebar */}
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Progress */}
               <Card className="glass-card">
                 <CardHeader>

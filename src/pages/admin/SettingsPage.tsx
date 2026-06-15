@@ -82,7 +82,7 @@ const SettingsPage = () => {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 sm:space-y-8">
           {/* Site Settings */}
           <div className="space-y-6">
             <div>
@@ -142,7 +142,7 @@ const SettingsPage = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <FormField
                 control={form.control}
                 name="primaryColor"
@@ -202,7 +202,7 @@ const SettingsPage = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <FormField
                 control={form.control}
                 name="locale"
@@ -271,14 +271,14 @@ const SettingsPage = () => {
               control={form.control}
               name="adminDashboardEnabled"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <FormItem className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-0 rounded-lg border p-4">
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">הפעלת לוח בקרה</FormLabel>
                     <FormDescription>
                       האם לוח הבקרה של המנהלים יהיה זמין ופעיל
                     </FormDescription>
                   </div>
-                  <FormControl>
+                  <FormControl className="shrink-0">
                     <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
@@ -290,7 +290,7 @@ const SettingsPage = () => {
             />
           </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex flex-wrap gap-3 pt-4">
             <Button type="submit" disabled={isLoading}>
               {isLoading ? 'שומר...' : 'שמירת הגדרות'}
             </Button>

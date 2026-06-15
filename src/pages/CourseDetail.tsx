@@ -162,27 +162,27 @@ const CourseDetail = () => {
         {/* Hero Section */}
         <div className="relative bg-gradient-primary text-white overflow-hidden">
           <div className="absolute inset-0 bg-black/20" />
-          <div className="container mx-auto px-4 py-16 relative">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="container mx-auto px-4 py-10 sm:py-16 relative">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
               <div>
                 <Button
                   variant="ghost"
                   onClick={() => navigate('/courses')}
-                  className="text-white/80 hover:text-white mb-6 p-0"
+                  className="text-white/80 hover:text-white mb-6 -mr-2 px-2 py-2 h-auto sm:mr-0 sm:p-0"
                 >
                   <ArrowRight className="w-4 h-4 ml-2" />
                   חזור לקורסים
                 </Button>
 
-                <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+                <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-6 leading-tight">
                   {module.title}
                 </h1>
-                
-                <p className="text-xl text-white/90 leading-relaxed mb-8">
+
+                <p className="text-base sm:text-xl text-white/90 leading-relaxed mb-6 sm:mb-8">
                   {module.description}
                 </p>
 
-                <div className="flex flex-wrap items-center gap-6 mb-8 text-white/80">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:gap-6 mb-8 text-white/80">
                   <div className="flex items-center gap-2">
                     <Clock className="w-5 h-5" />
                     <span>15 שעות</span>
@@ -242,7 +242,7 @@ const CourseDetail = () => {
                   <img 
                     src={module.image_url} 
                     alt={module.title}
-                    className="w-full max-w-md rounded-2xl shadow-2xl"
+                    className="w-full max-w-md h-auto rounded-2xl shadow-2xl"
                   />
                 ) : (
                   <div className="w-full max-w-md aspect-video bg-white/10 rounded-2xl flex items-center justify-center">
@@ -255,8 +255,8 @@ const CourseDetail = () => {
         </div>
 
         {/* Course Content */}
-        <div className="container mx-auto px-4 py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div className="container mx-auto px-4 py-8 sm:py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
             {/* Main Content */}
             <div className="lg:col-span-2">
               <div className="space-y-4">
@@ -294,9 +294,9 @@ const CourseDetail = () => {
             {/* Sidebar */}
             <div className="space-y-6">
               {/* Gamified progress + XP reward */}
-              <div className="glass-card p-6 rounded-2xl">
+              <div className="glass-card p-4 sm:p-6 rounded-2xl">
                 <h3 className="font-semibold mb-4">ההתקדמות שלך</h3>
-                <div className="flex items-center gap-5">
+                <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:gap-5">
                   <ProgressRing value={progressPercentage} size={96} strokeWidth={9}>
                     <span className="text-2xl font-bold text-primary leading-none">
                       {Math.round(progressPercentage)}%
@@ -316,7 +316,7 @@ const CourseDetail = () => {
               </div>
 
               {/* Course Stats */}
-              <div className="glass-card p-6 rounded-2xl">
+              <div className="glass-card p-4 sm:p-6 rounded-2xl">
                 <h3 className="font-semibold mb-4">פרטי הקורס</h3>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
@@ -339,7 +339,7 @@ const CourseDetail = () => {
               </div>
 
               {/* What You'll Learn */}
-              <div className="glass-card p-6 rounded-2xl">
+              <div className="glass-card p-4 sm:p-6 rounded-2xl">
                 <h3 className="font-semibold mb-4">מה תלמד בקורס</h3>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-start gap-2">
@@ -362,7 +362,7 @@ const CourseDetail = () => {
               </div>
 
               {/* Requirements */}
-              <div className="glass-card p-6 rounded-2xl">
+              <div className="glass-card p-4 sm:p-6 rounded-2xl">
                 <h3 className="font-semibold mb-4">דרישות מוקדמות</h3>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li>• בסיסי מחשב וגלישה באינטרנט</li>

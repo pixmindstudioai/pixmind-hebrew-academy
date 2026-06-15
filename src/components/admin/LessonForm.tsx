@@ -184,9 +184,9 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">
+        <h2 className="text-xl sm:text-2xl font-bold">
           {lesson ? 'עריכת שיעור' : 'יצירת שיעור חדש'}
         </h2>
         <p className="text-muted-foreground">
@@ -195,7 +195,7 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 sm:space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
@@ -324,7 +324,7 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                         <button
                           type="button"
                           onClick={() => field.onChange('text')}
@@ -380,12 +380,12 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
 
           {/* Dynamic content based on lesson type */}
           <Tabs defaultValue="content" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="content">תוכן</TabsTrigger>
-              {lessonType === 'video' && <TabsTrigger value="video">וידאו</TabsTrigger>}
-              {lessonType === 'text_with_images' && <TabsTrigger value="images">תמונות</TabsTrigger>}
-              <TabsTrigger value="links">לינקים</TabsTrigger>
-              <TabsTrigger value="attachments">קבצים</TabsTrigger>
+            <TabsList className="flex w-full overflow-x-auto whitespace-nowrap sm:grid sm:grid-cols-4">
+              <TabsTrigger value="content" className="flex-shrink-0">תוכן</TabsTrigger>
+              {lessonType === 'video' && <TabsTrigger value="video" className="flex-shrink-0">וידאו</TabsTrigger>}
+              {lessonType === 'text_with_images' && <TabsTrigger value="images" className="flex-shrink-0">תמונות</TabsTrigger>}
+              <TabsTrigger value="links" className="flex-shrink-0">לינקים</TabsTrigger>
+              <TabsTrigger value="attachments" className="flex-shrink-0">קבצים</TabsTrigger>
             </TabsList>
 
             <TabsContent value="content" className="space-y-4">
@@ -570,7 +570,7 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
             control={form.control}
             name="status"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <FormItem className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
                   <FormLabel className="text-base">סטטוס השיעור</FormLabel>
                   <FormDescription>
@@ -590,7 +590,7 @@ const LessonForm = ({ lesson, chapters, onSubmit, onCancel, isLoading }: LessonF
                 </div>
                 <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
                   <FormControl>
-                    <SelectTrigger className="w-32">
+                    <SelectTrigger className="w-full sm:w-32">
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>

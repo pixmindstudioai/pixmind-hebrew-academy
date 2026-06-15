@@ -70,7 +70,7 @@ const Navigation = () => {
             <img 
               src="/logo.png" 
               alt="PixMind Studio Academy" 
-              className="h-10 w-auto"
+              className="h-8 sm:h-10 w-auto"
             />
           </Link>
 
@@ -83,7 +83,7 @@ const Navigation = () => {
                   key={item.href}
                   to={item.href}
                   className={cn(
-                    "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                    "flex items-center gap-2 px-3 py-2 lg:px-4 rounded-lg text-sm font-medium transition-all duration-200",
                     isActive(item.href)
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -94,7 +94,7 @@ const Navigation = () => {
                 </Link>
               );
             })}
-            
+
             {user ? (
               <div className="flex items-center gap-3 mr-4">
                 <NotificationBell />
@@ -105,7 +105,7 @@ const Navigation = () => {
                       key={item.href}
                       to={item.href}
                       className={cn(
-                        "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                        "flex items-center gap-2 px-3 py-2 lg:px-4 rounded-lg text-sm font-medium transition-all duration-200",
                         isActive(item.href)
                           ? "bg-primary text-primary-foreground"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted"

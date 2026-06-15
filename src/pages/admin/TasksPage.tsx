@@ -221,20 +221,20 @@ const TasksPage = () => {
   
   return (
     <AuthenticationGuard>
-      <div className="space-y-6" dir="rtl">
+      <div className="space-y-4 sm:space-y-6" dir="rtl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
             <div>
-              <h1 className="text-3xl font-bold">ניהול משימות</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold">ניהול משימות</h1>
               <p className="text-muted-foreground">ניהול כל המשימות והגשות בקורסים</p>
             </div>
-            <Button onClick={() => setAddDialogOpen(true)} className="gap-2">
+            <Button onClick={() => setAddDialogOpen(true)} className="gap-2 w-full sm:w-auto">
               <Plus className="w-4 h-4" />
               הוספת משימה
             </Button>
           </div>
           
-          <div className="flex gap-4">
+          <div className="grid grid-cols-3 gap-2 sm:flex sm:gap-4">
             <Card className="px-4 py-2">
               <div className="text-sm text-muted-foreground">סה"כ משימות</div>
               <div className="text-2xl font-bold">{totalTasks}</div>
@@ -359,7 +359,7 @@ const TasksPage = () => {
                           </CollapsibleTrigger>
                           
                           <CollapsibleContent>
-                            <div className="mt-2 mr-4 space-y-2">
+                            <div className="mt-2 mr-1 sm:mr-4 space-y-2">
                               {chapterData.tasks.map(task => (
                                 <TaskItem 
                                   key={task.id} 
@@ -431,7 +431,7 @@ const TaskItem = ({ task, onEdit, onViewSubmissions, onToggleActive, onToggleMan
   };
   
   return (
-    <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 bg-muted/30 rounded-lg">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
           <span className="font-medium">{task.lessons.title}</span>
@@ -456,7 +456,7 @@ const TaskItem = ({ task, onEdit, onViewSubmissions, onToggleActive, onToggleMan
           {task.instructions}
         </p>
         
-        <div className="flex items-center gap-4 text-xs">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
           <div className="flex items-center gap-1">
             <span className="text-muted-foreground">סוגי הגשה:</span>
             <div className="flex gap-1">
@@ -576,7 +576,7 @@ const EditTaskDialog = ({ task, open, onOpenChange }: EditTaskDialogProps) => {
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent dir="rtl" className="max-w-lg">
+      <DialogContent dir="rtl" className="max-w-lg w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>עריכת משימה</DialogTitle>
         </DialogHeader>
@@ -787,7 +787,7 @@ const AddTaskDialog = ({ open, onOpenChange }: AddTaskDialogProps) => {
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent dir="rtl" className="max-w-lg">
+      <DialogContent dir="rtl" className="max-w-lg w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>הוספת משימה חדשה</DialogTitle>
         </DialogHeader>
@@ -971,7 +971,7 @@ const SubmissionsDialog = ({ task, open, onOpenChange }: SubmissionsDialogProps)
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent dir="rtl" className="max-w-2xl max-h-[80vh]">
+      <DialogContent dir="rtl" className="max-w-2xl w-[95vw] max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>הגשות למשימה</DialogTitle>
           {task && (
@@ -981,7 +981,7 @@ const SubmissionsDialog = ({ task, open, onOpenChange }: SubmissionsDialogProps)
           )}
         </DialogHeader>
         
-        <ScrollArea className="h-[500px]">
+        <ScrollArea className="h-[60vh] sm:h-[500px]">
           {isLoading ? (
             <div className="space-y-4">
               {[1, 2, 3].map(i => (

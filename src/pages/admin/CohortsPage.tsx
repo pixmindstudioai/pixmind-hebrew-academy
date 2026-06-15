@@ -123,23 +123,26 @@ const CohortsPage = () => {
   return (
     <div className="space-y-6" dir="rtl">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate('/admin/content')}
-        >
-          <ArrowRight className="h-5 w-5" />
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold">
-            ניהול מחזורים למודול: {module?.title || 'טוען...'}
-          </h1>
-          <p className="text-muted-foreground">
-            צרו מחזורים, הוסיפו תלמידים לפי מייל, ושלבו אותם בקורס.
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+        <div className="flex flex-1 items-center gap-3 sm:gap-4 min-w-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="shrink-0"
+            onClick={() => navigate('/admin/content')}
+          >
+            <ArrowRight className="h-5 w-5" />
+          </Button>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold">
+              ניהול מחזורים למודול: {module?.title || 'טוען...'}
+            </h1>
+            <p className="text-muted-foreground">
+              צרו מחזורים, הוסיפו תלמידים לפי מייל, ושלבו אותם בקורס.
+            </p>
+          </div>
         </div>
-        <Button onClick={handleCreate} className="gap-2">
+        <Button onClick={handleCreate} className="gap-2 w-full sm:w-auto shrink-0">
           <Plus className="h-4 w-4" />
           יצירת מחזור חדש
         </Button>
@@ -274,7 +277,7 @@ const CohortsPage = () => {
                     </Badge>
                   </div>
                   
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground mb-4">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
                       {formatDateRange(cohort.start_date, cohort.end_date)}
@@ -298,6 +301,7 @@ const CohortsPage = () => {
                     <Button
                       variant="ghost"
                       size="icon"
+                      className="shrink-0"
                       onClick={() => handleEdit(cohort)}
                     >
                       <Edit className="h-4 w-4" />
@@ -305,6 +309,7 @@ const CohortsPage = () => {
                     <Button
                       variant="ghost"
                       size="icon"
+                      className="shrink-0"
                       onClick={() => handleDelete(cohort)}
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
@@ -319,7 +324,7 @@ const CohortsPage = () => {
       
       {/* Create/Edit Cohort Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md" dir="rtl">
+        <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto" dir="rtl">
           <DialogHeader>
             <DialogTitle>
               {editingCohort ? 'עריכת מחזור' : 'יצירת מחזור חדש'}
@@ -361,7 +366,7 @@ const CohortsPage = () => {
         open={!!studentsPanelCohort} 
         onOpenChange={(open) => !open && setStudentsPanelCohort(null)}
       >
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
           <DialogHeader>
             <DialogTitle>תלמידי מחזור: {studentsPanelCohort?.name}</DialogTitle>
           </DialogHeader>

@@ -123,7 +123,7 @@ const StudentProfilePage = () => {
       <div className="space-y-4 md:space-y-6">
         {/* Header */}
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/admin/students')}>
+          <Button variant="ghost" size="sm" className="h-10 w-10 shrink-0" onClick={() => navigate('/admin/students')}>
             <ArrowRight className="w-4 h-4" />
           </Button>
           <div>
@@ -135,7 +135,7 @@ const StudentProfilePage = () => {
         {/* User Info Card */}
         <Card>
           <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex flex-col md:flex-row gap-4 md:gap-6">
               <Avatar className="h-24 w-24">
                 <AvatarImage src={user.profile_picture_url} />
                 <AvatarFallback className="text-2xl">{user.full_name?.charAt(0) || user.email.charAt(0)}</AvatarFallback>
@@ -211,7 +211,7 @@ const StudentProfilePage = () => {
                         הרשם לקורס
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>הרשמה לקורס</DialogTitle>
                       </DialogHeader>
@@ -240,7 +240,7 @@ const StudentProfilePage = () => {
                         הענק XP
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>הענקת XP ידנית</DialogTitle>
                       </DialogHeader>
@@ -286,7 +286,7 @@ const StudentProfilePage = () => {
                         הענק תג
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>הענקת תג</DialogTitle>
                       </DialogHeader>
@@ -321,7 +321,7 @@ const StudentProfilePage = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="enrollments" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto sm:h-11">
             <TabsTrigger value="enrollments">קורסים</TabsTrigger>
             <TabsTrigger value="progress">התקדמות</TabsTrigger>
             <TabsTrigger value="achievements">הישגים</TabsTrigger>
@@ -338,8 +338,8 @@ const StudentProfilePage = () => {
               enrollments.map((enrollment: any) => (
                 <Card key={enrollment.module_id}>
                   <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="flex-1 min-w-0">
                         <CardTitle className="text-lg">{enrollment.module?.title || 'קורס לא ידוע'}</CardTitle>
                         <CardDescription className="mt-1">
                           ניתן ב-{format(new Date(enrollment.granted_at), 'dd/MM/yyyy')}
@@ -350,6 +350,7 @@ const StudentProfilePage = () => {
                         <Button
                           variant="outline"
                           size="sm"
+                          className="h-10 w-10 shrink-0"
                           onClick={() => {
                             if (window.confirm('האם לאפס את ההתקדמות בקורס זה?')) {
                               resetProgress.mutate({ userId: user.id, moduleId: enrollment.module_id });
@@ -387,14 +388,14 @@ const StudentProfilePage = () => {
               progress.map((item: any) => (
                 <Card key={item.id}>
                   <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{item.lesson?.title || 'שיעור לא ידוע'}</p>
-                        <p className="text-sm text-muted-foreground">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="font-medium truncate">{item.lesson?.title || 'שיעור לא ידוע'}</p>
+                        <p className="text-sm text-muted-foreground truncate">
                           {item.lesson?.chapter?.module?.title} • {item.lesson?.chapter?.title}
                         </p>
                       </div>
-                      <div className="text-left">
+                      <div className="text-left shrink-0">
                         <Badge variant={item.completed ? 'default' : 'secondary'}>
                           {item.completed ? 'הושלם' : 'בתהליך'}
                         </Badge>
@@ -471,12 +472,12 @@ const StudentProfilePage = () => {
                 <Card key={item.id}>
                   <CardContent className="pt-6">
                     <div className="flex items-start gap-3">
-                      <Shield className="w-5 h-5 text-muted-foreground mt-0.5" />
-                      <div className="flex-1">
+                      <Shield className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+                      <div className="flex-1 min-w-0">
                         <p className="font-medium">{item.action_type}</p>
                         <p className="text-sm text-muted-foreground">{format(new Date(item.created_at), 'dd/MM/yyyy HH:mm')}</p>
                         {item.action_details && (
-                          <pre className="text-xs mt-2 text-muted-foreground">{JSON.stringify(item.action_details, null, 2)}</pre>
+                          <pre className="text-xs mt-2 text-muted-foreground overflow-x-auto whitespace-pre-wrap break-all">{JSON.stringify(item.action_details, null, 2)}</pre>
                         )}
                       </div>
                     </div>

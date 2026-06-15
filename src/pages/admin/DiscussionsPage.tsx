@@ -111,7 +111,7 @@ const DiscussionsPage = () => {
   
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">קבוצות ודיונים</h1>
           <p className="text-muted-foreground">ניהול קבוצות דיון ופורומים</p>
@@ -127,7 +127,7 @@ const DiscussionsPage = () => {
               קבוצה חדשה
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg" dir="rtl">
+          <DialogContent className="w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto" dir="rtl">
             <DialogHeader>
               <DialogTitle>
                 {editingGroup ? 'עריכת קבוצה' : 'קבוצה חדשה'}
@@ -365,15 +365,15 @@ const GroupAccessDialog = ({ groupId, onClose, modules, bundles }: GroupAccessDi
   
   return (
     <Dialog open={!!groupId} onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-lg" dir="rtl">
+      <DialogContent className="w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto" dir="rtl">
         <DialogHeader>
           <DialogTitle>ניהול הרשאות גישה</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Select value={accessType} onValueChange={(v: 'module' | 'bundle') => setAccessType(v)}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-full sm:w-32">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -383,7 +383,7 @@ const GroupAccessDialog = ({ groupId, onClose, modules, bundles }: GroupAccessDi
             </Select>
             
             <Select value={selectedId} onValueChange={setSelectedId}>
-              <SelectTrigger className="flex-1">
+              <SelectTrigger className="w-full sm:flex-1">
                 <SelectValue placeholder={accessType === 'module' ? 'בחר קורס' : 'בחר חבילה'} />
               </SelectTrigger>
               <SelectContent>

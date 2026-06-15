@@ -461,7 +461,7 @@ const Profile = () => {
           </div>
 
           {/* Actions */}
-          <div className="flex shrink-0 gap-2 pb-1">
+          <div className="flex w-full shrink-0 gap-2 pb-1 sm:w-auto">
             {isSelf ? (
               <Button onClick={openEdit} className="button-glow gap-2">
                 <Pencil className="h-4 w-4" />
@@ -477,7 +477,7 @@ const Profile = () => {
                   disabled={toggleFollow.isPending || !targetId}
                   variant={isFollowing ? "secondary" : "default"}
                   className={cn(
-                    "gap-2",
+                    "flex-1 gap-2 sm:flex-none",
                     isFollowing
                       ? "border border-primary/40 bg-primary/15 text-primary hover:bg-primary/25"
                       : "button-glow"
@@ -490,7 +490,7 @@ const Profile = () => {
                   )}
                   {isFollowing ? "עוקב/ת" : "עקוב"}
                 </Button>
-                <Button variant="secondary" asChild className="gap-2">
+                <Button variant="secondary" asChild className="flex-1 gap-2 sm:flex-none">
                   <Link to={`/messages?to=${targetId}`}>
                     <MessageSquare className="h-4 w-4" />
                     הודעה
@@ -566,16 +566,16 @@ const Profile = () => {
 
       {/* Tabs */}
       <Tabs defaultValue="progress" className="mt-6 w-full">
-        <TabsList className="w-full justify-start">
-          <TabsTrigger value="progress" className="gap-2">
+        <TabsList className="w-full justify-start overflow-x-auto">
+          <TabsTrigger value="progress" className="gap-2 px-2.5 sm:px-4">
             <BookOpen className="h-4 w-4" />
             התקדמות
           </TabsTrigger>
-          <TabsTrigger value="posts" className="gap-2">
+          <TabsTrigger value="posts" className="gap-2 px-2.5 sm:px-4">
             <MessageSquare className="h-4 w-4" />
             פוסטים
           </TabsTrigger>
-          <TabsTrigger value="about" className="gap-2">
+          <TabsTrigger value="about" className="gap-2 px-2.5 sm:px-4">
             <Users className="h-4 w-4" />
             אודות
           </TabsTrigger>
@@ -678,7 +678,7 @@ const Profile = () => {
         {/* About */}
         <TabsContent value="about" className="mt-4">
           <Card className="glass-card">
-            <CardContent className="space-y-5 p-5">
+            <CardContent className="space-y-4 p-4 sm:space-y-5 sm:p-5">
               <div>
                 <h3 className="mb-1.5 font-heading text-sm font-semibold text-muted-foreground">
                   אודות
@@ -733,7 +733,7 @@ const Profile = () => {
 
       {/* Edit dialog (self only) */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent dir="rtl" className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+        <DialogContent dir="rtl" className="w-[95vw] max-w-[95vw] max-h-[90vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader className="text-right">
             <DialogTitle className="font-heading">עריכת פרופיל</DialogTitle>
             <DialogDescription>

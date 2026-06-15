@@ -498,10 +498,10 @@ const ContentPage = () => {
   );
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-4 sm:space-y-6" dir="rtl">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">ניהול תוכן</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">ניהול תוכן</h1>
           <p className="text-muted-foreground">
             ניהול מודולים, פרקים ושיעורים עם עדכונים בזמן אמת
           </p>
@@ -516,8 +516,8 @@ const ContentPage = () => {
         </TabsList>
 
         <TabsContent value="modules" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="relative w-72">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative w-full sm:w-72">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="חיפוש מודולים..."
@@ -527,12 +527,12 @@ const ContentPage = () => {
               />
             </div>
             <AuthenticationGuard message="לא ניתן ליצור מודול – יש להתחבר תחילה">
-              <Button 
+              <Button
                 onClick={() => {
                   setEditingModule(null);
                   setModuleDialogOpen(true);
                 }}
-                className="gap-2"
+                className="gap-2 w-full sm:w-auto"
               >
                 <Plus className="w-4 h-4" />
                 מודול חדש
@@ -540,7 +540,7 @@ const ContentPage = () => {
             </AuthenticationGuard>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredModules.map((module) => (
               <ModuleCard
                 key={module.id}
@@ -563,9 +563,9 @@ const ContentPage = () => {
         </TabsContent>
 
         <TabsContent value="chapters" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="relative w-72">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-4 w-full sm:w-auto">
+              <div className="relative w-full sm:w-72">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="חיפוש פרקים..."
@@ -575,18 +575,18 @@ const ContentPage = () => {
                 />
               </div>
               {selectedModule && (
-                <div className="font-bold">
+                <div className="font-bold truncate max-w-full">
                   מודול: {modules.find(m => m.id === selectedModule)?.title}
                 </div>
               )}
             </div>
-            <Button 
+            <Button
               onClick={() => {
                 setEditingChapter(null);
                 setChapterDialogOpen(true);
               }}
               disabled={!selectedModule}
-              className="gap-2"
+              className="gap-2 w-full sm:w-auto"
             >
               <Plus className="w-4 h-4" />
               פרק חדש
@@ -672,9 +672,9 @@ const ContentPage = () => {
         </TabsContent>
 
         <TabsContent value="lessons" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="relative w-72">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-4 w-full sm:w-auto">
+              <div className="relative w-full sm:w-72">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="חיפוש שיעורים..."
@@ -684,18 +684,18 @@ const ContentPage = () => {
                 />
               </div>
               {selectedChapter && (
-                <div className="font-bold">
+                <div className="font-bold truncate max-w-full">
                   פרק: {chapters.find(c => c.id === selectedChapter)?.title}
                 </div>
               )}
             </div>
-            <Button 
+            <Button
               onClick={() => {
                 setEditingLesson(null);
                 setLessonDialogOpen(true);
               }}
               disabled={!selectedChapter}
-              className="gap-2"
+              className="gap-2 w-full sm:w-auto"
             >
               <Plus className="w-4 h-4" />
               שיעור חדש
@@ -705,12 +705,12 @@ const ContentPage = () => {
           {selectedChapter ? (
             <div className="space-y-4">
               {filteredLessons.map((lesson) => (
-                <div key={lesson.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
+                <div key={lesson.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg">
+                  <div className="min-w-0">
                     <h3 className="font-semibold">{lesson.title}</h3>
                     <p className="text-sm text-muted-foreground">{lesson.description}</p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -746,14 +746,14 @@ const ContentPage = () => {
 
       {/* Module Dialog */}
       <Dialog open={moduleDialogOpen} onOpenChange={setModuleDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0" dir="rtl">
-          <DialogHeader className="px-6 py-4 border-b border-border">
+        <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-hidden p-0" dir="rtl">
+          <DialogHeader className="px-4 sm:px-6 py-4 border-b border-border">
             <DialogTitle className="text-2xl font-bold">
               {editingModule ? 'עריכת מודול' : 'יצירת מודול חדש'}
             </DialogTitle>
           </DialogHeader>
           
-          <div className="flex-1 overflow-y-auto px-6 py-4 max-h-[calc(90vh-120px)]">
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 max-h-[calc(90vh-120px)]">
             <AuthenticationGuard message="נדרשת הרשאה לניהול מודולים">
               <ModuleForm
                 module={editingModule}
@@ -765,7 +765,7 @@ const ContentPage = () => {
             </AuthenticationGuard>
           </div>
           
-          <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t border-border px-6 py-4 z-50">
+          <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t border-border px-4 sm:px-6 py-4 z-50">
             <div className="flex gap-3">
               <AuthenticationGuard message="נדרשת הרשאה לניהול מודולים">
                 <button
@@ -792,13 +792,13 @@ const ContentPage = () => {
 
       {/* Chapter Dialog */}
       <Dialog open={chapterDialogOpen} onOpenChange={setChapterDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-0 flex flex-col" dir="rtl">
-          <DialogHeader className="px-6 py-4 border-b border-border flex-shrink-0">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-hidden p-0 flex flex-col" dir="rtl">
+          <DialogHeader className="px-4 sm:px-6 py-4 border-b border-border flex-shrink-0">
             <DialogTitle className="text-xl font-bold">
               {editingChapter ? 'עריכת פרק' : 'יצירת פרק חדש'}
             </DialogTitle>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto px-6 py-4">
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
             <ChapterForm
               chapter={editingChapter}
               modules={modules}
@@ -808,7 +808,7 @@ const ContentPage = () => {
               showActions={false}
             />
           </div>
-          <div className="flex-shrink-0 bg-background/95 backdrop-blur-sm border-t border-border px-6 py-4">
+          <div className="flex-shrink-0 bg-background/95 backdrop-blur-sm border-t border-border px-4 sm:px-6 py-4">
             <div className="flex gap-3">
               <button
                 type="submit"
@@ -833,7 +833,7 @@ const ContentPage = () => {
 
       {/* Lesson Dialog */}
       <Dialog open={lessonDialogOpen} onOpenChange={setLessonDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
+        <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
           <DialogHeader>
             <DialogTitle>
               {editingLesson ? 'עריכת שיעור' : 'יצירת שיעור חדש'}

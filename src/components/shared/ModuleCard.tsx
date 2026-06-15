@@ -204,7 +204,7 @@ const ModuleCard = ({
         </div>
       </CardHeader>
 
-      <CardContent className="p-5">
+      <CardContent className="p-4 sm:p-5">
         <h3 className="text-lg font-semibold mb-2 text-foreground group-hover:text-primary transition-colors line-clamp-1">
           {module.title}
         </h3>
@@ -221,7 +221,7 @@ const ModuleCard = ({
         )}
 
         {/* Course stats */}
-        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground mb-4">
           <div className="flex items-center gap-1.5">
             <Clock className="w-4 h-4" />
             <span>{duration}</span>
@@ -266,7 +266,7 @@ const ModuleCard = ({
         )}
       </CardContent>
 
-      <CardFooter className="p-5 pt-0">
+      <CardFooter className="p-4 pt-0 sm:p-5 sm:pt-0">
         <Button 
           className="w-full" 
           variant={isStarted || isAdminView ? "default" : "outline"}

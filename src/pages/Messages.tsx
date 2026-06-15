@@ -41,7 +41,7 @@ export default function Messages() {
       </div>
 
       <Card className="glass-card overflow-hidden">
-        <div className="grid h-[calc(100vh-13rem)] min-h-[480px] lg:grid-cols-[320px_1fr]">
+        <div className="grid h-[calc(100svh-9rem)] min-h-[360px] sm:min-h-[480px] lg:h-[calc(100vh-13rem)] lg:grid-cols-[320px_1fr]">
           {/* Conversation list — full width on mobile only when no partner is open */}
           <div
             className={`min-h-0 border-l lg:block ${selectedId ? "hidden lg:block" : "block"}`}
@@ -54,7 +54,7 @@ export default function Messages() {
             {selectedId ? (
               <ChatThread otherId={selectedId} onBack={handleBack} />
             ) : (
-              <div className="flex h-full flex-col items-center justify-center px-6 text-center">
+              <div className="flex h-full flex-col items-center justify-center px-4 text-center sm:px-6">
                 <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                   <MessageCircle className="h-7 w-7 text-primary" />
                 </div>

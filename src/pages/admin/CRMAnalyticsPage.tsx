@@ -37,10 +37,10 @@ const CRMAnalyticsPage = () => {
 
   return (
     <AuthenticationGuard>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold">ניתוח CRM</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">ניתוח CRM</h1>
           <p className="text-muted-foreground mt-2">סטטיסטיקות ותובנות על פניות התלמידים</p>
         </div>
 
@@ -52,7 +52,7 @@ const CRMAnalyticsPage = () => {
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold">{analytics.totalMessages}</div>
+                <div className="text-2xl sm:text-3xl font-bold">{analytics.totalMessages}</div>
                 <MessageSquare className="h-8 w-8 text-primary" />
               </div>
             </CardContent>
@@ -64,7 +64,7 @@ const CRMAnalyticsPage = () => {
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold">{analytics.messagesLast30Days}</div>
+                <div className="text-2xl sm:text-3xl font-bold">{analytics.messagesLast30Days}</div>
                 <TrendingUp className="h-8 w-8 text-blue-500" />
               </div>
             </CardContent>
@@ -76,7 +76,7 @@ const CRMAnalyticsPage = () => {
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold">{analytics.messagesLast7Days}</div>
+                <div className="text-2xl sm:text-3xl font-bold">{analytics.messagesLast7Days}</div>
                 <BarChart className="h-8 w-8 text-green-500" />
               </div>
             </CardContent>
@@ -90,7 +90,7 @@ const CRMAnalyticsPage = () => {
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold">
+                <div className="text-2xl sm:text-3xl font-bold">
                   {analytics.avgResolutionTimeHours.toFixed(1)}
                 </div>
                 <Clock className="h-8 w-8 text-orange-500" />
@@ -142,12 +142,12 @@ const CRMAnalyticsPage = () => {
             <div className="space-y-3">
               {Object.entries(analytics.messagesByType).map(([type, count]) => (
                 <div key={type} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-primary" />
-                    <span className="font-medium">{messageTypeLabels[type as keyof typeof messageTypeLabels]}</span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
+                    <span className="font-medium min-w-0 truncate">{messageTypeLabels[type as keyof typeof messageTypeLabels]}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-32 bg-muted rounded-full h-2">
+                    <div className="w-24 sm:w-32 bg-muted rounded-full h-2">
                       <div
                         className="bg-primary h-2 rounded-full"
                         style={{
@@ -175,17 +175,17 @@ const CRMAnalyticsPage = () => {
             ) : (
               <div className="space-y-3">
                 {topModules.map(({ module, count }, index) => (
-                  <div key={module?.id || index} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 font-bold">
+                  <div key={module?.id || index} className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 font-bold shrink-0">
                         {index + 1}
                       </div>
-                      <div>
-                        <p className="font-medium">{module?.title || 'קורס לא ידוע'}</p>
+                      <div className="min-w-0">
+                        <p className="font-medium truncate">{module?.title || 'קורס לא ידוע'}</p>
                         <p className="text-xs text-muted-foreground">{count as number} פניות</p>
                       </div>
                     </div>
-                    <Package className="h-5 w-5 text-muted-foreground" />
+                    <Package className="h-5 w-5 text-muted-foreground shrink-0" />
                   </div>
                 ))}
               </div>
@@ -200,7 +200,7 @@ const CRMAnalyticsPage = () => {
             <CardDescription>מגמה יומית</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-48 flex items-end gap-1">
+            <div className="h-40 sm:h-48 flex items-end gap-px sm:gap-1">
               {Object.entries(analytics.messagesPerDay)
                 .slice(-30)
                 .map(([date, count]) => (

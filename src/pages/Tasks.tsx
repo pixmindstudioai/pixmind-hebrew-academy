@@ -46,7 +46,7 @@ const Tasks = () => {
             <Skeleton className="h-10 w-48" />
             <Skeleton className="h-5 w-72" />
           </div>
-          <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-4">
             {[1, 2, 3, 4].map((i) => (
               <Skeleton key={i} className="h-28 w-full rounded-2xl" />
             ))}
@@ -114,7 +114,7 @@ const Tasks = () => {
         ) : (
           <>
             {/* Summary stats */}
-            <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-4">
               <StatTile
                 icon={CheckCircle}
                 label="אתגרים שאושרו"
@@ -134,8 +134,8 @@ const Tasks = () => {
             <div className="space-y-8">
               {Object.entries(tasksByModule).map(([moduleTitle, moduleTasks]) => (
                 <section key={moduleTitle}>
-                  <h2 className="mb-4 flex items-center gap-2 font-heading text-lg font-semibold text-foreground">
-                    <BookOpen className="h-5 w-5 text-primary" />
+                  <h2 className="mb-4 flex flex-wrap items-center gap-2 font-heading text-lg font-semibold text-foreground">
+                    <BookOpen className="h-5 w-5 shrink-0 text-primary" />
                     {moduleTitle}
                     <span className="text-sm font-normal text-muted-foreground">
                       ({moduleTasks.length})

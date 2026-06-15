@@ -204,7 +204,7 @@ const AdminShell = ({ children }: { children?: ReactNode }) => {
         <aside 
           className={cn(
             "bg-card border-l border-border/50 transition-all duration-300 flex-shrink-0 overflow-y-auto scrollbar-hide",
-            sidebarOpen ? "w-72" : "w-0",
+            sidebarOpen ? "w-[85vw] max-w-72" : "w-0",
             "fixed md:sticky top-16 z-40 h-[calc(100vh-4rem)]"
           )}
         >

@@ -104,17 +104,17 @@ const PurchasesPage = () => {
   }
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-4 sm:space-y-6" dir="rtl">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">רכישות ותשלומים</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">רכישות ותשלומים</h1>
         <p className="text-muted-foreground mt-2">
           מעקב אחר כל התשלומים והרשמות אוטומטיות ממשולם (Grow)
         </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <Card className="glass-card">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">סך הכל רכישות</CardTitle>
@@ -241,14 +241,14 @@ const PurchasesPage = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">חיפוש</label>
+              <label className="text-xs md:text-sm font-medium mb-1 md:mb-2 block">חיפוש</label>
               <div className="relative">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="אימייל, שם או קוד עסקה..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pr-10"
+                  className="pr-10 h-9 md:h-10 text-sm md:text-base"
                 />
               </div>
             </div>
@@ -370,7 +370,7 @@ const PurchasesPage = () => {
 
       {/* Purchase Details Dialog */}
       <Dialog open={!!selectedPurchase} onOpenChange={() => setSelectedPurchase(null)}>
-        <DialogContent className="max-w-2xl" dir="rtl">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
           <DialogHeader>
             <DialogTitle>פרטי רכישה</DialogTitle>
             <DialogDescription>
@@ -379,7 +379,7 @@ const PurchasesPage = () => {
           </DialogHeader>
           {selectedPurchase && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">אימייל משתמש</label>
                   <p className="text-sm mt-1">{selectedPurchase.user_email}</p>
@@ -419,7 +419,7 @@ const PurchasesPage = () => {
                   </p>
                 </div>
                 {selectedPurchase.payment_desc && (
-                  <div className="col-span-2">
+                  <div className="col-span-1 sm:col-span-2">
                     <label className="text-sm font-medium text-muted-foreground">תיאור תשלום</label>
                     <p className="text-sm mt-1">{selectedPurchase.payment_desc}</p>
                   </div>

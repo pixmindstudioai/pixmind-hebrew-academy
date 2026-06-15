@@ -117,7 +117,7 @@ function MediaGrid({ media }: { media: string[] }) {
   const images = list.filter((u) => !isVideoUrl(u));
 
   const imgCols =
-    images.length === 1 ? "grid-cols-1" : images.length === 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3";
+    images.length === 1 ? "grid-cols-1" : images.length === 2 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 sm:grid-cols-3";
 
   return (
     <div className="mt-3 space-y-2">
@@ -149,7 +149,7 @@ function MediaGrid({ media }: { media: string[] }) {
       )}
 
       <Dialog open={!!lightbox} onOpenChange={(o) => !o && setLightbox(null)}>
-        <DialogContent className="max-w-3xl border-border/60 bg-background/95 p-2">
+        <DialogContent className="w-[95vw] max-w-3xl max-h-[90vh] overflow-hidden border-border/60 bg-background/95 p-2">
           {lightbox && (
             <img src={lightbox} alt="" className="max-h-[80vh] w-full rounded-lg object-contain" />
           )}

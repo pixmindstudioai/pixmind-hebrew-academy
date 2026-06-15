@@ -158,7 +158,7 @@ const CoursesGrid = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Search and Filter Section */}
       <div className="flex flex-col gap-4">
         {/* View tabs */}
@@ -213,7 +213,7 @@ const CoursesGrid = () => {
 
       {/* Empty State */}
       {totalItems === 0 && (
-        <div className="text-center py-20">
+        <div className="text-center py-12 sm:py-20">
           <div className="w-20 h-20 rounded-2xl bg-secondary/50 flex items-center justify-center mx-auto mb-6">
             <BookOpen className="w-10 h-10 text-muted-foreground/50" />
           </div>
@@ -233,7 +233,7 @@ const CoursesGrid = () => {
               חבילות קורסים
             </h2>
           )}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {filteredBundles.map((bundle) => (
               <BundleCard
                 key={bundle.id}
@@ -256,7 +256,7 @@ const CoursesGrid = () => {
               קורסים בודדים
             </h2>
           )}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredModules.map((module) => (
               <CourseCard
                 key={module.id}
@@ -276,7 +276,7 @@ const CoursesGrid = () => {
 
 // Loading skeleton
 const CoursesGridSkeleton = () => (
-  <div className="space-y-8">
+  <div className="space-y-6 sm:space-y-8">
     {/* Tabs skeleton */}
     <Skeleton className="h-10 w-72" />
 
@@ -290,7 +290,7 @@ const CoursesGridSkeleton = () => (
     <Skeleton className="h-5 w-32" />
 
     {/* Cards skeleton */}
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
       {[...Array(6)].map((_, i) => (
         <div key={i} className="space-y-4">
           <Skeleton className="aspect-video w-full rounded-xl" />

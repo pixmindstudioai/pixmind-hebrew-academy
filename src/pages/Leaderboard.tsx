@@ -30,6 +30,8 @@ const PODIUM = [
     badge: "bg-primary/15 text-primary",
     label: "ראשון",
     avatar: 80,
+    ringSize: 90,
+    avatarClass: "h-14 w-14 sm:h-20 sm:w-20",
     glow: "glow-cyan",
   },
   {
@@ -40,6 +42,8 @@ const PODIUM = [
     badge: "bg-slate-300/15 text-slate-200",
     label: "שני",
     avatar: 64,
+    ringSize: 74,
+    avatarClass: "h-12 w-12 sm:h-16 sm:w-16",
     glow: "",
   },
   {
@@ -50,6 +54,8 @@ const PODIUM = [
     badge: "bg-amber-500/15 text-amber-500",
     label: "שלישי",
     avatar: 64,
+    ringSize: 74,
+    avatarClass: "h-12 w-12 sm:h-16 sm:w-16",
     glow: "",
   },
 ] as const;
@@ -71,7 +77,7 @@ function PodiumCard({
     <Link
       to={`/profile/${profile.id}`}
       className={cn(
-        "glass-card interactive-card relative flex flex-col items-center gap-2 rounded-2xl px-3 py-5 text-center ring-1",
+        "glass-card interactive-card relative flex flex-col items-center gap-2 rounded-2xl px-2 py-4 text-center ring-1 sm:px-3 sm:py-5",
         s.border,
         place === 0 && "sm:-mt-4",
         s.glow,
@@ -94,8 +100,8 @@ function PodiumCard({
           s.ring
         )}
       >
-        <ProgressRing value={100} size={s.avatar + 10} strokeWidth={4}>
-          <Avatar style={{ width: s.avatar, height: s.avatar }}>
+        <ProgressRing value={100} size={s.ringSize} strokeWidth={4}>
+          <Avatar className={s.avatarClass}>
             <AvatarImage src={profile.profile_picture_url ?? undefined} />
             <AvatarFallback className="text-lg font-semibold">
               {initials(profile.full_name)}
@@ -126,7 +132,7 @@ function PodiumCard({
 function PageHeader() {
   return (
     <header className="mb-6 text-center sm:text-right">
-      <h1 className="gradient-text font-heading text-3xl font-bold">טבלת המובילים</h1>
+      <h1 className="gradient-text font-heading text-2xl font-bold sm:text-3xl">טבלת המובילים</h1>
       <p className="mt-1 text-sm text-muted-foreground">מי צובר הכי הרבה XP</p>
     </header>
   );
@@ -136,9 +142,9 @@ function LeaderboardSkeleton() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-6" dir="rtl">
       <PageHeader />
-      <div className="mb-6 grid grid-cols-3 items-end gap-3">
+      <div className="mb-6 grid grid-cols-3 items-end gap-2 sm:gap-3">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="glass-card flex flex-col items-center gap-2 rounded-2xl px-3 py-5">
+          <div key={i} className="glass-card flex flex-col items-center gap-2 rounded-2xl px-2 py-4 sm:px-3 sm:py-5">
             <Skeleton className="h-16 w-16 rounded-full" />
             <Skeleton className="h-4 w-20" />
             <Skeleton className="h-3 w-16" />
@@ -209,7 +215,7 @@ export default function Leaderboard() {
       <PageHeader />
 
       {/* Podium */}
-      <section className="mb-6 grid grid-cols-3 items-end gap-3">
+      <section className="mb-6 grid grid-cols-3 items-end gap-2 sm:gap-3">
         {podiumOrder.map(({ profile, place }) => (
           <PodiumCard
             key={profile.id}

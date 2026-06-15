@@ -158,7 +158,7 @@ const TaskReviewPage = () => {
             <img 
               src={submission.content_url} 
               alt="הגשה" 
-              className="max-h-24 rounded border cursor-pointer hover:opacity-80"
+              className="max-h-24 max-w-full h-auto rounded border cursor-pointer hover:opacity-80"
             />
           </a>
         );
@@ -189,7 +189,7 @@ const TaskReviewPage = () => {
   return (
     <div className="space-y-6" dir="rtl">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <ClipboardCheck className="w-7 h-7 text-primary" />
@@ -199,7 +199,7 @@ const TaskReviewPage = () => {
             סקירה ואישור ידני של כל הגשות המשימות
           </p>
         </div>
-        <Badge variant="outline" className="text-lg px-4 py-2">
+        <Badge variant="outline" className="self-start sm:self-auto text-lg px-4 py-2">
           {submissions?.length || 0} הגשות
         </Badge>
       </div>
@@ -397,7 +397,7 @@ const TaskReviewPage = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <Button
                               variant="outline"
                               size="sm"
@@ -435,7 +435,7 @@ const TaskReviewPage = () => {
 
       {/* Detail Dialog */}
       <Dialog open={!!selectedSubmission && !isOverrideDialogOpen} onOpenChange={() => setSelectedSubmission(null)}>
-        <DialogContent className="max-w-2xl" dir="rtl">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6" dir="rtl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ClipboardCheck className="w-5 h-5" />
@@ -444,7 +444,7 @@ const TaskReviewPage = () => {
           </DialogHeader>
           {selectedSubmission && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">משתמש</p>
                   <p className="font-medium">{selectedSubmission.users?.full_name || 'לא ידוע'}</p>
@@ -470,21 +470,21 @@ const TaskReviewPage = () => {
               
               <div>
                 <p className="text-sm text-muted-foreground">הוראות המשימה</p>
-                <p className="bg-muted/50 p-3 rounded text-sm whitespace-pre-wrap">
+                <p className="bg-muted/50 p-2 sm:p-3 rounded text-sm whitespace-pre-wrap">
                   {selectedSubmission.lesson_tasks?.instructions}
                 </p>
               </div>
               
               <div>
                 <p className="text-sm text-muted-foreground">תוכן ההגשה</p>
-                <div className="bg-muted/50 p-3 rounded">
+                <div className="bg-muted/50 p-2 sm:p-3 rounded">
                   {renderSubmissionContent(selectedSubmission)}
                 </div>
               </div>
               
               <div className="border-t pt-4">
                 <p className="text-sm text-muted-foreground mb-2">תוצאות AI</p>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4">
                   <Badge variant={selectedSubmission.ai_status === 'approved' ? 'default' : 
                                  selectedSubmission.ai_status === 'rejected' ? 'destructive' : 'secondary'}>
                     {selectedSubmission.ai_status === 'approved' ? 'אושר' : 
@@ -538,7 +538,7 @@ const TaskReviewPage = () => {
 
       {/* Override Confirmation Dialog */}
       <Dialog open={isOverrideDialogOpen} onOpenChange={setIsOverrideDialogOpen}>
-        <DialogContent dir="rtl">
+        <DialogContent className="w-[95vw] max-h-[90vh] overflow-y-auto" dir="rtl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {overrideAction === 'approved' ? (

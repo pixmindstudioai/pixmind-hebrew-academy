@@ -140,7 +140,7 @@ const BundlesPage = () => {
           </div>
           <Skeleton className="h-10 w-32" />
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map(i => (
             <Skeleton key={i} className="h-48 w-full" />
           ))}
@@ -154,8 +154,8 @@ const BundlesPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Package className="w-8 h-8 text-primary" />
+          <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
+            <Package className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
             חבילות קורסים
           </h1>
           <p className="text-muted-foreground">
@@ -197,7 +197,7 @@ const BundlesPage = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filteredBundles.map((bundle) => (
             <Card key={bundle.id} className="group hover:border-primary/50 transition-colors">
               <CardHeader className="pb-3">
@@ -211,7 +211,7 @@ const BundlesPage = () => {
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="icon" className="h-10 w-10 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity sm:h-8 sm:w-8">
                         <MoreVertical className="w-4 h-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -289,7 +289,7 @@ const BundlesPage = () => {
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <BundleForm
             bundle={editingBundle || undefined}
             onSubmit={handleSubmit}

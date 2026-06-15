@@ -175,7 +175,7 @@ function BadgesPage() {
                 key={badge.id}
                 className={cn("transition-all", !badge.is_active && "opacity-60")}
               >
-                <CardContent className="flex flex-col items-center gap-3 p-5 text-center">
+                <CardContent className="flex flex-col items-center gap-3 p-4 text-center sm:p-5">
                   <div className="flex items-center justify-between gap-2 self-stretch">
                     <Badge
                       variant={badge.is_active ? "default" : "outline"}
@@ -258,7 +258,7 @@ function BadgesPage() {
           }
         }}
       >
-        <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto" dir="rtl">
+        <DialogContent className="max-h-[90vh] w-[95vw] max-w-lg overflow-y-auto" dir="rtl">
           <DialogHeader>
             <DialogTitle>{editing ? "עריכת תג" : "תג חדש"}</DialogTitle>
           </DialogHeader>
@@ -324,7 +324,7 @@ function BadgesPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>דרגה</Label>
                 <Select
@@ -357,7 +357,7 @@ function BadgesPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 items-center gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-center">
               <div className="space-y-2">
                 <Label>סדר תצוגה</Label>
                 <Input
@@ -449,7 +449,7 @@ function AwardBadgeDialog({ open, onOpenChange, badges }: AwardBadgeDialogProps)
         if (!o) reset();
       }}
     >
-      <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto" dir="rtl">
+      <DialogContent className="max-h-[90vh] w-[95vw] max-w-lg overflow-y-auto" dir="rtl">
         <DialogHeader>
           <DialogTitle>הענקת תג לתלמיד</DialogTitle>
         </DialogHeader>

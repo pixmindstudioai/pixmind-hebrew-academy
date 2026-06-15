@@ -23,7 +23,7 @@ export default function Feed() {
     <div className="mx-auto max-w-2xl px-4 py-6" dir="rtl">
       {/* Header */}
       <header className="mb-6">
-        <h1 className="gradient-text text-3xl font-heading">הקהילה</h1>
+        <h1 className="gradient-text text-2xl sm:text-3xl font-heading">הקהילה</h1>
         <p className="mt-1 text-muted-foreground">
           שתפו עדכונים, ניצחונות, שאלות ותוצרים — וצברו השראה מהחברים
         </p>
@@ -38,7 +38,7 @@ export default function Feed() {
         onValueChange={(v) => setFilter(v as FilterValue)}
         className="mt-6"
       >
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5">
           {FILTERS.map((f) => (
             <TabsTrigger key={f.value} value={f.value}>
               {f.label}

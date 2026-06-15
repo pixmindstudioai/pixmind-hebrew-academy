@@ -90,7 +90,7 @@ function CommentsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader className="text-right">
           <DialogTitle>תגובות לפוסט</DialogTitle>
           <DialogDescription>ניהול תגובות הקהילה לפוסט זה</DialogDescription>
@@ -268,7 +268,7 @@ const FeedModerationPage = () => {
                     <TypePill type={post.type} />
                   </TableCell>
                   <TableCell>
-                    <p className="max-w-[16rem] truncate text-sm text-muted-foreground">
+                    <p className="max-w-[12rem] sm:max-w-[16rem] truncate text-sm text-muted-foreground">
                       {post.content || "—"}
                     </p>
                   </TableCell>
