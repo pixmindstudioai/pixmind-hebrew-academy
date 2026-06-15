@@ -151,6 +151,40 @@ const AcademyVideoPlayer = ({ src, title, poster, autoPlay, className, onEnded }
     };
   }, []);
 
+  // Media Session — lock-screen / control-center metadata + transport controls.
+  // Works in supporting browsers AND inside the iOS WKWebView app, so audio keeps a proper
+  // now-playing UI (title, play/pause, ±10s) when the screen is locked or the app is backgrounded.
+  useEffect(() => {
+    const ms = (navigator as any).mediaSession;
+    const MM = (window as any).MediaMetadata;
+    if (!ms) return;
+    if (MM && title) {
+      try {
+        ms.metadata = new MM({
+          title,
+          artist: "PixMind Academy",
+          artwork: poster ? [{ src: poster, sizes: "512x512", type: "image/jpeg" }] : [],
+        });
+      } catch { /* ignore */ }
+    }
+    const set = (action: string, handler: (() => void) | null) => {
+      try { ms.setActionHandler(action, handler); } catch { /* unsupported action */ }
+    };
+    set("play", () => videoRef.current?.play().catch(() => {}));
+    set("pause", () => videoRef.current?.pause());
+    set("seekbackward", () => seekBy(-10));
+    set("seekforward", () => seekBy(10));
+    return () => ["play", "pause", "seekbackward", "seekforward"].forEach((a) => set(a, null));
+  }, [title, poster, seekBy]);
+
+  // Reflect play/pause state on the OS now-playing UI.
+  useEffect(() => {
+    const ms = (navigator as any).mediaSession;
+    if (ms) {
+      try { ms.playbackState = isPlaying ? "playing" : "paused"; } catch { /* ignore */ }
+    }
+  }, [isPlaying]);
+
   // keyboard shortcuts (only when this player has focus/hover)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
