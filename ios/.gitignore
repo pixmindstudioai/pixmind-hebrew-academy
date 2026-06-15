@@ -1,0 +1,21 @@
+# Xcode / build artifacts
+build/
+DerivedData/
+*.xcuserstate
+*.xcuserdatad
+xcuserdata/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+.DS_Store
+
+# Swift Package Manager / CocoaPods (if added later)
+.swiftpm/
+Pods/
+
+# Local secrets (never commit signing material or API keys)
+*.mobileprovision
+*.p12
+*.cer
