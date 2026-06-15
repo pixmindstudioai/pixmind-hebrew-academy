@@ -13,6 +13,73 @@ export interface UserModuleAccess {
   notes: string | null;
 }
 
+/**
+ * Singleton realtime manager for `user_module_access`.
+ *
+ * `useUserModuleAccess` is consumed by `useModuleAccess`, which is mounted by
+ * MANY components at once (e.g. every <ModuleCard> in a module list). If each
+ * caller created its own Supabase channel, they would all share the topic
+ * `user-access-<email>`; the 2nd+ caller receives the already-subscribed
+ * channel and calling `.on('postgres_changes', …)` on it throws:
+ *   "cannot add `postgres_changes` callbacks for realtime:… after `subscribe()`".
+ * That single throw (with no error boundary above it) blanked the whole page.
+ *
+ * To fix this we keep exactly ONE channel per email and ref-count the callers.
+ * The channel is created on the first subscriber and torn down when the last
+ * one unsubscribes. A monotonic suffix guarantees the topic never collides with
+ * a channel Supabase may still be tearing down asynchronously.
+ */
+type AccessRealtimeEntry = {
+  channel: ReturnType<typeof supabase.channel>;
+  refCount: number;
+  listeners: Set<() => void>;
+};
+
+const accessRealtimeChannels = new Map<string, AccessRealtimeEntry>();
+let accessChannelSeq = 0;
+
+const subscribeUserAccessRealtime = (email: string, onChange: () => void): (() => void) => {
+  const key = email.toLowerCase();
+  let entry = accessRealtimeChannels.get(key);
+
+  if (!entry) {
+    const listeners = new Set<() => void>();
+    accessChannelSeq += 1;
+    const channel = supabase
+      .channel(`user-access-${key}-${accessChannelSeq}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_module_access',
+          filter: `user_email=eq.${key}`,
+        },
+        () => {
+          listeners.forEach((cb) => cb());
+        }
+      )
+      .subscribe();
+
+    entry = { channel, refCount: 0, listeners };
+    accessRealtimeChannels.set(key, entry);
+  }
+
+  entry.refCount += 1;
+  entry.listeners.add(onChange);
+
+  return () => {
+    const current = accessRealtimeChannels.get(key);
+    if (!current) return;
+    current.listeners.delete(onChange);
+    current.refCount -= 1;
+    if (current.refCount <= 0) {
+      supabase.removeChannel(current.channel);
+      accessRealtimeChannels.delete(key);
+    }
+  };
+};
+
 export const useUserModuleAccess = () => {
   const { user, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
@@ -42,29 +109,18 @@ export const useUserModuleAccess = () => {
     staleTime: 2 * 60 * 1000, // 2 minutes for fresh access checks
   });
 
-  // Enable real-time subscription for user module access
+  // Enable real-time subscription for user module access via a shared,
+  // ref-counted channel so that many simultaneous callers (e.g. a grid of
+  // ModuleCards) never collide on the same realtime topic.
   useEffect(() => {
     if (!user?.email) return;
-    
-    const channel = supabase
-      .channel(`user-access-${user.email}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_module_access',
-          filter: `user_email=eq.${user.email.toLowerCase()}`
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['user-module-access', user.email] });
-        }
-      )
-      .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    const email = user.email;
+    const unsubscribe = subscribeUserAccessRealtime(email, () => {
+      queryClient.invalidateQueries({ queryKey: ['user-module-access', email] });
+    });
+
+    return unsubscribe;
   }, [user?.email, queryClient]);
 
   return query;

@@ -21,7 +21,6 @@ import { useModules, useUserProgress } from "@/hooks/useContentData";
 import { useModuleAccess } from "@/hooks/useUserModuleAccess";
 import { useBundles, useBundleAccess } from "@/hooks/useBundlesData";
 import { useAuth } from "@/hooks/useAuth";
-import { useUserModuleAccessRealtime } from "@/hooks/useUserModuleAccessRealtime";
 
 import type { Module } from "@/hooks/useContentData";
 import type { BundleWithModules, AccessState } from "@/types/bundle";
@@ -34,8 +33,9 @@ const CoursesGrid = () => {
   const { canAccessModule, userAccess, isLegacyFreeUser } = useModuleAccess();
   const { canAccessBundle } = useBundleAccess();
 
-  // Enable real-time updates for module access
-  useUserModuleAccessRealtime();
+  // Real-time module-access updates are already provided by useModuleAccess()
+  // above (via the shared, ref-counted subscription in useUserModuleAccess),
+  // so a separate useUserModuleAccessRealtime() subscription is redundant.
 
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("order");
