@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Module } from "@/hooks/useContentData";
 import type { AccessState } from "@/types/bundle";
 import { cn } from "@/lib/utils";
+import { isNativeIOSApp } from "@/lib/platform";
 
 interface CourseCardProps {
   module: Module;
@@ -31,7 +32,8 @@ const CourseCard = ({
   const isFree = accessState === 'free';
 
   const handleClick = () => {
-    if (isLocked) {
+    // App is view-only — a locked course opens its (gated) content, never a purchase flow.
+    if (isLocked && !isNativeIOSApp()) {
       onPurchase();
     } else {
       onNavigate();
@@ -132,7 +134,7 @@ const CourseCard = ({
           {isLocked ? (
             <>
               <Lock className="w-4 h-4" />
-              לרכישה
+              {isNativeIOSApp() ? 'פרטים' : 'לרכישה'}
             </>
           ) : (
             <>
