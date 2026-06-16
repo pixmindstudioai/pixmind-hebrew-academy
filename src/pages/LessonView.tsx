@@ -25,9 +25,32 @@ import {
   useModules
 } from "@/hooks/useContentData";
 import { useAuth } from "@/hooks/useAuth";
+import { isNativeIOSApp } from "@/hooks/useIapPurchase";
 import { useMyProfile } from "@/hooks/useGamification";
 import { useCanProceedToLesson, useLessonTask, useUserTaskSubmission, getEffectiveStatus } from "@/hooks/useTasksData";
 import { toast } from "sonner";
+
+// External payment / checkout processors. Inside the iOS app we must never surface a
+// link that steers to buying digital content outside Apple In-App Purchase (App Store 3.1.1).
+// These are matched against a lesson's attached links[] and hidden when running in the app.
+const PAYMENT_URL_PATTERNS: RegExp[] = [
+  /meshulam\.co\.il/i,
+  /sumit\.co\.il/i,
+  /grow\.(business|link)/i,
+  /tranzila/i,
+  /cardcom/i,
+  /payplus/i,
+  /pelecard/i,
+  /icount/i,
+  /greeninvoice/i,
+  /paypal\.(com|me)/i,
+  /stripe\.com/i,
+  /\bcheckout\./i,
+  /\/(checkout|pay|payment|billing|subscribe|buy)(\/|\?|#|$)/i,
+];
+
+const isExternalPaymentUrl = (url: string): boolean =>
+  typeof url === "string" && PAYMENT_URL_PATTERNS.some((re) => re.test(url));
 
 const LessonView = () => {
   const { lessonId } = useParams();
@@ -167,6 +190,17 @@ const LessonView = () => {
   // content before registering (App Store Guideline 5.1.1(v)). Paid modules still
   // require login, because access there is purchase/account-based — which Apple allows.
   const isModulePaid = !!((lesson.chapters as any)?.modules?.is_paid);
+
+  // Inside the iOS app, strip external payment/checkout links from a lesson's attached
+  // links so the app never steers to a non-Apple purchase (App Store 3.1.1). On the web
+  // these links are kept. Invalid (non-http) links are filtered out here too.
+  const nativeApp = isNativeIOSApp();
+  const visibleLessonLinks: any[] = (Array.isArray(lesson.links) ? lesson.links : []).filter(
+    (link: any) =>
+      link?.url &&
+      (link.url.startsWith('http://') || link.url.startsWith('https://')) &&
+      !(nativeApp && isExternalPaymentUrl(link.url))
+  );
 
   return (
     <AuthGuard requireAuth={isModulePaid}>
@@ -318,22 +352,14 @@ const LessonView = () => {
                 </CardContent>
               </Card>
 
-              {/* Lesson Links Section - Issue A fix */}
-              {lesson.links && Array.isArray(lesson.links) && lesson.links.length > 0 && (
+              {/* Lesson Links Section — payment/checkout links are stripped in the iOS app (3.1.1) */}
+              {visibleLessonLinks.length > 0 && (
                 <Card className="glass-card">
                   <CardHeader>
                     <CardTitle className="text-lg">לינקים מצורפים</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {lesson.links.map((link: any, index: number) => {
-                      // Validate URL
-                      const isValidUrl = link.url && (link.url.startsWith('http://') || link.url.startsWith('https://'));
-                      
-                      if (!isValidUrl) {
-                        console.warn('Invalid URL found in lesson links:', link.url);
-                        return null;
-                      }
-                      
+                    {visibleLessonLinks.map((link: any, index: number) => {
                       return (
                         <div
                           key={index}

@@ -107,13 +107,21 @@ const CourseDetail = () => {
   // Filter chapters based on visibility
   const visibleChapters = filterVisibleChapters(chapters, allowedCohortIds);
 
+  // Resolve the real first lesson for the "Start course" CTA (previously navigated to a
+  // broken '/lesson/first-lesson-id' placeholder → NotFound; a Guideline 2.1 risk).
+  const firstVisibleChapter = visibleChapters[0];
+  const { data: firstChapterLessons = [] } = useLessons(firstVisibleChapter?.id || '', 'active');
+  const firstVisibleLesson = firstVisibleChapter
+    ? filterVisibleLessons(firstChapterLessons, firstVisibleChapter, allowedCohortIds)[0]
+    : undefined;
+
   const handleLessonClick = (lesson: any) => {
     navigate(`/lesson/${lesson.id}`);
   };
 
   const handleStartCourse = () => {
-    if (visibleChapters.length > 0 && visibleChapters[0]) {
-      navigate(`/lesson/first-lesson-id`);
+    if (firstVisibleLesson) {
+      navigate(`/lesson/${firstVisibleLesson.id}`);
     }
   };
 
