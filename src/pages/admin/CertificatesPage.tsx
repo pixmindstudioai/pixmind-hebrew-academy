@@ -70,11 +70,6 @@ const CertificatesPage = () => {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('גודל הקובץ לא יכול לעבור 5MB');
-      return;
-    }
-
     setUploading(true);
     try {
       const url = await uploadCertificateTemplateImage(file, selectedModuleId);
@@ -192,7 +187,7 @@ const CertificatesPage = () => {
                 </Button>
               )}
               <span className="text-xs text-muted-foreground">
-                PNG / JPG / WebP, עד 5MB. מומלץ יחס 4:3 (לנדסקייפ)
+                PNG / JPG / WebP. מומלץ יחס 4:3 (לנדסקייפ), רזולוציה גבוהה
               </span>
             </div>
 
