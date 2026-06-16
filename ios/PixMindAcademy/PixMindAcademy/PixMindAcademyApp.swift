@@ -42,7 +42,10 @@ struct WebShellRootView: View {
     var body: some View {
         ZStack {
             WebAppView(url: WebShellConfig.startURL, isLoading: $isLoading)
-                .ignoresSafeArea(.container, edges: .bottom)
+                // Full-bleed: the web fills the whole screen (incl. under the status bar / home
+                // indicator). The web reads env(safe-area-inset-*) (viewport-fit=cover) and pads
+                // its sticky top bars / bottom nav so nothing is hidden behind the system UI.
+                .ignoresSafeArea()
 
             if isLoading {
                 LaunchLoadingView()

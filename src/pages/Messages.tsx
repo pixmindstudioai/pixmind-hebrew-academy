@@ -41,7 +41,7 @@ export default function Messages() {
       </div>
 
       <Card className="glass-card overflow-hidden">
-        <div className="grid h-[calc(100svh-9rem)] min-h-[360px] sm:min-h-[480px] lg:h-[calc(100vh-13rem)] lg:grid-cols-[320px_1fr]">
+        <div className="grid h-[calc(100svh-9rem-env(safe-area-inset-top))] min-h-[360px] sm:min-h-[480px] lg:h-[calc(100vh-13rem)] lg:grid-cols-[320px_1fr]">
           {/* Conversation list — full width on mobile only when no partner is open */}
           <div
             className={`min-h-0 border-l lg:block ${selectedId ? "hidden lg:block" : "block"}`}

@@ -192,7 +192,7 @@ const GroupChatView = ({ group, onBack }: GroupChatViewProps) => {
   });
   
   return (
-    <div className="h-[calc(100dvh-4rem)] flex flex-col" dir="rtl">
+    <div className="h-[calc(100dvh-4rem-env(safe-area-inset-top))] flex flex-col" dir="rtl">
       {/* Chat Header */}
       <div className="bg-card border-b px-4 py-3 flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={onBack}>

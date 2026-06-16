@@ -23,7 +23,7 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-l border-border/60 bg-sidebar lg:flex">
+    <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-l border-border/60 bg-sidebar lg:flex pt-[env(safe-area-inset-top)]">
       {/* Brand */}
       <Link to="/" className="flex items-center gap-2.5 px-5 py-5">
         <img src="/logo.png" alt="PixMind Studio Academy" className="h-9 w-auto" />

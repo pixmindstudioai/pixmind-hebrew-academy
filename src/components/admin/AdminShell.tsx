@@ -150,7 +150,7 @@ const AdminShell = ({ children }: { children?: ReactNode }) => {
   return (
     <div className="min-h-screen bg-background text-foreground" dir="rtl">
       {/* Top Bar */}
-      <header className="bg-card border-b border-border/50 h-16 flex items-center justify-between px-4 md:px-6 sticky top-0 z-50">
+      <header className="bg-card border-b border-border/50 h-16 flex items-center justify-between px-4 md:px-6 sticky top-0 z-50 pt-[env(safe-area-inset-top)] box-content">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -205,7 +205,7 @@ const AdminShell = ({ children }: { children?: ReactNode }) => {
           className={cn(
             "bg-card border-l border-border/50 transition-all duration-300 flex-shrink-0 overflow-y-auto scrollbar-hide",
             sidebarOpen ? "w-[85vw] max-w-72" : "w-0",
-            "fixed md:sticky top-16 z-40 h-[calc(100vh-4rem)]"
+            "fixed md:sticky top-[calc(4rem+env(safe-area-inset-top))] z-40 h-[calc(100vh-4rem-env(safe-area-inset-top))]"
           )}
         >
           <nav className={cn(
@@ -253,7 +253,7 @@ const AdminShell = ({ children }: { children?: ReactNode }) => {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 md:p-6 overflow-x-hidden w-full min-h-[calc(100vh-4rem)]">
+        <main className="flex-1 p-4 md:p-6 overflow-x-hidden w-full min-h-[calc(100vh-4rem-env(safe-area-inset-top))]">
           <ErrorBoundary label="טעינת העמוד">
             {children ?? <Outlet />}
           </ErrorBoundary>
