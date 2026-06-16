@@ -33,11 +33,11 @@ export function AppShell() {
   }
 
   return (
-    <div className="min-h-screen bg-background lg:flex">
+    <div className="min-h-screen bg-background md:flex">
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar />
-        <main className="flex-1 pb-24 lg:pb-10">
+        <main className="flex-1 pb-24 md:pb-10">
           <Outlet />
         </main>
       </div>

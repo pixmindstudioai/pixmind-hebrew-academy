@@ -24,17 +24,17 @@ export function TopBar() {
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-md pt-[env(safe-area-inset-top)]">
       <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
         {/* Mobile brand */}
-        <Link to="/" className="lg:hidden">
+        <Link to="/" className="md:hidden">
           <img src="/logo.png" alt="PixMind" className="h-8 w-auto" />
         </Link>
 
         {/* Page title (desktop) */}
         {current && (
-          <h1 className="hidden font-heading text-lg font-bold text-foreground lg:block">{current.label}</h1>
+          <h1 className="hidden font-heading text-lg font-bold text-foreground md:block">{current.label}</h1>
         )}
 
         {/* Search (desktop) */}
-        <MemberSearch className="mr-2 hidden flex-1 lg:block lg:max-w-xs" />
+        <MemberSearch className="mr-2 hidden flex-1 md:block md:max-w-xs" />
 
         <div className="mr-auto flex items-center gap-2 lg:mr-0">
           {/* XP / Level / Streak chips */}

@@ -5,10 +5,21 @@ import { Loader2 } from 'lucide-react';
 
 interface AuthGuardProps {
   children: React.ReactNode;
+  /**
+   * When false, the guard is a pass-through and renders children for everyone.
+   * Used so that free / non-account content stays browsable without a login wall
+   * (App Store Guideline 5.1.1(v)), while paid (account-based) content still gates.
+   */
+  requireAuth?: boolean;
 }
 
-const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
+const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireAuth = true }) => {
   const { isAuthenticated, isLoading } = useAuth();
+
+  // Guard disabled - public content, render for everyone (no registration wall).
+  if (!requireAuth) {
+    return <>{children}</>;
+  }
 
   // Loading state - show spinner while checking auth
   if (isLoading) {

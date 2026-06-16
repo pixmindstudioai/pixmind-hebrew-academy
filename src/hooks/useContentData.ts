@@ -349,7 +349,8 @@ export const useLesson = (lessonId: string) => {
             module_id,
             modules (
               id,
-              title
+              title,
+              is_paid
             )
           )
         `)

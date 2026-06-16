@@ -270,7 +270,7 @@ const CoursesGrid = () => {
               חבילות קורסים
             </h2>
           )}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {filteredBundles.map((bundle) => (
               <BundleCard
                 key={bundle.id}

@@ -41,16 +41,16 @@ export default function Messages() {
       </div>
 
       <Card className="glass-card overflow-hidden">
-        <div className="grid h-[calc(100svh-9rem-env(safe-area-inset-top))] min-h-[360px] sm:min-h-[480px] lg:h-[calc(100vh-13rem)] lg:grid-cols-[320px_1fr]">
+        <div className="grid h-[calc(100svh-9rem-env(safe-area-inset-top))] min-h-[360px] sm:min-h-[480px] md:h-[calc(100vh-13rem)] md:grid-cols-[320px_1fr]">
           {/* Conversation list — full width on mobile only when no partner is open */}
           <div
-            className={`min-h-0 border-l lg:block ${selectedId ? "hidden lg:block" : "block"}`}
+            className={`min-h-0 border-l md:block ${selectedId ? "hidden md:block" : "block"}`}
           >
             <ConversationList selectedId={selectedId} onSelect={handleSelect} />
           </div>
 
           {/* Thread pane */}
-          <div className={`min-h-0 ${selectedId ? "block" : "hidden lg:block"}`}>
+          <div className={`min-h-0 ${selectedId ? "block" : "hidden md:block"}`}>
             {selectedId ? (
               <ChatThread otherId={selectedId} onBack={handleBack} />
             ) : (

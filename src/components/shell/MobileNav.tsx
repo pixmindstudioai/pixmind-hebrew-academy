@@ -6,7 +6,7 @@ import { mobileNav, isActivePath } from "./navItems";
 export function MobileNav() {
   const location = useLocation();
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-background/90 backdrop-blur-md lg:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-background/90 backdrop-blur-md md:hidden">
       <div className="mx-auto flex max-w-md items-stretch justify-around px-1 pb-[env(safe-area-inset-bottom)]">
         {mobileNav.map(({ href, label, icon: Icon }) => {
           const active = isActivePath(location.pathname, href);

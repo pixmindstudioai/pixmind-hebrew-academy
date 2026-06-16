@@ -187,7 +187,7 @@ const MemberDashboard = () => {
           ))}
         </div>
         <Skeleton className="mt-6 h-32 w-full rounded-2xl" />
-        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <div className="mt-6 grid gap-6 md:grid-cols-2">
           <Skeleton className="h-72 rounded-2xl" />
           <Skeleton className="h-72 rounded-2xl" />
         </div>
@@ -296,7 +296,7 @@ const MemberDashboard = () => {
       </Card>
 
       {/* Two-column: leaderboard + badges/community */}
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+      <div className="mt-6 grid gap-6 md:grid-cols-2">
         {/* Leaderboard */}
         <Card className="border-border/40">
           <CardContent className="p-5">

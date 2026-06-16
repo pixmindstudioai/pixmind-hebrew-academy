@@ -163,8 +163,13 @@ const LessonView = () => {
   // Combined blocking - blocked by previous task, current lesson's mandatory task, or XP gate.
   const isLessonBlocked = isBlockedByPreviousTask || isBlockedByCurrentTask || isBlockedByXp;
 
+  // Free lessons stay browsable without an account so visitors can explore the
+  // content before registering (App Store Guideline 5.1.1(v)). Paid modules still
+  // require login, because access there is purchase/account-based — which Apple allows.
+  const isModulePaid = !!((lesson.chapters as any)?.modules?.is_paid);
+
   return (
-    <AuthGuard>
+    <AuthGuard requireAuth={isModulePaid}>
     <AccessGuard 
       moduleId={lesson.chapters?.module_id!} 
       moduleTitle={lesson.chapters?.title}
@@ -241,9 +246,9 @@ const LessonView = () => {
             <span className="text-foreground truncate max-w-[60vw] sm:max-w-none">{lesson.title}</span>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {/* Main Content */}
-            <div className="lg:col-span-2 space-y-6 sm:space-y-8">
+            <div className="md:col-span-2 space-y-6 sm:space-y-8">
               {/* Lesson Thumbnail - only show for text lessons without video */}
               {lesson.thumbnail_url && !lesson.video_url && lesson.lesson_type !== 'video' && (
                 <div className="aspect-video w-full rounded-lg overflow-hidden bg-muted">
