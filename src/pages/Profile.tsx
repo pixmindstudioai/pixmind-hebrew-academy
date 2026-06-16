@@ -57,6 +57,7 @@ import {
   type BadgeItem,
 } from "@/components/gamification";
 import { CoverImageUpload } from "@/components/CoverImageUpload";
+import { RestorePurchasesButton } from "@/components/RestorePurchasesButton";
 
 type ProfileLink = { label: string; url: string };
 
@@ -463,10 +464,13 @@ const Profile = () => {
           {/* Actions */}
           <div className="flex w-full shrink-0 gap-2 pb-1 sm:w-auto">
             {isSelf ? (
-              <Button onClick={openEdit} className="button-glow gap-2">
-                <Pencil className="h-4 w-4" />
-                עריכת פרופיל
-              </Button>
+              <>
+                <Button onClick={openEdit} className="button-glow gap-2">
+                  <Pencil className="h-4 w-4" />
+                  עריכת פרופיל
+                </Button>
+                <RestorePurchasesButton className="gap-2" />
+              </>
             ) : (
               <>
                 <Button

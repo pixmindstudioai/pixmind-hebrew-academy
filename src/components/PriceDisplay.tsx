@@ -2,7 +2,6 @@ import { calculateSaleInfo, formatPrice } from '@/lib/saleUtils';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Gift } from 'lucide-react';
-import { isNativeIOSApp } from '@/lib/platform';
 
 interface PriceDisplayProps {
   module: {
@@ -20,8 +19,6 @@ interface PriceDisplayProps {
 }
 
 export const PriceDisplay = ({ module, size = 'md', className, isLegacyFreeUser = false }: PriceDisplayProps) => {
-  // No prices inside the iOS app — purchasing is web-only (App Store guideline 3.1.1).
-  if (isNativeIOSApp()) return null;
   const saleInfo = calculateSaleInfo(module);
 
   const sizeClasses = {

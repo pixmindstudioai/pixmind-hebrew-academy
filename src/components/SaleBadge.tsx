@@ -2,7 +2,6 @@ import { Badge } from '@/components/ui/badge';
 import { Timer, Zap } from 'lucide-react';
 import { calculateSaleInfo } from '@/lib/saleUtils';
 import { cn } from '@/lib/utils';
-import { isNativeIOSApp } from '@/lib/platform';
 
 interface SaleBadgeProps {
   module: {
@@ -18,8 +17,6 @@ interface SaleBadgeProps {
 }
 
 export const SaleBadge = ({ module, size = 'md', showCountdown = true, className }: SaleBadgeProps) => {
-  // Hidden inside the iOS app — purchasing is web-only (App Store guideline 3.1.1).
-  if (isNativeIOSApp()) return null;
   const saleInfo = calculateSaleInfo(module);
 
   if (!saleInfo.isActive) return null;

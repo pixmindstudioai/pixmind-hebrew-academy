@@ -23,7 +23,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ModuleCard from "@/components/shared/ModuleCard";
-import { isNativeIOSApp } from "@/lib/platform";
 import { useAuth } from "@/hooks/useAuth";
 import { useVerifiedModules, useUserProgress } from "@/hooks/useContentData";
 import { useModuleAccess } from "@/hooks/useUserModuleAccess";
@@ -417,10 +416,7 @@ const MarketingLanding = () => {
 
   const handleModuleClick = (module: any) => {
     if (!canAccessModule(module)) {
-      // App is view-only — open the (gated) course page, never an external purchase link.
-      if (isNativeIOSApp()) {
-        window.location.href = `/courses/${module.id}`;
-      } else if (module.payment_url) {
+      if (module.payment_url) {
         window.open(module.payment_url, "_blank");
       } else {
         toast.error("מודול זה בתשלום. אין לך גישה.");
