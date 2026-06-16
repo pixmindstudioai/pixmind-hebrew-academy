@@ -1,10 +1,20 @@
-import { Link, useLocation } from "react-router-dom";
-import { Bell } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { LogOut, User } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { XpChip, LevelChip, StreakChip } from "@/components/gamification";
 import { MemberSearch } from "./MemberSearch";
 import { useMyProfile } from "@/hooks/useGamification";
+import { supabase } from "@/integrations/supabase/client";
+import { NotificationBell } from "@/components/NotificationBell";
 import { memberNav, isActivePath } from "./navItems";
 
 function initials(name?: string | null) {
@@ -14,7 +24,15 @@ function initials(name?: string | null) {
 export function TopBar() {
   const { data: profile } = useMyProfile();
   const location = useLocation();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const current = memberNav.find((n) => isActivePath(location.pathname, n.href));
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    queryClient.clear(); // drop user-scoped cache so the next login starts clean
+    navigate("/");
+  };
 
   const xp = profile?.xp_total ?? 0;
   const level = profile?.level ?? 1;
@@ -48,18 +66,31 @@ export function TopBar() {
             <XpChip xp={xp} />
           </div>
 
-          <Button asChild variant="ghost" size="icon" className="relative h-9 w-9 text-muted-foreground hover:text-foreground" title="התראות">
-            <Link to="/announcements">
-              <Bell className="h-5 w-5" />
-            </Link>
-          </Button>
+          <NotificationBell />
 
-          <Link to="/profile" className="shrink-0">
-            <Avatar className="h-9 w-9 ring-2 ring-primary/30 transition hover:ring-primary/60">
-              <AvatarImage src={profile?.profile_picture_url ?? undefined} />
-              <AvatarFallback className="text-xs">{initials(profile?.full_name)}</AvatarFallback>
-            </Avatar>
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="shrink-0 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-primary/60">
+              <Avatar className="h-9 w-9 ring-2 ring-primary/30 transition hover:ring-primary/60">
+                <AvatarImage src={profile?.profile_picture_url ?? undefined} />
+                <AvatarFallback className="text-xs">{initials(profile?.full_name)}</AvatarFallback>
+              </Avatar>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuLabel className="truncate">{profile?.full_name || "חבר/ה"}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link to="/profile" className="cursor-pointer gap-2">
+                  <User className="h-4 w-4" />
+                  הפרופיל שלי
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={logout} className="cursor-pointer gap-2 text-destructive focus:text-destructive">
+                <LogOut className="h-4 w-4" />
+                התנתקות
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>

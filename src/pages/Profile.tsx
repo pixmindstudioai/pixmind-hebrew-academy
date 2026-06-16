@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import {
   Zap,
   Star,
@@ -15,6 +15,7 @@ import {
   CalendarDays,
   Camera,
   Loader2,
+  LogOut,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -98,6 +99,13 @@ const Profile = () => {
   const targetId = isSelf ? myId ?? undefined : userId;
 
   const qc = useQueryClient();
+  const navigate = useNavigate();
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    qc.clear(); // drop user-scoped cache so the next login starts clean
+    navigate("/");
+  };
 
   // Data sources — self uses the gamified "my-profile", others the public view.
   const myProfileQ = useMyProfile();
@@ -470,6 +478,14 @@ const Profile = () => {
                   עריכת פרופיל
                 </Button>
                 <RestorePurchasesButton className="gap-2" />
+                <Button
+                  onClick={logout}
+                  variant="outline"
+                  className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <LogOut className="h-4 w-4" />
+                  התנתקות
+                </Button>
               </>
             ) : (
               <>
