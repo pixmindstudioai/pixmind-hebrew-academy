@@ -46,6 +46,7 @@ import Messages from "./pages/Messages";
 import Leaderboard from "./pages/Leaderboard";
 import BadgesPage from "./pages/admin/BadgesPage";
 import FeedModerationPage from "./pages/admin/FeedModerationPage";
+import CertificatesPage from "./pages/admin/CertificatesPage";
 import Checkout from "./pages/Checkout";
 
 const queryClient = new QueryClient();
@@ -86,6 +87,9 @@ const App = () => (
                 </Route>
                 <Route path="badges" element={<AdminShell />}>
                   <Route index element={<BadgesPage />} />
+                </Route>
+                <Route path="certificates" element={<AdminShell />}>
+                  <Route index element={<CertificatesPage />} />
                 </Route>
                 <Route path="announcements" element={<AdminShell />}>
                   <Route index element={<AnnouncementsPage />} />

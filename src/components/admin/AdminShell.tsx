@@ -21,7 +21,8 @@ import {
   ClipboardCheck,
   LayoutDashboard,
   Award,
-  Newspaper
+  Newspaper,
+  GraduationCap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -99,6 +100,12 @@ const AdminShell = ({ children }: { children?: ReactNode }) => {
       label: 'תגים והישגים',
       icon: Award,
       description: 'יצירה וניהול של תגים, רמות והענקה לתלמידים'
+    },
+    {
+      href: '/admin/certificates',
+      label: 'תעודות',
+      icon: GraduationCap,
+      description: 'עיצוב ועריכת תבניות תעודות סיום לפי קורס'
     },
     {
       href: '/admin/students',

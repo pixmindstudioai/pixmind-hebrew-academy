@@ -1,7 +1,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowRight, Clock, BookOpen, Users, Star, Play, Gift, Sparkles } from "lucide-react";
+import { ArrowRight, Clock, BookOpen, Users, Star, Play, Gift, Sparkles, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -19,6 +19,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { ProgressRing } from "@/components/gamification";
 import { LESSON_XP } from "@/lib/levels";
 import { useMyProfile } from "@/hooks/useGamification";
+import { useModuleCertificate, useIssueCertificate } from "@/hooks/useCertificates";
 
 // Wrapper component to fetch lessons for each chapter with visibility filtering
 const ChapterLessonsWrapper = ({
@@ -88,6 +89,24 @@ const CourseDetail = () => {
   const { isLegacyFreeUser } = useModuleAccess();
   const { data: myProfile } = useMyProfile();
   const xpTotal = myProfile?.xp_total ?? 0;
+
+  // Certificate hooks (only meaningful when viewing own progress)
+  const { data: issuedCert } = useModuleCertificate(moduleId);
+  const issueCertificate = useIssueCertificate();
+
+  const handleDownloadCertificate = async () => {
+    if (issuedCert?.certificate_url) {
+      window.open(issuedCert.certificate_url, '_blank');
+      return;
+    }
+    if (!moduleId) return;
+    try {
+      const url = await issueCertificate.mutateAsync(moduleId);
+      window.open(url, '_blank');
+    } catch {
+      // error already toasted inside the mutation
+    }
+  };
 
   // Real visible-lesson counts reported by each chapter wrapper, keyed by chapter id.
   const [lessonCounts, setLessonCounts] = useState<Record<string, number>>({});
@@ -228,14 +247,29 @@ const CourseDetail = () => {
                   </div>
                 )}
 
-                <Button 
-                  size="lg" 
-                  className="button-glow text-lg px-8 py-6"
-                  onClick={handleStartCourse}
-                >
-                  <Play className="w-5 h-5 ml-2" />
-                  {progressPercentage > 0 ? 'המשך לימוד' : 'התחל קורס'}
-                </Button>
+                <div className="flex flex-wrap gap-3">
+                  <Button 
+                    size="lg" 
+                    className="button-glow text-lg px-8 py-6"
+                    onClick={handleStartCourse}
+                  >
+                    <Play className="w-5 h-5 ml-2" />
+                    {progressPercentage > 0 ? 'המשך לימוד' : 'התחל קורס'}
+                  </Button>
+
+                  {user && progressPercentage === 100 && (
+                    <Button
+                      size="lg"
+                      variant="secondary"
+                      className="text-lg px-8 py-6 gap-2 border border-yellow-400/60 bg-yellow-400/10 text-yellow-300 hover:bg-yellow-400/20"
+                      onClick={handleDownloadCertificate}
+                      disabled={issueCertificate.isPending}
+                    >
+                      <GraduationCap className="w-5 h-5" />
+                      {issueCertificate.isPending ? 'מכין תעודה...' : issuedCert?.certificate_url ? 'פתח תעודה' : 'הורד תעודה'}
+                    </Button>
+                  )}
+                </div>
               </div>
 
               <div className="lg:justify-self-end">

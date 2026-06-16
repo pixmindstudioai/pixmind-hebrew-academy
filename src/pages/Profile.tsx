@@ -49,6 +49,7 @@ import { useEarnedBadges } from "@/hooks/useGamification";
 import { usePublicProfile } from "@/hooks/useProfiles";
 import { useFollowStats, useToggleFollow } from "@/hooks/useFollows";
 import { useFeed } from "@/hooks/useFeed";
+import { useMyCertificates } from "@/hooks/useCertificates";
 import { useModules, useUserProgress } from "@/hooks/useContentData";
 
 import {
@@ -265,15 +266,20 @@ const Profile = () => {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     full_name: "",
+    full_name_en: "",
     headline: "",
     bio: "",
     cover_image_url: "",
     linksText: "",
   });
 
+  // Certificates (own profile only)
+  const { data: myCertificates = [] } = useMyCertificates();
+
   const openEdit = () => {
     setForm({
       full_name: profile?.full_name ?? "",
+      full_name_en: (profile as any)?.full_name_en ?? "",
       headline: profile?.headline ?? "",
       bio: profile?.bio ?? "",
       cover_image_url: coverUrl ?? profile?.cover_image_url ?? "",
@@ -304,11 +310,12 @@ const Profile = () => {
         .from("users")
         .update({
           full_name: form.full_name.trim() || null,
+          full_name_en: form.full_name_en.trim() || null,
           headline: form.headline.trim() || null,
           bio: form.bio.trim() || null,
           cover_image_url: form.cover_image_url.trim() || null,
           links: parsedLinks as any,
-        })
+        } as any)
         .eq("id", myId);
 
       if (error) throw error;
@@ -751,6 +758,46 @@ const Profile = () => {
         </TabsContent>
       </Tabs>
 
+      {/* My Certificates (self only) */}
+      {isSelf && myCertificates.length > 0 && (
+        <Card className="glass-card mt-4">
+          <CardContent className="p-4 sm:p-5">
+            <div className="mb-3 flex items-center gap-2">
+              <Award className="h-5 w-5 text-primary" />
+              <h2 className="font-heading text-lg font-semibold">התעודות שלי</h2>
+            </div>
+            <div className="space-y-2">
+              {myCertificates.map((cert) => (
+                <div
+                  key={cert.id}
+                  className="flex items-center justify-between rounded-xl border border-border/50 bg-card/50 px-4 py-3"
+                >
+                  <div>
+                    <p className="font-medium text-sm text-foreground">
+                      {(cert.modules as any)?.title ?? 'קורס'}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {new Date(cert.issued_at).toLocaleDateString('he-IL', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    </p>
+                  </div>
+                  {cert.certificate_url && (
+                    <a
+                      href={cert.certificate_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-medium text-primary hover:underline flex items-center gap-1"
+                    >
+                      <Award className="h-4 w-4" />
+                      פתח תעודה
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Edit dialog (self only) */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent dir="rtl" className="w-[95vw] max-w-[95vw] max-h-[90vh] overflow-y-auto sm:max-w-lg">
@@ -809,6 +856,17 @@ const Profile = () => {
                 value={form.full_name}
                 onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))}
                 placeholder="השם שלך"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="full_name_en">שם באנגלית (לתעודה)</Label>
+              <Input
+                id="full_name_en"
+                value={form.full_name_en}
+                onChange={(e) => setForm((f) => ({ ...f, full_name_en: e.target.value }))}
+                placeholder="Your name in English"
+                dir="ltr"
               />
             </div>
 
