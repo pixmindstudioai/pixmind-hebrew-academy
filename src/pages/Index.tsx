@@ -26,6 +26,7 @@ import ModuleCard from "@/components/shared/ModuleCard";
 import { useAuth } from "@/hooks/useAuth";
 import { useVerifiedModules, useUserProgress } from "@/hooks/useContentData";
 import { useModuleAccess } from "@/hooks/useUserModuleAccess";
+import { isNativeIOSApp } from "@/hooks/useIapPurchase";
 import { useMyProfile, useEarnedBadges } from "@/hooks/useGamification";
 import { useLeaderboard } from "@/hooks/useProfiles";
 import { useFeed } from "@/hooks/useFeed";
@@ -416,7 +417,11 @@ const MarketingLanding = () => {
 
   const handleModuleClick = (module: any) => {
     if (!canAccessModule(module)) {
-      if (module.payment_url) {
+      // In the iOS app, never open an external payment page (App Store 3.1.1) — send
+      // the user to the course page, where the in-app purchase flow handles it.
+      if (isNativeIOSApp()) {
+        window.location.href = `/courses/${module.id}`;
+      } else if (module.payment_url) {
         window.open(module.payment_url, "_blank");
       } else {
         toast.error("מודול זה בתשלום. אין לך גישה.");

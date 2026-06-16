@@ -136,7 +136,8 @@ const CoursesGrid = () => {
       return;
     }
     if (!appleProductId) {
-      toast.error('רכישה זו אינה זמינה באפליקציה כרגע. ניתן לרכוש באתר.');
+      // Never steer to an external purchase method from inside the app (App Store 3.1.1).
+      toast.error('רכישת פריט זה אינה זמינה כרגע.');
       return;
     }
     const tid = toast.loading('פותח את התשלום...');

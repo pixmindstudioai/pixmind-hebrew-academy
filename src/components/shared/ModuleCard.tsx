@@ -12,6 +12,7 @@ import {
 import { Module } from "@/hooks/useContentData";
 import { useModuleAccess } from "@/hooks/useUserModuleAccess";
 import { useAuth } from "@/hooks/useAuth";
+import { isNativeIOSApp } from "@/hooks/useIapPurchase";
 import { toast } from "sonner";
 import { SaleBadge } from "@/components/SaleBadge";
 import { PriceDisplay } from "@/components/PriceDisplay";
@@ -71,7 +72,11 @@ const ModuleCard = ({
     }
 
     if (!moduleAccess) {
-      if (module.payment_url) {
+      // In the iOS app, never open an external payment page (App Store 3.1.1) — send
+      // the user to the course page, where the in-app purchase flow handles it.
+      if (isNativeIOSApp()) {
+        navigate(`/courses/${module.id}`);
+      } else if (module.payment_url) {
         window.open(module.payment_url, '_blank');
       } else {
         toast.error('מודול זה בתשלום. אין לך גישה.');

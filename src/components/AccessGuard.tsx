@@ -110,8 +110,9 @@ const AccessGuard: React.FC<AccessGuardProps> = ({
                 {iapBusy ? 'מעבד...' : 'רכישת גישה למודול'}
               </Button>
             ) : (
+              // Never steer to an external purchase method from inside the app (App Store 3.1.1).
               <p className="text-sm text-muted-foreground">
-                לרכישת מודול זה, היכנס לאתר האקדמיה בדפדפן.
+                רכישת מודול זה אינה זמינה כרגע.
               </p>
             )
           ) : sumitConfigured ? (
