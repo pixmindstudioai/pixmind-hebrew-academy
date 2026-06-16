@@ -9,11 +9,11 @@
 	<key>signingStyle</key>
 	<string>manual</string>
 	<key>signingCertificate</key>
-	<string>iPhone Distribution: ariel aizenshtat (9QQZ7CBBSZ)</string>
+	<string>Apple Distribution: ariel aizenshtat (9QQZ7CBBSZ)</string>
 	<key>provisioningProfiles</key>
 	<dict>
 		<key>com.pixmind.academy</key>
-		<string>PixMind Academy App Store</string>
+		<string>PixMind Academy API Store</string>
 	</dict>
 	<key>destination</key>
 	<string>export</string>

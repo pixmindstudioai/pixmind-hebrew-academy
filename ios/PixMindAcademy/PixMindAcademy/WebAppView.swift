@@ -108,7 +108,7 @@ struct WebAppView: UIViewRepresentable {
         func startTransactionListener() {
             guard transactionListener == nil else { return }
             transactionListener = Task { [weak self] in
-                for await update in Transaction.updates {
+                for await update in StoreKit.Transaction.updates {
                     if case .verified(let transaction) = update {
                         await transaction.finish()
                         await self?.deliverTransaction(transaction)
@@ -118,7 +118,7 @@ struct WebAppView: UIViewRepresentable {
         }
 
         @MainActor
-        private func deliverTransaction(_ transaction: Transaction) {
+        private func deliverTransaction(_ transaction: StoreKit.Transaction) {
             var payload: [String: Any] = [
                 "transactionId": String(transaction.id),
                 "productId": transaction.productID,
