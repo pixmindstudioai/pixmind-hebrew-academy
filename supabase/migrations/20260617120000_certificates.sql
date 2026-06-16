@@ -13,11 +13,13 @@
 -- 1) Bilingual name -----------------------------------------------------
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS full_name_en text;
 
--- expose it on the safe public view (recreate with the extra column)
+-- expose it on the safe public view. NOTE: CREATE OR REPLACE VIEW can only ADD
+-- columns at the END (it cannot reorder/insert), so full_name_en is appended
+-- last to keep the existing column positions unchanged.
 CREATE OR REPLACE VIEW public.public_profiles AS
-  SELECT id, full_name, full_name_en, profile_picture_url, headline, bio,
+  SELECT id, full_name, profile_picture_url, headline, bio,
          cover_image_url, links, xp_total, level, current_streak,
-         longest_streak, created_at
+         longest_streak, created_at, full_name_en
   FROM public.users
   WHERE COALESCE(status, 'active') <> 'suspended';
 GRANT SELECT ON public.public_profiles TO authenticated, anon;
