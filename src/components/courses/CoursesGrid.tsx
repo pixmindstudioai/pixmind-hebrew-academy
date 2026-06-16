@@ -128,6 +128,13 @@ const CoursesGrid = () => {
 
   // In the iOS app, purchasing must go through Apple In-App Purchase (App Store policy).
   const purchaseViaIap = async (appleProductId?: string | null) => {
+    // A purchase is bound to the signed-in account (the verify step needs the session),
+    // so send logged-out visitors to login before opening the App Store sheet.
+    if (!isAuthenticated) {
+      toast.info('יש להתחבר כדי לרכוש');
+      navigate('/login');
+      return;
+    }
     if (!appleProductId) {
       toast.error('רכישה זו אינה זמינה באפליקציה כרגע. ניתן לרכוש באתר.');
       return;

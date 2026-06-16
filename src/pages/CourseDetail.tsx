@@ -11,7 +11,6 @@ import { useModules, useChapters, useLessons, useUserProgress, useUpdateProgress
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import AccessGuard from "@/components/AccessGuard";
-import AuthGuard from "@/components/AuthGuard";
 import { SaleBadge } from "@/components/SaleBadge";
 import { PriceDisplay } from "@/components/PriceDisplay";
 import { useUserCohortsForModule, filterVisibleChapters, filterVisibleLessons } from "@/hooks/useUserCohorts";
@@ -149,16 +148,9 @@ const CourseDetail = () => {
   const maxCourseXp = totalLessons * LESSON_XP;
 
   return (
-    <AuthGuard>
-    <AccessGuard 
-      moduleId={moduleId!} 
-      moduleTitle={module?.title}
-      paymentUrl={module?.payment_url}
-      isPaid={module?.is_paid}
-      wasFreeBefore={module?.was_free_before}
-      becamePaidAt={module?.became_paid_at}
-      appleProductId={module?.apple_product_id}
-    >
+    // The course overview (hero, stats, "what you'll learn") is public so visitors —
+    // including the iOS app per Guideline 5.1.1(v) — can browse it without an account.
+    // Only the actual lesson content below is gated by AccessGuard.
       <div className="min-h-screen bg-background" dir="rtl">
         {/* Hero Section */}
         <div className="relative bg-gradient-primary text-white overflow-hidden">
@@ -265,6 +257,15 @@ const CourseDetail = () => {
                   <BookOpen className="w-6 h-6" />
                   תוכן הקורס
                 </h2>
+                <AccessGuard
+                  moduleId={moduleId!}
+                  moduleTitle={module?.title}
+                  paymentUrl={module?.payment_url}
+                  isPaid={module?.is_paid}
+                  wasFreeBefore={module?.was_free_before}
+                  becamePaidAt={module?.became_paid_at}
+                  appleProductId={module?.apple_product_id}
+                >
                 {visibleChapters.map((chapter) => {
                   // Effective XP gate = the higher of the module's threshold and the chapter's own.
                   const requiredXp = Math.max(module.min_xp ?? 0, chapter.min_xp ?? 0);
@@ -289,6 +290,7 @@ const CourseDetail = () => {
                     <p>תוכן הקורס יתווסף בקרוב</p>
                   </div>
                 )}
+                </AccessGuard>
               </div>
             </div>
 
@@ -375,8 +377,6 @@ const CourseDetail = () => {
           </div>
         </div>
       </div>
-    </AccessGuard>
-    </AuthGuard>
   );
 };
 
