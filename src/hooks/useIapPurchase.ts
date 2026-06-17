@@ -59,6 +59,21 @@ export function isNativeIOSApp(): boolean {
   return typeof window !== 'undefined' && Boolean((window as any).webkit?.messageHandlers?.iap);
 }
 
+/**
+ * True inside any embedded WebView — the native iOS/Android app shells or
+ * in-app browsers (Instagram/Facebook/etc.). OAuth providers (Google in
+ * particular) reject embedded WebViews with `disallowed_useragent`, so social
+ * sign-in buttons are hidden here and shown only in real browsers.
+ */
+export function isEmbeddedWebView(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (isNativeIOSApp()) return true;
+  const ua = navigator.userAgent || '';
+  if (/Android/i.test(ua) && /\bwv\b/.test(ua)) return true; // Android System WebView
+  if (/(FBAN|FBAV|Instagram|Line\/|Twitter|GSA\/)/i.test(ua)) return true; // common in-app browsers
+  return false;
+}
+
 function postToNative(payload: Record<string, unknown>): Promise<IapMsg> {
   return new Promise((resolve) => {
     ensureCallback();

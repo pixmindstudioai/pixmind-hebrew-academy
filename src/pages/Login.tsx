@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { OAuthButtons } from '@/components/auth/OAuthButtons';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
 
@@ -182,6 +183,8 @@ const Login = () => {
               >
                 {isLoading ? 'מתחבר...' : 'התחבר'}
               </Button>
+
+              <OAuthButtons />
 
               {/* Sign Up Link */}
               <div className="text-center pt-2">
